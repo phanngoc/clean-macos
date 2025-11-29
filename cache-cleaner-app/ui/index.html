@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cache Cleaner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 700px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 20px; font-weight: 300; }
+    h2 { font-size: 16px; margin: 20px 0 10px; color: #888; }
+    .cache-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+    .cache-item {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .cache-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+    .cache-info { flex: 1; }
+    .cache-name { font-weight: 500; font-size: 15px; }
+    .cache-path { font-size: 11px; color: #888; margin-top: 3px; word-break: break-all; }
+    .cache-size { font-size: 14px; color: #4ade80; font-weight: 500; }
+    .cache-size.large { color: #f87171; }
+    .actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-scan { background: #3b82f6; color: #fff; }
+    .btn-preview { background: #8b5cf6; color: #fff; }
+    .btn-clean { background: #ef4444; color: #fff; }
+    .status { text-align: center; margin-top: 15px; padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.05); white-space: pre-line; }
+    .warning { background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+    .alert { background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+    .alert-title { font-weight: 600; margin-bottom: 8px; }
+    .total { text-align: center; font-size: 22px; margin: 15px 0; color: #4ade80; }
+    .ext-item { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #f87171; }
+    .section { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧹 Cache Cleaner</h1>
+    
+    <div id="warning" class="warning" style="display:none;">
+      ⚠️ Chrome is running. Close it before cleaning Chrome data.
+    </div>
+
+    <div id="extAlert" class="alert" style="display:none;">
+      <div class="alert-title">⚠️ Large Chrome Extensions Detected!</div>
+      <div id="extAlertContent"></div>
+    </div>
+
+    <div id="indexedDbAlert" class="alert" style="display:none;">
+      <div class="alert-title">⚠️ IndexedDB Storage Over 10MB Detected!</div>
+      <div id="indexedDbAlertContent"></div>
+    </div>
+
+    <div class="total">Total: <span id="totalSize">0 MB</span></div>
+
+    <div id="extSection" class="section" style="display:none;">
+      <h2>🧩 Large Extensions (>100MB)</h2>
+      <div id="extList" class="cache-list"></div>
+    </div>
+
+    <div id="indexedDbSection" class="section" style="display:none;">
+      <h2>💾 IndexedDB Origins</h2>
+      <div id="indexedDbList" class="cache-list"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-scan" id="btnScan">🔍 Scan</button>
+      <button class="btn-preview" id="btnPreview">👁 Preview</button>
+      <button class="btn-clean" id="btnClean">🗑 Clean Selected</button>
+    </div>
+
+    <div id="status" class="status" style="display:none;"></div>
+  </div>
+
+  <script>
+    let extensions = [];
+    let indexedDbItems = [];
+    const INDEXED_DB_THRESHOLD_MB = 10;
+    let invoke;
+
+    function formatSize(bytes) {
+      if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GB';
+      if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
+      if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
+      return bytes + ' bytes';
+    }
+
+    function showStatus(msg) {
+      const el = document.getElementById('status');
+      el.style.display = 'block';
+      el.textContent = msg;
+    }
+
+    function hideStatus() {
+      document.getElementById('status').style.display = 'none';
+    }
+
+    function renderExtensions() {
+      const section = document.getElementById('extSection');
+      const list = document.getElementById('extList');
+      const alert = document.getElementById('extAlert');
+      const alertContent = document.getElementById('extAlertContent');
+
+      if (!extensions.length) {
+        section.style.display = 'none';
+        alert.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      
+      const veryLarge = extensions.filter(e => e.size > 500 * 1024 * 1024);
+      if (veryLarge.length) {
+        alert.style.display = 'block';
+        alertContent.innerHTML = veryLarge.map(e => 
+          `<div>• ${e.id.substring(0, 20)}... (${e.profile}): <strong>${formatSize(e.size)}</strong></div>`
+        ).join('');
+      } else {
+        alert.style.display = 'none';
+      }
+
+      // Store index to reference extensions array
+      list.innerHTML = extensions.map((e, i) => `
+        <div class="cache-item ext-item">
+          <input type="checkbox" id="ext${i}" data-index="${i}" class="ext-checkbox">
+          <div class="cache-info">
+            <div class="cache-name">${e.id.substring(0, 32)}...</div>
+            <div class="cache-path">${e.profile} → ${e.path}</div>
+          </div>
+          <div class="cache-size large">${formatSize(e.size)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderIndexedDb() {
+      const section = document.getElementById('indexedDbSection');
+      const list = document.getElementById('indexedDbList');
+      const alert = document.getElementById('indexedDbAlert');
+      const alertContent = document.getElementById('indexedDbAlertContent');
+
+      if (!indexedDbItems.length) {
+        section.style.display = 'none';
+        alert.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      const over = indexedDbItems.filter(i => i.over_threshold);
+      if (over.length) {
+        const totalOver = over.reduce((sum, i) => sum + i.size, 0);
+        alert.style.display = 'block';
+        alertContent.innerHTML = `
+          <div>Detected <strong>${over.length}</strong> IndexedDB origins over <strong>${INDEXED_DB_THRESHOLD_MB}MB</strong></div>
+          <div>Total size: <strong>${formatSize(totalOver)}</strong></div>
+          <div>They are pre-selected below so you can clean them quickly.</div>
+        `;
+      } else {
+        alert.style.display = 'none';
+      }
+
+      list.innerHTML = indexedDbItems.map((item, i) => `
+        <div class="cache-item ${item.over_threshold ? 'ext-item' : ''}">
+          <input
+            type="checkbox"
+            id="idb${i}"
+            data-index="${i}"
+            class="idb-checkbox"
+            ${item.over_threshold ? 'checked' : ''}
+          >
+          <div class="cache-info">
+            <div class="cache-name">${item.origin}</div>
+            <div class="cache-path">${item.profile} → ${item.path}</div>
+          </div>
+          <div class="cache-size ${item.over_threshold ? 'large' : ''}">${formatSize(item.size)}</div>
+        </div>
+      `).join('');
+    }
+
+    function updateTotal() {
+      const extTotal = extensions.reduce((sum, e) => sum + e.size, 0);
+      const idbTotal = indexedDbItems.reduce((sum, i) => sum + i.size, 0);
+      document.getElementById('totalSize').textContent = formatSize(extTotal + idbTotal);
+    }
+
+    function getSelectedExtensions() {
+      return [...document.querySelectorAll('.ext-checkbox:checked')]
+        .map(cb => extensions[parseInt(cb.dataset.index)]);
+    }
+
+    function getSelectedIndexedDbItems() {
+      return [...document.querySelectorAll('.idb-checkbox:checked')]
+        .map(cb => indexedDbItems[parseInt(cb.dataset.index)]);
+    }
+
+    async function scanData() {
+      showStatus('Scanning...');
+      try {
+        extensions = await invoke('scan_large_extensions', { thresholdMb: 10 });
+        indexedDbItems = await invoke('scan_indexed_db_items', { thresholdMb: INDEXED_DB_THRESHOLD_MB });
+        
+        try {
+          const chromeRunning = await invoke('check_chrome_running');
+          document.getElementById('warning').style.display = chromeRunning ? 'block' : 'none';
+        } catch(e) {}
+        
+        renderExtensions();
+        renderIndexedDb();
+        updateTotal();
+        hideStatus();
+      } catch (e) {
+        showStatus('Error: ' + e);
+      }
+    }
+
+    async function previewClean() {
+      const selectedExts = getSelectedExtensions();
+      const selectedIdb = getSelectedIndexedDbItems();
+      
+      if (!selectedExts.length && !selectedIdb.length) { 
+        showStatus('Select at least one item'); 
+        return; 
+      }
+      
+      showStatus('Previewing...');
+      try {
+        let results = [];
+        
+        for (const ext of selectedExts) {
+          const result = await invoke('delete_extension', { path: ext.path, dryRun: true });
+          results.push(`Extension ${ext.id.substring(0,16)}...: ${formatSize(result.freed_bytes)}`);
+        }
+
+        if (selectedIdb.length) {
+          const idbResult = await invoke('clean_indexed_db_items', {
+            paths: selectedIdb.map(i => i.path),
+            dryRun: true
+          });
+          if (idbResult.items_removed) {
+            results.push(`IndexedDB (${idbResult.items_removed} origins): ${formatSize(idbResult.total_freed_bytes)}`);
+          }
+        }
+        
+        showStatus('Would free:\n' + results.join('\n'));
+      } catch(e) {
+        showStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanSelected() {
+      console.log("[UI] Clean Selected clicked");
+
+      const selectedExts = getSelectedExtensions();
+      const selectedIdb = getSelectedIndexedDbItems();
+
+      console.log("[UI] Selected extensions:", selectedExts);
+      
+      if (!selectedExts.length && !selectedIdb.length) { 
+        console.warn("[UI] No extensions or IndexedDB origins selected");
+        showStatus('Select at least one item'); 
+        return; 
+      }
+      
+      let msg = 'Are you sure you want to clean the selected items?';
+      if (selectedExts.length) {
+        msg += '\n\n⚠️ WARNING: Deleting extensions will remove them from Chrome!';
+      }
+      if (selectedIdb.length) {
+        msg += `\n\n⚠️ WARNING: Cleaning IndexedDB will remove site data for ${selectedIdb.length} origin(s).`;
+      }
+
+      let confirmed = true;
+      try {
+        const tauri = window.__TAURI__;
+        const tauriDialog = tauri && tauri.dialog;
+
+        if (tauriDialog && typeof tauriDialog.confirm === 'function') {
+          console.log("[UI] Using Tauri dialog.confirm");
+          confirmed = await tauriDialog.confirm(msg, {
+            title: 'Confirm Cleanup',
+            type: 'warning'
+          });
+        } else if (typeof window.confirm === 'function') {
+          console.log("[UI] Falling back to window.confirm");
+          confirmed = window.confirm(msg);
+        } else {
+          console.warn("[UI] No confirm dialog available, auto-confirming clean operation");
+        }
+      } catch (err) {
+        console.error("[UI] Error while showing confirm dialog, auto-confirming:", err);
+      }
+
+      console.log("[UI] Confirm result:", confirmed);
+      if (!confirmed) {
+        console.log("[UI] User cancelled clean confirmation dialog");
+        return;
+      }
+
+      showStatus('Cleaning...');
+      console.log("[UI] Starting clean operation...");
+      try {
+        let totalFreed = 0;
+        
+        for (const ext of selectedExts) {
+          console.log("[UI] Invoking delete_extension for path:", ext.path);
+          const result = await invoke('delete_extension', { path: ext.path, dryRun: false });
+          console.log("[UI] delete_extension result for", ext.path, ":", result);
+          totalFreed += result.freed_bytes || 0;
+        }
+
+        if (selectedIdb.length) {
+          console.log("[UI] Invoking clean_indexed_db_items for", selectedIdb.length, "origins");
+          const idbResult = await invoke('clean_indexed_db_items', {
+            paths: selectedIdb.map(i => i.path),
+            dryRun: false
+          });
+          console.log("[UI] clean_indexed_db_items result:", idbResult);
+          totalFreed += idbResult.total_freed_bytes || 0;
+        }
+        
+        showStatus('✅ Freed ' + formatSize(totalFreed));
+        console.log("[UI] Clean operation finished. Total freed bytes:", totalFreed);
+        await scanData();
+      } catch(e) {
+        console.error("[UI] Error during cleanSelected:", e);
+        showStatus('Error: ' + e);
+      }
+    }
+
+    // Initialize
+    if (window.__TAURI__) {
+      console.log("[UI] Tauri detected, initializing immediately");
+      invoke = window.__TAURI__.core.invoke;
+      document.getElementById('btnScan').addEventListener('click', scanData);
+      document.getElementById('btnPreview').addEventListener('click', previewClean);
+      document.getElementById('btnClean').addEventListener('click', cleanSelected);
+      scanData();
+    } else {
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          if (window.__TAURI__) {
+            console.log("[UI] Tauri became available after DOMContentLoaded");
+            invoke = window.__TAURI__.core.invoke;
+            document.getElementById('btnScan').addEventListener('click', scanData);
+            document.getElementById('btnPreview').addEventListener('click', previewClean);
+            document.getElementById('btnClean').addEventListener('click', cleanSelected);
+            scanData();
+          } else {
+            showStatus('Tauri API not available');
+          }
+        }, 100);
+      });
+    }
+  </script>
+</body>
+</html>
