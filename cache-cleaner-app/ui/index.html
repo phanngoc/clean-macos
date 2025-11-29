@@ -49,6 +49,33 @@
     .total { text-align: center; font-size: 22px; margin: 15px 0; color: #4ade80; }
     .ext-item { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #f87171; }
     .section { margin-bottom: 20px; }
+    .progress-container { margin-top: 15px; display: none; }
+    .progress-bar-wrapper {
+      width: 100%;
+      height: 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      border-radius: 12px;
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .progress-text {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -59,26 +86,21 @@
       ⚠️ Chrome is running. Close it before cleaning Chrome data.
     </div>
 
-    <div id="extAlert" class="alert" style="display:none;">
-      <div class="alert-title">⚠️ Large Chrome Extensions Detected!</div>
-      <div id="extAlertContent"></div>
-    </div>
-
-    <div id="indexedDbAlert" class="alert" style="display:none;">
-      <div class="alert-title">⚠️ IndexedDB Storage Over 10MB Detected!</div>
-      <div id="indexedDbAlertContent"></div>
-    </div>
-
     <div class="total">Total: <span id="totalSize">0 MB</span></div>
 
-    <div id="extSection" class="section" style="display:none;">
-      <h2>🧩 Large Extensions (>100MB)</h2>
-      <div id="extList" class="cache-list"></div>
+    <div id="largeCachesSection" class="section" style="display:none;">
+      <h2>📦 Large Caches (>1GB)</h2>
+      <div id="largeCachesList" class="cache-list"></div>
     </div>
 
     <div id="indexedDbSection" class="section" style="display:none;">
       <h2>💾 IndexedDB Origins</h2>
       <div id="indexedDbList" class="cache-list"></div>
+    </div>
+
+    <div id="extSection" class="section" style="display:none;">
+      <h2>🧩 Large Extensions (>100MB)</h2>
+      <div id="extList" class="cache-list"></div>
     </div>
 
     <div class="actions">
@@ -88,11 +110,18 @@
     </div>
 
     <div id="status" class="status" style="display:none;"></div>
+    <div id="progressContainer" class="progress-container">
+      <div class="progress-bar-wrapper">
+        <div id="progressBar" class="progress-bar" style="width: 0%;">0%</div>
+      </div>
+      <div id="progressText" class="progress-text"></div>
+    </div>
   </div>
 
   <script>
     let extensions = [];
     let indexedDbItems = [];
+    let largeCaches = [];
     const INDEXED_DB_THRESHOLD_MB = 10;
     let invoke;
 
@@ -113,29 +142,38 @@
       document.getElementById('status').style.display = 'none';
     }
 
+    function showProgress() {
+      document.getElementById('progressContainer').style.display = 'block';
+      document.getElementById('progressBar').style.width = '0%';
+      document.getElementById('progressBar').textContent = '0%';
+      document.getElementById('progressText').textContent = '';
+    }
+
+    function updateProgress(percentage, message) {
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const clampedPercentage = Math.min(100, Math.max(0, percentage));
+      progressBar.style.width = clampedPercentage + '%';
+      progressBar.textContent = Math.round(clampedPercentage) + '%';
+      if (message) {
+        progressText.textContent = message;
+      }
+    }
+
+    function hideProgress() {
+      document.getElementById('progressContainer').style.display = 'none';
+    }
+
     function renderExtensions() {
       const section = document.getElementById('extSection');
       const list = document.getElementById('extList');
-      const alert = document.getElementById('extAlert');
-      const alertContent = document.getElementById('extAlertContent');
 
       if (!extensions.length) {
         section.style.display = 'none';
-        alert.style.display = 'none';
         return;
       }
 
       section.style.display = 'block';
-      
-      const veryLarge = extensions.filter(e => e.size > 500 * 1024 * 1024);
-      if (veryLarge.length) {
-        alert.style.display = 'block';
-        alertContent.innerHTML = veryLarge.map(e => 
-          `<div>• ${e.id.substring(0, 20)}... (${e.profile}): <strong>${formatSize(e.size)}</strong></div>`
-        ).join('');
-      } else {
-        alert.style.display = 'none';
-      }
 
       // Store index to reference extensions array
       list.innerHTML = extensions.map((e, i) => `
@@ -153,29 +191,13 @@
     function renderIndexedDb() {
       const section = document.getElementById('indexedDbSection');
       const list = document.getElementById('indexedDbList');
-      const alert = document.getElementById('indexedDbAlert');
-      const alertContent = document.getElementById('indexedDbAlertContent');
 
       if (!indexedDbItems.length) {
         section.style.display = 'none';
-        alert.style.display = 'none';
         return;
       }
 
       section.style.display = 'block';
-
-      const over = indexedDbItems.filter(i => i.over_threshold);
-      if (over.length) {
-        const totalOver = over.reduce((sum, i) => sum + i.size, 0);
-        alert.style.display = 'block';
-        alertContent.innerHTML = `
-          <div>Detected <strong>${over.length}</strong> IndexedDB origins over <strong>${INDEXED_DB_THRESHOLD_MB}MB</strong></div>
-          <div>Total size: <strong>${formatSize(totalOver)}</strong></div>
-          <div>They are pre-selected below so you can clean them quickly.</div>
-        `;
-      } else {
-        alert.style.display = 'none';
-      }
 
       list.innerHTML = indexedDbItems.map((item, i) => `
         <div class="cache-item ${item.over_threshold ? 'ext-item' : ''}">
@@ -195,10 +217,34 @@
       `).join('');
     }
 
+    function renderLargeCaches() {
+      const section = document.getElementById('largeCachesSection');
+      const list = document.getElementById('largeCachesList');
+
+      if (!largeCaches.length) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      list.innerHTML = largeCaches.map((cache, i) => `
+        <div class="cache-item ext-item">
+          <input type="checkbox" id="lc${i}" data-index="${i}" class="lc-checkbox" checked>
+          <div class="cache-info">
+            <div class="cache-name">${cache.name}</div>
+            <div class="cache-path">${cache.path}</div>
+          </div>
+          <div class="cache-size large">${formatSize(cache.size_bytes)}</div>
+        </div>
+      `).join('');
+    }
+
     function updateTotal() {
       const extTotal = extensions.reduce((sum, e) => sum + e.size, 0);
       const idbTotal = indexedDbItems.reduce((sum, i) => sum + i.size, 0);
-      document.getElementById('totalSize').textContent = formatSize(extTotal + idbTotal);
+      const lcTotal = largeCaches.reduce((sum, c) => sum + c.size_bytes, 0);
+      document.getElementById('totalSize').textContent = formatSize(extTotal + idbTotal + lcTotal);
     }
 
     function getSelectedExtensions() {
@@ -211,11 +257,17 @@
         .map(cb => indexedDbItems[parseInt(cb.dataset.index)]);
     }
 
+    function getSelectedLargeCaches() {
+      return [...document.querySelectorAll('.lc-checkbox:checked')]
+        .map(cb => largeCaches[parseInt(cb.dataset.index)]);
+    }
+
     async function scanData() {
       showStatus('Scanning...');
       try {
         extensions = await invoke('scan_large_extensions', { thresholdMb: 10 });
         indexedDbItems = await invoke('scan_indexed_db_items', { thresholdMb: INDEXED_DB_THRESHOLD_MB });
+        largeCaches = await invoke('scan_large_caches');
         
         try {
           const chromeRunning = await invoke('check_chrome_running');
@@ -224,6 +276,7 @@
         
         renderExtensions();
         renderIndexedDb();
+        renderLargeCaches();
         updateTotal();
         hideStatus();
       } catch (e) {
@@ -234,8 +287,9 @@
     async function previewClean() {
       const selectedExts = getSelectedExtensions();
       const selectedIdb = getSelectedIndexedDbItems();
+      const selectedLc = getSelectedLargeCaches();
       
-      if (!selectedExts.length && !selectedIdb.length) { 
+      if (!selectedExts.length && !selectedIdb.length && !selectedLc.length) { 
         showStatus('Select at least one item'); 
         return; 
       }
@@ -258,6 +312,11 @@
             results.push(`IndexedDB (${idbResult.items_removed} origins): ${formatSize(idbResult.total_freed_bytes)}`);
           }
         }
+
+        if (selectedLc.length) {
+          const lcTotal = selectedLc.reduce((sum, c) => sum + c.size_bytes, 0);
+          results.push(`Large Caches (${selectedLc.length} directories): ${formatSize(lcTotal)}`);
+        }
         
         showStatus('Would free:\n' + results.join('\n'));
       } catch(e) {
@@ -270,11 +329,13 @@
 
       const selectedExts = getSelectedExtensions();
       const selectedIdb = getSelectedIndexedDbItems();
+      const selectedLc = getSelectedLargeCaches();
 
       console.log("[UI] Selected extensions:", selectedExts);
+      console.log("[UI] Selected large caches:", selectedLc);
       
-      if (!selectedExts.length && !selectedIdb.length) { 
-        console.warn("[UI] No extensions or IndexedDB origins selected");
+      if (!selectedExts.length && !selectedIdb.length && !selectedLc.length) { 
+        console.warn("[UI] No items selected");
         showStatus('Select at least one item'); 
         return; 
       }
@@ -286,26 +347,39 @@
       if (selectedIdb.length) {
         msg += `\n\n⚠️ WARNING: Cleaning IndexedDB will remove site data for ${selectedIdb.length} origin(s).`;
       }
+      if (selectedLc.length) {
+        const lcTotal = selectedLc.reduce((sum, c) => sum + c.size_bytes, 0);
+        msg += `\n\n⚠️ WARNING: Will delete ${selectedLc.length} large cache directory(ies) from ~/Library/Caches (${formatSize(lcTotal)}).`;
+      }
 
-      let confirmed = true;
+      let confirmed = false;
       try {
         const tauri = window.__TAURI__;
-        const tauriDialog = tauri && tauri.dialog;
-
-        if (tauriDialog && typeof tauriDialog.confirm === 'function') {
-          console.log("[UI] Using Tauri dialog.confirm");
-          confirmed = await tauriDialog.confirm(msg, {
+        if (tauri && tauri.dialog) {
+          console.log("[UI] Using Tauri dialog.ask");
+          confirmed = await tauri.dialog.ask(msg, {
             title: 'Confirm Cleanup',
-            type: 'warning'
+            kind: 'warning',
+            okLabel: 'Yes, Clean',
+            cancelLabel: 'Cancel'
           });
         } else if (typeof window.confirm === 'function') {
           console.log("[UI] Falling back to window.confirm");
           confirmed = window.confirm(msg);
         } else {
-          console.warn("[UI] No confirm dialog available, auto-confirming clean operation");
+          console.warn("[UI] No confirm dialog available, requiring explicit confirmation");
+          showStatus('Error: No dialog available. Please use a browser with confirm support.');
+          return;
         }
       } catch (err) {
-        console.error("[UI] Error while showing confirm dialog, auto-confirming:", err);
+        console.error("[UI] Error while showing confirm dialog:", err);
+        // Fallback to window.confirm if Tauri dialog fails
+        if (typeof window.confirm === 'function') {
+          confirmed = window.confirm(msg);
+        } else {
+          showStatus('Error: Could not show confirmation dialog. ' + err);
+          return;
+        }
       }
 
       console.log("[UI] Confirm result:", confirmed);
@@ -314,33 +388,72 @@
         return;
       }
 
-      showStatus('Cleaning...');
-      console.log("[UI] Starting clean operation...");
+      // Calculate total items to clean (each item individually)
+      const totalItems = selectedExts.length + selectedIdb.length + selectedLc.length;
+      let currentItem = 0;
+
+      // Show progress bar
+      showProgress();
+      hideStatus();
+      console.log("[UI] Starting clean operation... Total items:", totalItems);
+      
       try {
         let totalFreed = 0;
         
-        for (const ext of selectedExts) {
+        // Clean extensions - one by one
+        for (let i = 0; i < selectedExts.length; i++) {
+          const ext = selectedExts[i];
+          currentItem++;
+          const percentage = Math.min(99, (currentItem / totalItems) * 100); // Max 99% until all done
+          updateProgress(percentage, `Cleaning extension ${i + 1}/${selectedExts.length}...`);
+          
           console.log("[UI] Invoking delete_extension for path:", ext.path);
           const result = await invoke('delete_extension', { path: ext.path, dryRun: false });
           console.log("[UI] delete_extension result for", ext.path, ":", result);
           totalFreed += result.freed_bytes || 0;
         }
 
-        if (selectedIdb.length) {
-          console.log("[UI] Invoking clean_indexed_db_items for", selectedIdb.length, "origins");
+        // Clean IndexedDB - one by one
+        for (let i = 0; i < selectedIdb.length; i++) {
+          const idbItem = selectedIdb[i];
+          currentItem++;
+          const percentage = Math.min(99, (currentItem / totalItems) * 100);
+          updateProgress(percentage, `Cleaning IndexedDB ${i + 1}/${selectedIdb.length} (${idbItem.origin})...`);
+          
+          console.log("[UI] Invoking clean_indexed_db_items for origin:", idbItem.origin);
           const idbResult = await invoke('clean_indexed_db_items', {
-            paths: selectedIdb.map(i => i.path),
+            paths: [idbItem.path],
             dryRun: false
           });
           console.log("[UI] clean_indexed_db_items result:", idbResult);
           totalFreed += idbResult.total_freed_bytes || 0;
         }
+
+        // Clean large caches - one by one
+        for (let i = 0; i < selectedLc.length; i++) {
+          const cache = selectedLc[i];
+          currentItem++;
+          const percentage = Math.min(99, (currentItem / totalItems) * 100);
+          updateProgress(percentage, `Cleaning cache ${i + 1}/${selectedLc.length} (${cache.name})...`);
+          
+          console.log("[UI] Invoking remove_large_caches for:", cache.path);
+          const lcResult = await invoke('remove_large_caches', {
+            paths: [cache.path]
+          });
+          console.log("[UI] remove_large_caches result:", lcResult);
+          totalFreed += lcResult.total_freed_bytes || 0;
+        }
         
+        // Only set 100% after ALL items are actually deleted
+        updateProgress(100, 'Cleaning completed!');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay to show 100%
+        hideProgress();
         showStatus('✅ Freed ' + formatSize(totalFreed));
         console.log("[UI] Clean operation finished. Total freed bytes:", totalFreed);
         await scanData();
       } catch(e) {
         console.error("[UI] Error during cleanSelected:", e);
+        hideProgress();
         showStatus('Error: ' + e);
       }
     }

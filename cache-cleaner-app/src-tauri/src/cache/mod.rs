@@ -4,6 +4,7 @@ pub mod npm;
 pub mod chrome;
 pub mod cache_dir;
 pub mod indexeddb;
+pub mod large_caches;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -69,4 +70,19 @@ pub struct IndexedDbCleanResult {
     pub total_freed_bytes: u64,
     pub items_removed: usize,
     pub dry_run: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LargeCacheEntry {
+    pub name: String,
+    pub path: String,
+    pub size_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LargeCachesCleanResult {
+    pub total_freed_bytes: u64,
+    pub items_removed: usize,
+    pub success: bool,
+    pub message: String,
 }

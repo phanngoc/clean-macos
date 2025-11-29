@@ -5,6 +5,7 @@ mod utils;
 
 use cache::{
     CacheInfo, CacheType, CleanResult, ExtensionInfo, IndexedDbCleanResult, IndexedDbItem,
+    LargeCacheEntry, LargeCachesCleanResult,
 };
 use serde::{Deserialize, Serialize};
 
@@ -159,9 +160,24 @@ async fn delete_extension(path: String, dry_run: bool) -> Result<CleanResult, St
     })
 }
 
+#[tauri::command]
+async fn scan_large_caches() -> Result<Vec<LargeCacheEntry>, String> {
+    cache::large_caches::scan_large_caches()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn remove_large_caches(paths: Vec<String>) -> Result<LargeCachesCleanResult, String> {
+    cache::large_caches::remove_large_caches(paths)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             scan_caches,
             get_cache_size,
@@ -172,6 +188,8 @@ fn main() {
             delete_extension,
             scan_indexed_db_items,
             clean_indexed_db_items,
+            scan_large_caches,
+            remove_large_caches,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
