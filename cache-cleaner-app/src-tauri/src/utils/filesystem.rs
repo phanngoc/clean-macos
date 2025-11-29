@@ -42,3 +42,23 @@ pub fn remove_dir_contents(path: &Path) -> Result<()> {
     }
     Ok(())
 }
+
+pub async fn calculate_file_size(path: &Path) -> Result<u64> {
+    let path = path.to_path_buf();
+    tokio::task::spawn_blocking(move || calculate_file_size_sync(&path))
+        .await?
+}
+
+pub fn calculate_file_size_sync(path: &Path) -> Result<u64> {
+    if !path.exists() {
+        return Ok(0);
+    }
+    Ok(std::fs::metadata(path)?.len())
+}
+
+pub fn remove_file(path: &Path) -> Result<()> {
+    if path.exists() {
+        std::fs::remove_file(path)?;
+    }
+    Ok(())
+}

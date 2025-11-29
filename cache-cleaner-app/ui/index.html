@@ -76,6 +76,17 @@
       color: #888;
       margin-top: 4px;
     }
+    .section-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .section-progress-container {
+      margin-top: 10px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -88,19 +99,60 @@
 
     <div class="total">Total: <span id="totalSize">0 MB</span></div>
 
+    <div id="basicCachesSection" class="section" style="display:none;">
+      <h2>🗂 Basic Caches</h2>
+      <div id="basicCachesList" class="cache-list"></div>
+      <div class="section-actions">
+        <button class="btn-clean" id="btnCleanBasic">🗑 Clear Basic Caches</button>
+      </div>
+      <div id="basicCachesProgress" class="section-progress-container" style="display:none;">
+        <div class="progress-bar-wrapper">
+          <div id="basicCachesProgressBar" class="progress-bar" style="width: 0%;">0%</div>
+        </div>
+        <div id="basicCachesProgressText" class="progress-text"></div>
+      </div>
+    </div>
+
     <div id="largeCachesSection" class="section" style="display:none;">
       <h2>📦 Large Caches (>1GB)</h2>
       <div id="largeCachesList" class="cache-list"></div>
+      <div class="section-actions">
+        <button class="btn-clean" id="btnCleanLarge">🗑 Clear Large Caches</button>
+      </div>
+      <div id="largeCachesProgress" class="section-progress-container" style="display:none;">
+        <div class="progress-bar-wrapper">
+          <div id="largeCachesProgressBar" class="progress-bar" style="width: 0%;">0%</div>
+        </div>
+        <div id="largeCachesProgressText" class="progress-text"></div>
+      </div>
     </div>
 
     <div id="indexedDbSection" class="section" style="display:none;">
       <h2>💾 IndexedDB Origins</h2>
       <div id="indexedDbList" class="cache-list"></div>
+      <div class="section-actions">
+        <button class="btn-clean" id="btnCleanIndexedDb">🗑 Clear IndexedDB</button>
+      </div>
+      <div id="indexedDbProgress" class="section-progress-container" style="display:none;">
+        <div class="progress-bar-wrapper">
+          <div id="indexedDbProgressBar" class="progress-bar" style="width: 0%;">0%</div>
+        </div>
+        <div id="indexedDbProgressText" class="progress-text"></div>
+      </div>
     </div>
 
     <div id="extSection" class="section" style="display:none;">
       <h2>🧩 Large Extensions (>100MB)</h2>
       <div id="extList" class="cache-list"></div>
+      <div class="section-actions">
+        <button class="btn-clean" id="btnCleanExtensions">🗑 Clear Extensions</button>
+      </div>
+      <div id="extensionsProgress" class="section-progress-container" style="display:none;">
+        <div class="progress-bar-wrapper">
+          <div id="extensionsProgressBar" class="progress-bar" style="width: 0%;">0%</div>
+        </div>
+        <div id="extensionsProgressText" class="progress-text"></div>
+      </div>
     </div>
 
     <div class="actions">
@@ -119,6 +171,7 @@
   </div>
 
   <script>
+    let basicCaches = [];
     let extensions = [];
     let indexedDbItems = [];
     let largeCaches = [];
@@ -162,6 +215,42 @@
 
     function hideProgress() {
       document.getElementById('progressContainer').style.display = 'none';
+    }
+
+    function showSectionProgress(sectionId) {
+      const progressContainer = document.getElementById(sectionId + 'Progress');
+      if (progressContainer) {
+        progressContainer.style.display = 'block';
+        const progressBar = document.getElementById(sectionId + 'ProgressBar');
+        const progressText = document.getElementById(sectionId + 'ProgressText');
+        if (progressBar) {
+          progressBar.style.width = '0%';
+          progressBar.textContent = '0%';
+        }
+        if (progressText) {
+          progressText.textContent = '';
+        }
+      }
+    }
+
+    function updateSectionProgress(sectionId, percentage, message) {
+      const progressBar = document.getElementById(sectionId + 'ProgressBar');
+      const progressText = document.getElementById(sectionId + 'ProgressText');
+      if (progressBar) {
+        const clampedPercentage = Math.min(100, Math.max(0, percentage));
+        progressBar.style.width = clampedPercentage + '%';
+        progressBar.textContent = Math.round(clampedPercentage) + '%';
+      }
+      if (progressText && message) {
+        progressText.textContent = message;
+      }
+    }
+
+    function hideSectionProgress(sectionId) {
+      const progressContainer = document.getElementById(sectionId + 'Progress');
+      if (progressContainer) {
+        progressContainer.style.display = 'none';
+      }
     }
 
     function renderExtensions() {
@@ -217,6 +306,44 @@
       `).join('');
     }
 
+    function renderBasicCaches() {
+      const section = document.getElementById('basicCachesSection');
+      const list = document.getElementById('basicCachesList');
+
+      if (!basicCaches.length) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      const getCacheTypeName = (type) => {
+        const names = {
+          'npm': 'NPM',
+          'chrome': 'Chrome',
+          'cachedir': '.cache',
+          'cache_dir': '.cache',
+          'chromeextensions': 'Chrome Extensions',
+          'chrome_extensions': 'Chrome Extensions',
+          'vscode': 'VSCode',
+          'code': 'VSCode',
+          'cursor': 'Cursor'
+        };
+        return names[type.toLowerCase()] || type;
+      };
+
+      list.innerHTML = basicCaches.map((cache, i) => `
+        <div class="cache-item">
+          <input type="checkbox" id="bc${i}" data-index="${i}" class="bc-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
+          <div class="cache-info">
+            <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
+            <div class="cache-path">${cache.path}</div>
+          </div>
+          <div class="cache-size ${cache.size > 0 ? '' : ''}">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
+        </div>
+      `).join('');
+    }
+
     function renderLargeCaches() {
       const section = document.getElementById('largeCachesSection');
       const list = document.getElementById('largeCachesList');
@@ -241,10 +368,11 @@
     }
 
     function updateTotal() {
+      const bcTotal = basicCaches.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
       const extTotal = extensions.reduce((sum, e) => sum + e.size, 0);
       const idbTotal = indexedDbItems.reduce((sum, i) => sum + i.size, 0);
       const lcTotal = largeCaches.reduce((sum, c) => sum + c.size_bytes, 0);
-      document.getElementById('totalSize').textContent = formatSize(extTotal + idbTotal + lcTotal);
+      document.getElementById('totalSize').textContent = formatSize(bcTotal + extTotal + idbTotal + lcTotal);
     }
 
     function getSelectedExtensions() {
@@ -262,9 +390,15 @@
         .map(cb => largeCaches[parseInt(cb.dataset.index)]);
     }
 
+    function getSelectedBasicCaches() {
+      return [...document.querySelectorAll('.bc-checkbox:checked')]
+        .map(cb => basicCaches[parseInt(cb.dataset.index)]);
+    }
+
     async function scanData() {
       showStatus('Scanning...');
       try {
+        basicCaches = await invoke('scan_caches');
         extensions = await invoke('scan_large_extensions', { thresholdMb: 10 });
         indexedDbItems = await invoke('scan_indexed_db_items', { thresholdMb: INDEXED_DB_THRESHOLD_MB });
         largeCaches = await invoke('scan_large_caches');
@@ -274,6 +408,7 @@
           document.getElementById('warning').style.display = chromeRunning ? 'block' : 'none';
         } catch(e) {}
         
+        renderBasicCaches();
         renderExtensions();
         renderIndexedDb();
         renderLargeCaches();
@@ -284,12 +419,292 @@
       }
     }
 
+    async function cleanBasicCaches() {
+      const selectedBc = getSelectedBasicCaches();
+      
+      if (!selectedBc.length) {
+        showStatus('Select at least one basic cache');
+        return;
+      }
+      
+      let msg = 'Are you sure you want to clean the selected basic caches?';
+      const bcTotal = selectedBc.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
+      msg += `\n\n⚠️ WARNING: Will clean ${selectedBc.length} basic cache(s) (${formatSize(bcTotal)}).`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Confirm Cleanup',
+            kind: 'warning',
+            okLabel: 'Yes, Clean',
+            cancelLabel: 'Cancel'
+          });
+        } else if (typeof window.confirm === 'function') {
+          confirmed = window.confirm(msg);
+        } else {
+          showStatus('Error: No dialog available.');
+          return;
+        }
+      } catch (err) {
+        if (typeof window.confirm === 'function') {
+          confirmed = window.confirm(msg);
+        } else {
+          showStatus('Error: Could not show confirmation dialog. ' + err);
+          return;
+        }
+      }
+
+      if (!confirmed) {
+        return;
+      }
+
+      showSectionProgress('basicCaches');
+      hideStatus();
+
+      try {
+        let totalFreed = 0;
+        const totalItems = selectedBc.length;
+
+        for (let i = 0; i < selectedBc.length; i++) {
+          const cache = selectedBc[i];
+          const percentage = Math.min(99, ((i + 1) / totalItems) * 100);
+          const cacheTypeName = cache.cache_type.charAt(0).toUpperCase() + cache.cache_type.slice(1).toLowerCase();
+          updateSectionProgress('basicCaches', percentage, `Cleaning ${cacheTypeName} cache ${i + 1}/${totalItems}...`);
+          
+          const result = await invoke('clean_cache', { 
+            cacheType: cache.cache_type.toLowerCase(), 
+            dryRun: false 
+          });
+          totalFreed += result.freed_bytes || 0;
+        }
+        
+        updateSectionProgress('basicCaches', 100, 'Cleaning completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideSectionProgress('basicCaches');
+        showStatus('✅ Freed ' + formatSize(totalFreed));
+        await scanData();
+      } catch(e) {
+        hideSectionProgress('basicCaches');
+        showStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanLargeCaches() {
+      const selectedLc = getSelectedLargeCaches();
+      
+      if (!selectedLc.length) {
+        showStatus('Select at least one large cache');
+        return;
+      }
+      
+      let msg = 'Are you sure you want to clean the selected large caches?';
+      const lcTotal = selectedLc.reduce((sum, c) => sum + c.size_bytes, 0);
+      msg += `\n\n⚠️ WARNING: Will delete ${selectedLc.length} large cache directory(ies) from ~/Library/Caches (${formatSize(lcTotal)}).`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Confirm Cleanup',
+            kind: 'warning',
+            okLabel: 'Yes, Clean',
+            cancelLabel: 'Cancel'
+          });
+        } else if (typeof window.confirm === 'function') {
+          confirmed = window.confirm(msg);
+        } else {
+          showStatus('Error: No dialog available.');
+          return;
+        }
+      } catch (err) {
+        if (typeof window.confirm === 'function') {
+          confirmed = window.confirm(msg);
+        } else {
+          showStatus('Error: Could not show confirmation dialog. ' + err);
+          return;
+        }
+      }
+
+      if (!confirmed) {
+        return;
+      }
+
+      showSectionProgress('largeCaches');
+      hideStatus();
+
+      try {
+        let totalFreed = 0;
+        const totalItems = selectedLc.length;
+
+        for (let i = 0; i < selectedLc.length; i++) {
+          const cache = selectedLc[i];
+          const percentage = Math.min(99, ((i + 1) / totalItems) * 100);
+          updateSectionProgress('largeCaches', percentage, `Cleaning cache ${i + 1}/${totalItems} (${cache.name})...`);
+          
+          const lcResult = await invoke('remove_large_caches', {
+            paths: [cache.path]
+          });
+          totalFreed += lcResult.total_freed_bytes || 0;
+        }
+        
+        updateSectionProgress('largeCaches', 100, 'Cleaning completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideSectionProgress('largeCaches');
+        showStatus('✅ Freed ' + formatSize(totalFreed));
+        await scanData();
+      } catch(e) {
+        hideSectionProgress('largeCaches');
+        showStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanIndexedDbItems() {
+      const selectedIdb = getSelectedIndexedDbItems();
+      
+      if (!selectedIdb.length) {
+        showStatus('Select at least one IndexedDB item');
+        return;
+      }
+      
+      let msg = 'Are you sure you want to clean the selected IndexedDB items?';
+      msg += `\n\n⚠️ WARNING: Cleaning IndexedDB will remove site data for ${selectedIdb.length} origin(s).`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Confirm Cleanup',
+            kind: 'warning',
+            okLabel: 'Yes, Clean',
+            cancelLabel: 'Cancel'
+          });
+        } else if (typeof window.confirm === 'function') {
+          confirmed = window.confirm(msg);
+        } else {
+          showStatus('Error: No dialog available.');
+          return;
+        }
+      } catch (err) {
+        if (typeof window.confirm === 'function') {
+          confirmed = window.confirm(msg);
+        } else {
+          showStatus('Error: Could not show confirmation dialog. ' + err);
+          return;
+        }
+      }
+
+      if (!confirmed) {
+        return;
+      }
+
+      showSectionProgress('indexedDb');
+      hideStatus();
+
+      try {
+        let totalFreed = 0;
+        const totalItems = selectedIdb.length;
+
+        for (let i = 0; i < selectedIdb.length; i++) {
+          const idbItem = selectedIdb[i];
+          const percentage = Math.min(99, ((i + 1) / totalItems) * 100);
+          updateSectionProgress('indexedDb', percentage, `Cleaning IndexedDB ${i + 1}/${totalItems} (${idbItem.origin})...`);
+          
+          const idbResult = await invoke('clean_indexed_db_items', {
+            paths: [idbItem.path],
+            dryRun: false
+          });
+          totalFreed += idbResult.total_freed_bytes || 0;
+        }
+        
+        updateSectionProgress('indexedDb', 100, 'Cleaning completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideSectionProgress('indexedDb');
+        showStatus('✅ Freed ' + formatSize(totalFreed));
+        await scanData();
+      } catch(e) {
+        hideSectionProgress('indexedDb');
+        showStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanExtensions() {
+      const selectedExts = getSelectedExtensions();
+      
+      if (!selectedExts.length) {
+        showStatus('Select at least one extension');
+        return;
+      }
+      
+      let msg = 'Are you sure you want to clean the selected extensions?';
+      msg += '\n\n⚠️ WARNING: Deleting extensions will remove them from Chrome!';
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Confirm Cleanup',
+            kind: 'warning',
+            okLabel: 'Yes, Clean',
+            cancelLabel: 'Cancel'
+          });
+        } else if (typeof window.confirm === 'function') {
+          confirmed = window.confirm(msg);
+        } else {
+          showStatus('Error: No dialog available.');
+          return;
+        }
+      } catch (err) {
+        if (typeof window.confirm === 'function') {
+          confirmed = window.confirm(msg);
+        } else {
+          showStatus('Error: Could not show confirmation dialog. ' + err);
+          return;
+        }
+      }
+
+      if (!confirmed) {
+        return;
+      }
+
+      showSectionProgress('extensions');
+      hideStatus();
+
+      try {
+        let totalFreed = 0;
+        const totalItems = selectedExts.length;
+
+        for (let i = 0; i < selectedExts.length; i++) {
+          const ext = selectedExts[i];
+          const percentage = Math.min(99, ((i + 1) / totalItems) * 100);
+          updateSectionProgress('extensions', percentage, `Cleaning extension ${i + 1}/${totalItems}...`);
+          
+          const result = await invoke('delete_extension', { path: ext.path, dryRun: false });
+          totalFreed += result.freed_bytes || 0;
+        }
+        
+        updateSectionProgress('extensions', 100, 'Cleaning completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideSectionProgress('extensions');
+        showStatus('✅ Freed ' + formatSize(totalFreed));
+        await scanData();
+      } catch(e) {
+        hideSectionProgress('extensions');
+        showStatus('Error: ' + e);
+      }
+    }
+
     async function previewClean() {
+      const selectedBc = getSelectedBasicCaches();
       const selectedExts = getSelectedExtensions();
       const selectedIdb = getSelectedIndexedDbItems();
       const selectedLc = getSelectedLargeCaches();
       
-      if (!selectedExts.length && !selectedIdb.length && !selectedLc.length) { 
+      if (!selectedBc.length && !selectedExts.length && !selectedIdb.length && !selectedLc.length) { 
         showStatus('Select at least one item'); 
         return; 
       }
@@ -297,6 +712,17 @@
       showStatus('Previewing...');
       try {
         let results = [];
+        
+        for (const cache of selectedBc) {
+          const result = await invoke('clean_cache', { 
+            cacheType: cache.cache_type.toLowerCase(), 
+            dryRun: true 
+          });
+          if (result.freed_bytes > 0) {
+            const cacheTypeName = cache.cache_type.charAt(0).toUpperCase() + cache.cache_type.slice(1).toLowerCase();
+            results.push(`${cacheTypeName}: ${formatSize(result.freed_bytes)}`);
+          }
+        }
         
         for (const ext of selectedExts) {
           const result = await invoke('delete_extension', { path: ext.path, dryRun: true });
@@ -327,20 +753,26 @@
     async function cleanSelected() {
       console.log("[UI] Clean Selected clicked");
 
+      const selectedBc = getSelectedBasicCaches();
       const selectedExts = getSelectedExtensions();
       const selectedIdb = getSelectedIndexedDbItems();
       const selectedLc = getSelectedLargeCaches();
 
+      console.log("[UI] Selected basic caches:", selectedBc);
       console.log("[UI] Selected extensions:", selectedExts);
       console.log("[UI] Selected large caches:", selectedLc);
       
-      if (!selectedExts.length && !selectedIdb.length && !selectedLc.length) { 
+      if (!selectedBc.length && !selectedExts.length && !selectedIdb.length && !selectedLc.length) { 
         console.warn("[UI] No items selected");
         showStatus('Select at least one item'); 
         return; 
       }
       
       let msg = 'Are you sure you want to clean the selected items?';
+      if (selectedBc.length) {
+        const bcTotal = selectedBc.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
+        msg += `\n\n⚠️ WARNING: Will clean ${selectedBc.length} basic cache(s) (${formatSize(bcTotal)}).`;
+      }
       if (selectedExts.length) {
         msg += '\n\n⚠️ WARNING: Deleting extensions will remove them from Chrome!';
       }
@@ -389,7 +821,7 @@
       }
 
       // Calculate total items to clean (each item individually)
-      const totalItems = selectedExts.length + selectedIdb.length + selectedLc.length;
+      const totalItems = selectedBc.length + selectedExts.length + selectedIdb.length + selectedLc.length;
       let currentItem = 0;
 
       // Show progress bar
@@ -399,6 +831,23 @@
       
       try {
         let totalFreed = 0;
+        
+        // Clean basic caches - one by one
+        for (let i = 0; i < selectedBc.length; i++) {
+          const cache = selectedBc[i];
+          currentItem++;
+          const percentage = Math.min(99, (currentItem / totalItems) * 100);
+          const cacheTypeName = cache.cache_type.charAt(0).toUpperCase() + cache.cache_type.slice(1).toLowerCase();
+          updateProgress(percentage, `Cleaning ${cacheTypeName} cache ${i + 1}/${selectedBc.length}...`);
+          
+          console.log("[UI] Invoking clean_cache for:", cache.cache_type);
+          const result = await invoke('clean_cache', { 
+            cacheType: cache.cache_type.toLowerCase(), 
+            dryRun: false 
+          });
+          console.log("[UI] clean_cache result:", result);
+          totalFreed += result.freed_bytes || 0;
+        }
         
         // Clean extensions - one by one
         for (let i = 0; i < selectedExts.length; i++) {
@@ -465,6 +914,10 @@
       document.getElementById('btnScan').addEventListener('click', scanData);
       document.getElementById('btnPreview').addEventListener('click', previewClean);
       document.getElementById('btnClean').addEventListener('click', cleanSelected);
+      document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
+      document.getElementById('btnCleanLarge').addEventListener('click', cleanLargeCaches);
+      document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
+      document.getElementById('btnCleanExtensions').addEventListener('click', cleanExtensions);
       scanData();
     } else {
       document.addEventListener('DOMContentLoaded', function() {
@@ -475,6 +928,10 @@
             document.getElementById('btnScan').addEventListener('click', scanData);
             document.getElementById('btnPreview').addEventListener('click', previewClean);
             document.getElementById('btnClean').addEventListener('click', cleanSelected);
+            document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
+            document.getElementById('btnCleanLarge').addEventListener('click', cleanLargeCaches);
+            document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
+            document.getElementById('btnCleanExtensions').addEventListener('click', cleanExtensions);
             scanData();
           } else {
             showStatus('Tauri API not available');

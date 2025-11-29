@@ -15,6 +15,8 @@ pub enum CacheType {
     Chrome,
     CacheDir,
     ChromeExtensions,
+    VSCode,
+    Cursor,
 }
 
 impl CacheType {
@@ -24,6 +26,8 @@ impl CacheType {
             "chrome" => Ok(CacheType::Chrome),
             "cache_dir" | "cachedir" => Ok(CacheType::CacheDir),
             "chromeextensions" | "chrome_extensions" => Ok(CacheType::ChromeExtensions),
+            "vscode" | "code" => Ok(CacheType::VSCode),
+            "cursor" => Ok(CacheType::Cursor),
             _ => Err(format!("Unknown cache type: {}", s)),
         }
     }
