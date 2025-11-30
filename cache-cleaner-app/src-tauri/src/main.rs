@@ -5,7 +5,7 @@ mod utils;
 
 use cache::{
     CacheInfo, CacheType, CleanResult, ExtensionInfo, IndexedDbCleanResult, IndexedDbItem,
-    LargeCacheEntry, LargeCachesCleanResult,
+    LargeCacheEntry, LargeCachesCleanResult, NpmCacheEntry, NpmCachesCleanResult,
 };
 use serde::{Deserialize, Serialize};
 
@@ -174,6 +174,20 @@ async fn remove_large_caches(paths: Vec<String>) -> Result<LargeCachesCleanResul
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn scan_npm_caches() -> Result<Vec<NpmCacheEntry>, String> {
+    cache::npm_caches::scan_npm_caches()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn remove_npm_caches(paths: Vec<String>) -> Result<NpmCachesCleanResult, String> {
+    cache::npm_caches::remove_npm_caches(paths)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -190,6 +204,8 @@ fn main() {
             clean_indexed_db_items,
             scan_large_caches,
             remove_large_caches,
+            scan_npm_caches,
+            remove_npm_caches,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
