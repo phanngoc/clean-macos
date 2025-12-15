@@ -147,12 +147,6 @@
       <div class="section-actions">
         <button class="btn-clean" id="btnCleanExtensions">🗑 Clear Extensions</button>
       </div>
-      <div id="extensionsProgress" class="section-progress-container" style="display:none;">
-        <div class="progress-bar-wrapper">
-          <div id="extensionsProgressBar" class="progress-bar" style="width: 0%;">0%</div>
-        </div>
-        <div id="extensionsProgressText" class="progress-text"></div>
-      </div>
     </div>
 
     <div id="npmCachesSection" class="section" style="display:none;">
@@ -186,7 +180,6 @@
 
   <script>
     let basicCaches = [];
-    let extensions = [];
     let indexedDbItems = [];
     let largeCaches = [];
     let npmCaches = [];
@@ -270,26 +263,7 @@
 
     function renderExtensions() {
       const section = document.getElementById('extSection');
-      const list = document.getElementById('extList');
-
-      if (!extensions.length) {
-        section.style.display = 'none';
-        return;
-      }
-
-      section.style.display = 'block';
-
-      // Store index to reference extensions array
-      list.innerHTML = extensions.map((e, i) => `
-        <div class="cache-item ext-item">
-          <input type="checkbox" id="ext${i}" data-index="${i}" class="ext-checkbox">
-          <div class="cache-info">
-            <div class="cache-name">${e.id.substring(0, 32)}...</div>
-            <div class="cache-path">${e.profile} → ${e.path}</div>
-          </div>
-          <div class="cache-size large">${formatSize(e.size)}</div>
-        </div>
-      `).join('');
+      section.style.display = 'none';
     }
 
     function renderIndexedDb() {
@@ -424,16 +398,10 @@
         return ['vscode', 'code', 'cursor'].includes(type);
       });
       const bcTotal = editorCaches.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
-      const extTotal = extensions.reduce((sum, e) => sum + e.size, 0);
       const idbTotal = indexedDbItems.reduce((sum, i) => sum + i.size, 0);
       const lcTotal = largeCaches.reduce((sum, c) => sum + c.size_bytes, 0);
       const ncTotal = npmCaches.reduce((sum, c) => sum + c.size_bytes, 0);
-      document.getElementById('totalSize').textContent = formatSize(bcTotal + extTotal + idbTotal + lcTotal + ncTotal);
-    }
-
-    function getSelectedExtensions() {
-      return [...document.querySelectorAll('.ext-checkbox:checked')]
-        .map(cb => extensions[parseInt(cb.dataset.index)]);
+      document.getElementById('totalSize').textContent = formatSize(bcTotal + idbTotal + lcTotal + ncTotal);
     }
 
     function getSelectedIndexedDbItems() {
@@ -460,7 +428,6 @@
       showStatus('Scanning...');
       try {
         basicCaches = await invoke('scan_caches');
-        extensions = await invoke('scan_large_extensions', { thresholdMb: 10 });
         indexedDbItems = await invoke('scan_indexed_db_items', { thresholdMb: INDEXED_DB_THRESHOLD_MB });
         largeCaches = await invoke('scan_large_caches');
         npmCaches = await invoke('scan_npm_caches');
@@ -764,80 +731,12 @@
       }
     }
 
-    async function cleanExtensions() {
-      const selectedExts = getSelectedExtensions();
-      
-      if (!selectedExts.length) {
-        showStatus('Select at least one extension');
-        return;
-      }
-      
-      let msg = 'Are you sure you want to clean the selected extensions?';
-      msg += '\n\n⚠️ WARNING: Deleting extensions will remove them from Chrome!';
-
-      let confirmed = false;
-      try {
-        const tauri = window.__TAURI__;
-        if (tauri && tauri.dialog) {
-          confirmed = await tauri.dialog.ask(msg, {
-            title: 'Confirm Cleanup',
-            kind: 'warning',
-            okLabel: 'Yes, Clean',
-            cancelLabel: 'Cancel'
-          });
-        } else if (typeof window.confirm === 'function') {
-          confirmed = window.confirm(msg);
-        } else {
-          showStatus('Error: No dialog available.');
-          return;
-        }
-      } catch (err) {
-        if (typeof window.confirm === 'function') {
-          confirmed = window.confirm(msg);
-        } else {
-          showStatus('Error: Could not show confirmation dialog. ' + err);
-          return;
-        }
-      }
-
-      if (!confirmed) {
-        return;
-      }
-
-      showSectionProgress('extensions');
-      hideStatus();
-
-      try {
-        let totalFreed = 0;
-        const totalItems = selectedExts.length;
-
-        for (let i = 0; i < selectedExts.length; i++) {
-          const ext = selectedExts[i];
-          const percentage = Math.min(99, ((i + 1) / totalItems) * 100);
-          updateSectionProgress('extensions', percentage, `Cleaning extension ${i + 1}/${totalItems}...`);
-          
-          const result = await invoke('delete_extension', { path: ext.path, dryRun: false });
-          totalFreed += result.freed_bytes || 0;
-        }
-        
-        updateSectionProgress('extensions', 100, 'Cleaning completed!');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        hideSectionProgress('extensions');
-        showStatus('✅ Freed ' + formatSize(totalFreed));
-        await scanData();
-      } catch(e) {
-        hideSectionProgress('extensions');
-        showStatus('Error: ' + e);
-      }
-    }
-
     async function previewClean() {
       const selectedBc = getSelectedBasicCaches();
-      const selectedExts = getSelectedExtensions();
       const selectedIdb = getSelectedIndexedDbItems();
       const selectedLc = getSelectedLargeCaches();
       
-      if (!selectedBc.length && !selectedExts.length && !selectedIdb.length && !selectedLc.length) { 
+      if (!selectedBc.length && !selectedIdb.length && !selectedLc.length) { 
         showStatus('Select at least one item'); 
         return; 
       }
@@ -857,11 +756,6 @@
           }
         }
         
-        for (const ext of selectedExts) {
-          const result = await invoke('delete_extension', { path: ext.path, dryRun: true });
-          results.push(`Extension ${ext.id.substring(0,16)}...: ${formatSize(result.freed_bytes)}`);
-        }
-
         if (selectedIdb.length) {
           const idbResult = await invoke('clean_indexed_db_items', {
             paths: selectedIdb.map(i => i.path),
@@ -887,17 +781,15 @@
       console.log("[UI] Clean Selected clicked");
 
       const selectedBc = getSelectedBasicCaches();
-      const selectedExts = getSelectedExtensions();
       const selectedIdb = getSelectedIndexedDbItems();
       const selectedLc = getSelectedLargeCaches();
       const selectedNc = getSelectedNpmCaches();
 
       console.log("[UI] Selected basic caches:", selectedBc);
-      console.log("[UI] Selected extensions:", selectedExts);
       console.log("[UI] Selected large caches:", selectedLc);
       console.log("[UI] Selected NPM caches:", selectedNc);
       
-      if (!selectedBc.length && !selectedExts.length && !selectedIdb.length && !selectedLc.length && !selectedNc.length) { 
+      if (!selectedBc.length && !selectedIdb.length && !selectedLc.length && !selectedNc.length) { 
         console.warn("[UI] No items selected");
         showStatus('Select at least one item'); 
         return; 
@@ -907,9 +799,6 @@
       if (selectedBc.length) {
         const bcTotal = selectedBc.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
         msg += `\n\n⚠️ WARNING: Will clean ${selectedBc.length} editor cache(s) (${formatSize(bcTotal)}).`;
-      }
-      if (selectedExts.length) {
-        msg += '\n\n⚠️ WARNING: Deleting extensions will remove them from Chrome!';
       }
       if (selectedIdb.length) {
         msg += `\n\n⚠️ WARNING: Cleaning IndexedDB will remove site data for ${selectedIdb.length} origin(s).`;
@@ -960,7 +849,7 @@
       }
 
       // Calculate total items to clean (each item individually)
-      const totalItems = selectedBc.length + selectedExts.length + selectedIdb.length + selectedLc.length + selectedNc.length;
+      const totalItems = selectedBc.length + selectedIdb.length + selectedLc.length + selectedNc.length;
       let currentItem = 0;
 
       // Show progress bar
@@ -988,19 +877,6 @@
           totalFreed += result.freed_bytes || 0;
         }
         
-        // Clean extensions - one by one
-        for (let i = 0; i < selectedExts.length; i++) {
-          const ext = selectedExts[i];
-          currentItem++;
-          const percentage = Math.min(99, (currentItem / totalItems) * 100); // Max 99% until all done
-          updateProgress(percentage, `Cleaning extension ${i + 1}/${selectedExts.length}...`);
-          
-          console.log("[UI] Invoking delete_extension for path:", ext.path);
-          const result = await invoke('delete_extension', { path: ext.path, dryRun: false });
-          console.log("[UI] delete_extension result for", ext.path, ":", result);
-          totalFreed += result.freed_bytes || 0;
-        }
-
         // Clean IndexedDB - one by one
         for (let i = 0; i < selectedIdb.length; i++) {
           const idbItem = selectedIdb[i];

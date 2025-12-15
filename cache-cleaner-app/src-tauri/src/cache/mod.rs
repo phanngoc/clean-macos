@@ -1,11 +1,14 @@
 pub mod scanner;
 pub mod cleaner;
 pub mod npm;
-pub mod chrome;
 pub mod cache_dir;
 pub mod indexeddb;
 pub mod large_caches;
 pub mod npm_caches;
+pub mod paths;
+pub mod browser_caches;
+pub mod dev_tools;
+pub mod package_managers;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -15,9 +18,25 @@ pub enum CacheType {
     Npm,
     Chrome,
     CacheDir,
-    ChromeExtensions,
+
     VSCode,
     Cursor,
+    Safari,
+    Firefox,
+    Arc,
+    Yarn,
+    Pnpm,
+    Pip,
+    CocoaPods,
+    Gradle,
+    Cargo,
+    XcodeDerivedData,
+    XcodeArchives,
+    XcodeSimulators,
+    SystemCaches,
+    UserLogs,
+    TempFiles,
+    IosBackups,
 }
 
 impl CacheType {
@@ -26,9 +45,25 @@ impl CacheType {
             "npm" => Ok(CacheType::Npm),
             "chrome" => Ok(CacheType::Chrome),
             "cache_dir" | "cachedir" => Ok(CacheType::CacheDir),
-            "chromeextensions" | "chrome_extensions" => Ok(CacheType::ChromeExtensions),
+
             "vscode" | "code" => Ok(CacheType::VSCode),
             "cursor" => Ok(CacheType::Cursor),
+            "safari" => Ok(CacheType::Safari),
+            "firefox" => Ok(CacheType::Firefox),
+            "arc" => Ok(CacheType::Arc),
+            "yarn" => Ok(CacheType::Yarn),
+            "pnpm" => Ok(CacheType::Pnpm),
+            "pip" => Ok(CacheType::Pip),
+            "cocoapods" => Ok(CacheType::CocoaPods),
+            "gradle" => Ok(CacheType::Gradle),
+            "cargo" => Ok(CacheType::Cargo),
+            "xcode_derived_data" | "xcodederiveddata" => Ok(CacheType::XcodeDerivedData),
+            "xcode_archives" | "xcodearchives" => Ok(CacheType::XcodeArchives),
+            "xcode_simulators" | "xcodesimulators" => Ok(CacheType::XcodeSimulators),
+            "system_caches" | "systemcaches" => Ok(CacheType::SystemCaches),
+            "user_logs" | "userlogs" => Ok(CacheType::UserLogs),
+            "temp_files" | "tempfiles" | "tmp" => Ok(CacheType::TempFiles),
+            "ios_backups" | "iosbackups" => Ok(CacheType::IosBackups),
             _ => Err(format!("Unknown cache type: {}", s)),
         }
     }
@@ -53,13 +88,7 @@ pub struct CleanResult {
     pub dry_run: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExtensionInfo {
-    pub id: String,
-    pub path: PathBuf,
-    pub size: u64,
-    pub profile: String,
-}
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IndexedDbItem {

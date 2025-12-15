@@ -4,7 +4,7 @@ mod cache;
 mod utils;
 
 use cache::{
-    CacheInfo, CacheType, CleanResult, ExtensionInfo, IndexedDbCleanResult, IndexedDbItem,
+    CacheInfo, CacheType, CleanResult, IndexedDbCleanResult, IndexedDbItem,
     LargeCacheEntry, LargeCachesCleanResult, NpmCacheEntry, NpmCachesCleanResult,
 };
 use serde::{Deserialize, Serialize};
@@ -69,10 +69,7 @@ async fn check_permissions() -> Result<PermissionStatus, String> {
     })
 }
 
-#[tauri::command]
-async fn scan_large_extensions(threshold_mb: u64) -> Result<Vec<ExtensionInfo>, String> {
-    cache::chrome::scan_large_extensions(threshold_mb).map_err(|e| e.to_string())
-}
+
 
 #[tauri::command]
 async fn scan_indexed_db_items(
@@ -90,74 +87,6 @@ async fn clean_indexed_db_items(
     dry_run: bool,
 ) -> Result<IndexedDbCleanResult, String> {
     cache::indexeddb::clean_indexed_db_items(paths, dry_run).map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn delete_extension(path: String, dry_run: bool) -> Result<CleanResult, String> {
-    use std::path::PathBuf;
-    let path = PathBuf::from(&path);
-    println!(
-        "[Rust] delete_extension called: path='{}', dry_run={}",
-        path.display(),
-        dry_run
-    );
-    
-    if !path.exists() {
-        println!(
-            "[Rust] delete_extension: path does not exist: {}",
-            path.display()
-        );
-        return Ok(CleanResult {
-            cache_type: CacheType::ChromeExtensions,
-            freed_bytes: 0,
-            items_removed: 0,
-            success: true,
-            message: "Path does not exist".to_string(),
-            dry_run,
-        });
-    }
-
-    let size = utils::filesystem::calculate_dir_size_sync(&path).unwrap_or(0);
-    println!(
-        "[Rust] delete_extension: calculated size for {}: {} bytes",
-        path.display(),
-        size
-    );
-    
-    if dry_run {
-        return Ok(CleanResult {
-            cache_type: CacheType::ChromeExtensions,
-            freed_bytes: size,
-            items_removed: 1,
-            success: true,
-            message: format!("Would delete extension ({} bytes)", size),
-            dry_run: true,
-        });
-    }
-
-    if let Err(e) = std::fs::remove_dir_all(&path) {
-        eprintln!(
-            "[Rust] delete_extension: failed to remove {}: {}",
-            path.display(),
-            e
-        );
-        return Err(e.to_string());
-    }
-
-    println!(
-        "[Rust] delete_extension: successfully removed {}, freed {} bytes",
-        path.display(),
-        size
-    );
-
-    Ok(CleanResult {
-        cache_type: CacheType::ChromeExtensions,
-        freed_bytes: size,
-        items_removed: 1,
-        success: true,
-        message: format!("Deleted extension ({} bytes)", size),
-        dry_run: false,
-    })
 }
 
 #[tauri::command]
@@ -198,8 +127,6 @@ fn main() {
             clean_cache,
             check_chrome_running,
             check_permissions,
-            scan_large_extensions,
-            delete_extension,
             scan_indexed_db_items,
             clean_indexed_db_items,
             scan_large_caches,

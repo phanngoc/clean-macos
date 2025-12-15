@@ -15,7 +15,6 @@ Fast, safe, and efficient macOS system cleanup utilities.
 - **📦 npm Cache** - Dọn dẹp thư mục `~/.npm`
 - **🌐 Chrome Cache** - Dọn dẹp cache Chrome tại `~/Library/Caches/Google/Chrome`
 - **📁 .cache Directory** - Dọn dẹp thư mục `~/.cache`
-- **🧩 Large Extensions** - Phát hiện và xóa các Chrome extensions lớn (>100MB)
 - **💾 IndexedDB Origins** - Quét và dọn dẹp IndexedDB của các website (>10MB)
 - **📦 Large Caches** - Tìm và xóa các cache lớn (>1GB) trong `~/Library/Caches`
 - **👁 Dry-run Preview** - Xem trước những gì sẽ bị xóa trước khi dọn dẹp
@@ -74,7 +73,6 @@ cargo tauri build --target universal-apple-darwin
 1. **Mở ứng dụng** - Khởi chạy Cache Cleaner từ Applications hoặc file `.app`
 
 2. **Quét cache** - Nhấn nút "🔍 Scan" để tìm tất cả các cache lớn:
-   - Large Extensions (>100MB)
    - IndexedDB Origins (>10MB)
    - Large Caches (>1GB)
 
@@ -86,8 +84,7 @@ cargo tauri build --target universal-apple-darwin
 
 ### Lưu ý
 
-- ⚠️ **Đóng Chrome trước khi dọn Chrome cache/extensions** - App sẽ cảnh báo nếu Chrome đang chạy
-- ⚠️ **Xóa Extensions sẽ gỡ chúng khỏi Chrome** - Chỉ xóa nếu bạn chắc chắn
+- ⚠️ **Đóng Chrome trước khi dọn Chrome cache** - App sẽ cảnh báo nếu Chrome đang chạy
 - ⚠️ **Xóa IndexedDB sẽ xóa dữ liệu website** - Các website sẽ mất dữ liệu đã lưu
 - ✅ **Luôn dùng Preview trước** - Để đảm bảo bạn không xóa nhầm dữ liệu quan trọng
 
@@ -170,15 +167,13 @@ cache-cleaner-app/
 ### Production Use
 
 - Luôn sử dụng Preview mode trước khi dọn dẹp thực sự
-- Đóng Chrome trước khi dọn Chrome cache/extensions
-- Chỉ xóa Extensions nếu bạn chắc chắn muốn gỡ chúng
+- Đóng Chrome trước khi dọn Chrome cache
 - Xóa IndexedDB sẽ làm mất dữ liệu website - cẩn thận với các website quan trọng
 - Kiểm tra quyền truy cập file system nếu gặp lỗi permission
 
 ### Known Limitations
 
-- Chrome phải được đóng trước khi dọn Chrome cache/extensions
-- Xóa Extensions sẽ gỡ chúng khỏi Chrome hoàn toàn
+- Chrome phải được đóng trước khi dọn Chrome cache
 - Xóa IndexedDB sẽ làm mất dữ liệu đã lưu của websites
 - Spotlight có thể reindex sau khi xóa cache lớn
 
@@ -216,7 +211,6 @@ Inspired by the need for efficient cache management on macOS, especially with la
 
 - ✨ Cache Cleaner Desktop App với giao diện đồ họa
 - ✨ Hỗ trợ dọn dẹp npm, Chrome, và .cache directories
-- ✨ Phát hiện và dọn dẹp Large Extensions (>100MB)
 - ✨ Quét và dọn dẹp IndexedDB origins (>10MB)
 - ✨ Tìm và xóa Large Caches (>1GB)
 - ✨ Dry-run preview mode
