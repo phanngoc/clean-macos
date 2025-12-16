@@ -221,7 +221,13 @@
         'tempfiles': 'Temp Files',
         'iosbackups': 'iOS Backups'
       };
-      return names[type.toLowerCase()] || type;
+      const typeStr = getCacheTypeString(type);
+      return names[typeStr.toLowerCase()] || typeStr;
+    }
+
+    function getCacheTypeString(type) {
+      if (typeof type === 'string') return type;
+      return JSON.stringify(type).replace(/"/g, '');
     }
 
     function formatSize(bytes) {
@@ -773,6 +779,88 @@
       }
     }
 
+    async function cleanBrowserCaches() {
+      const selected = [...document.querySelectorAll('.browser-checkbox:checked')]
+        .map(cb => browserCaches[parseInt(cb.dataset.index)]);
+      
+      if (!selected.length) {
+        showStatus('Select at least one browser cache');
+        return;
+      }
+      
+      try {
+        for (const cache of selected) {
+          await invoke('clean_cache', { cacheType: getCacheTypeString(cache.cache_type).toLowerCase(), dryRun: false });
+        }
+        showStatus('✅ Browser caches cleaned');
+        await scanData();
+      } catch (e) {
+        showStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanPackageManagers() {
+      const selected = [...document.querySelectorAll('.pkg-checkbox:checked')]
+        .map(cb => packageManagers[parseInt(cb.dataset.index)]);
+      
+      if (!selected.length) {
+        showStatus('Select at least one package manager cache');
+        return;
+      }
+      
+      try {
+        for (const cache of selected) {
+          await invoke('clean_cache', { cacheType: getCacheTypeString(cache.cache_type).toLowerCase(), dryRun: false });
+        }
+        showStatus('✅ Package manager caches cleaned');
+        await scanData();
+      } catch (e) {
+        showStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanDevTools() {
+      const selected = [...document.querySelectorAll('.dev-checkbox:checked')]
+        .map(cb => devTools[parseInt(cb.dataset.index)]);
+      
+      if (!selected.length) {
+        showStatus('Select at least one dev tool cache');
+        return;
+      }
+      
+      try {
+        for (const cache of selected) {
+          await invoke('clean_cache', { cacheType: getCacheTypeString(cache.cache_type).toLowerCase(), dryRun: false });
+        }
+        showStatus('✅ Dev tool caches cleaned');
+        await scanData();
+      } catch (e) {
+        showStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanSystemCaches() {
+      const selected = [...document.querySelectorAll('.sys-checkbox:checked')]
+        .map(cb => systemCaches[parseInt(cb.dataset.index)]);
+      
+      if (!selected.length) {
+        showStatus('Select at least one system cache');
+        return;
+      }
+      
+      try {
+        for (const cache of selected) {
+          const cacheType = getCacheTypeString(cache.cache_type).toLowerCase();
+          console.log('[UI] Cleaning system cache:', cacheType);
+          await invoke('clean_cache', { cacheType: cacheType, dryRun: false });
+        }
+        showStatus('✅ System caches cleaned');
+        await scanData();
+      } catch (e) {
+        showStatus('Error: ' + e);
+      }
+    }
+
     async function previewClean() {
       const selectedBc = getSelectedBasicCaches();
       const selectedIdb = getSelectedIndexedDbItems();
@@ -968,6 +1056,10 @@
       document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
       document.getElementById('btnCleanLarge').addEventListener('click', cleanLargeCaches);
       document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
+      document.getElementById('btnCleanBrowserCaches').addEventListener('click', cleanBrowserCaches);
+      document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
+      document.getElementById('btnCleanDevTools').addEventListener('click', cleanDevTools);
+      document.getElementById('btnCleanSystemCaches').addEventListener('click', cleanSystemCaches);
       scanData();
     } else {
       document.addEventListener('DOMContentLoaded', function() {
@@ -981,6 +1073,10 @@
             document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
             document.getElementById('btnCleanLarge').addEventListener('click', cleanLargeCaches);
             document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
+            document.getElementById('btnCleanBrowserCaches').addEventListener('click', cleanBrowserCaches);
+            document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
+            document.getElementById('btnCleanDevTools').addEventListener('click', cleanDevTools);
+            document.getElementById('btnCleanSystemCaches').addEventListener('click', cleanSystemCaches);
             scanData();
           } else {
             showStatus('Tauri API not available');
