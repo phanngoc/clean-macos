@@ -136,25 +136,35 @@
       </div>
     </div>
 
-    <div id="extSection" class="section" style="display:none;">
-      <h2>🧩 Large Extensions (>100MB)</h2>
-      <div id="extList" class="cache-list"></div>
+    <div id="browserCachesSection" class="section" style="display:none;">
+      <h2>🌐 Browser Caches</h2>
+      <div id="browserCachesList" class="cache-list"></div>
       <div class="section-actions">
-        <button class="btn-clean" id="btnCleanExtensions">🗑 Clear Extensions</button>
+        <button class="btn-clean" id="btnCleanBrowserCaches">🗑 Clear Browser Caches</button>
       </div>
     </div>
 
-    <div id="npmCachesSection" class="section" style="display:none;">
-      <h2>📦 NPM Cache</h2>
-      <div id="npmCachesList" class="cache-list"></div>
+    <div id="packageManagersSection" class="section" style="display:none;">
+      <h2>📦 Package Managers</h2>
+      <div id="packageManagersList" class="cache-list"></div>
       <div class="section-actions">
-        <button class="btn-clean" id="btnCleanNpmCaches">🗑 Clear NPM Caches</button>
+        <button class="btn-clean" id="btnCleanPackageManagers">🗑 Clear Package Managers</button>
       </div>
-      <div id="npmCachesProgress" class="section-progress-container" style="display:none;">
-        <div class="progress-bar-wrapper">
-          <div id="npmCachesProgressBar" class="progress-bar" style="width: 0%;">0%</div>
-        </div>
-        <div id="npmCachesProgressText" class="progress-text"></div>
+    </div>
+
+    <div id="devToolsSection" class="section" style="display:none;">
+      <h2>🔧 Development Tools</h2>
+      <div id="devToolsList" class="cache-list"></div>
+      <div class="section-actions">
+        <button class="btn-clean" id="btnCleanDevTools">🗑 Clear Dev Tools</button>
+      </div>
+    </div>
+
+    <div id="systemCachesSection" class="section" style="display:none;">
+      <h2>🖥 System Caches</h2>
+      <div id="systemCachesList" class="cache-list"></div>
+      <div class="section-actions">
+        <button class="btn-clean" id="btnCleanSystemCaches">🗑 Clear System Caches</button>
       </div>
     </div>
 
@@ -178,8 +188,41 @@
     let indexedDbItems = [];
     let largeCaches = [];
     let npmCaches = [];
+    let browserCaches = [];
+    let packageManagers = [];
+    let devTools = [];
+    let systemCaches = [];
     const INDEXED_DB_THRESHOLD_MB = 10;
     let invoke;
+
+    function getCacheTypeName(type) {
+      const names = {
+        'npm': 'NPM',
+        'chrome': 'Chrome',
+        'cachedir': '.cache Directory',
+        'cache_dir': '.cache Directory',
+        'vscode': 'VSCode',
+        'code': 'VSCode',
+        'cursor': 'Cursor',
+        'safari': 'Safari',
+        'firefox': 'Firefox',
+        'arc': 'Arc',
+        'yarn': 'Yarn',
+        'pnpm': 'PNPM',
+        'pip': 'Pip',
+        'cocoapods': 'CocoaPods',
+        'gradle': 'Gradle',
+        'cargo': 'Cargo',
+        'xcodederiveddata': 'Xcode Derived Data',
+        'xcodearchives': 'Xcode Archives',
+        'xcodesimulators': 'Xcode Simulators',
+        'systemcaches': 'System Caches',
+        'userlogs': 'User Logs',
+        'tempfiles': 'Temp Files',
+        'iosbackups': 'iOS Backups'
+      };
+      return names[type.toLowerCase()] || type;
+    }
 
     function formatSize(bytes) {
       if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GB';
@@ -256,21 +299,19 @@
       }
     }
 
-    function renderExtensions() {
-      const section = document.getElementById('extSection');
-      section.style.display = 'none';
-    }
-
     function renderIndexedDb() {
       const section = document.getElementById('indexedDbSection');
       const list = document.getElementById('indexedDbList');
 
+      section.style.display = 'block';
+
       if (!indexedDbItems.length) {
-        section.style.display = 'none';
+        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No IndexedDB items found (>10MB)</div></div></div>';
+        document.getElementById('btnCleanIndexedDb').style.display = 'none';
         return;
       }
 
-      section.style.display = 'block';
+      document.getElementById('btnCleanIndexedDb').style.display = 'block';
 
       list.innerHTML = indexedDbItems.map((item, i) => `
         <div class="cache-item ${item.over_threshold ? 'ext-item' : ''}">
@@ -300,27 +341,15 @@
         return ['vscode', 'code', 'cursor'].includes(type);
       });
 
+      section.style.display = 'block';
+
       if (!editorCaches.length) {
-        section.style.display = 'none';
+        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No editor caches found</div></div></div>';
+        document.getElementById('btnCleanBasic').style.display = 'none';
         return;
       }
 
-      section.style.display = 'block';
-
-      const getCacheTypeName = (type) => {
-        const names = {
-          'npm': 'NPM',
-          'chrome': 'Chrome',
-          'cachedir': '.cache',
-          'cache_dir': '.cache',
-          'chromeextensions': 'Chrome Extensions',
-          'chrome_extensions': 'Chrome Extensions',
-          'vscode': 'VSCode',
-          'code': 'VSCode',
-          'cursor': 'Cursor'
-        };
-        return names[type.toLowerCase()] || type;
-      };
+      document.getElementById('btnCleanBasic').style.display = 'block';
 
       // Map with original indices for checkbox selection
       let editorIndex = 0;
@@ -344,12 +373,15 @@
       const section = document.getElementById('largeCachesSection');
       const list = document.getElementById('largeCachesList');
 
+      section.style.display = 'block';
+
       if (!largeCaches.length) {
-        section.style.display = 'none';
+        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No large caches found (>1GB)</div></div></div>';
+        document.getElementById('btnCleanLarge').style.display = 'none';
         return;
       }
 
-      section.style.display = 'block';
+      document.getElementById('btnCleanLarge').style.display = 'block';
 
       list.innerHTML = largeCaches.map((cache, i) => `
         <div class="cache-item ext-item">
@@ -363,25 +395,106 @@
       `).join('');
     }
 
-    function renderNpmCaches() {
-      const section = document.getElementById('npmCachesSection');
-      const list = document.getElementById('npmCachesList');
-
-      if (!npmCaches.length) {
-        section.style.display = 'none';
-        return;
-      }
+    function renderBrowserCaches() {
+      const section = document.getElementById('browserCachesSection');
+      const list = document.getElementById('browserCachesList');
 
       section.style.display = 'block';
 
-      list.innerHTML = npmCaches.map((cache, i) => `
+      if (!browserCaches.length) {
+        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No browser caches found</div></div></div>';
+        document.getElementById('btnCleanBrowserCaches').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('btnCleanBrowserCaches').style.display = 'block';
+
+      list.innerHTML = browserCaches.map((cache, i) => `
         <div class="cache-item">
-          <input type="checkbox" id="nc${i}" data-index="${i}" class="nc-checkbox" checked>
+          <input type="checkbox" id="browser${i}" data-index="${i}" class="browser-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
           <div class="cache-info">
-            <div class="cache-name">${cache.name}</div>
+            <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
             <div class="cache-path">${cache.path}</div>
           </div>
-          <div class="cache-size ${cache.size_bytes > 0 ? 'large' : ''}">${formatSize(cache.size_bytes)}</div>
+          <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderPackageManagers() {
+      const section = document.getElementById('packageManagersSection');
+      const list = document.getElementById('packageManagersList');
+
+      section.style.display = 'block';
+
+      if (!packageManagers.length) {
+        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No package manager caches found</div></div></div>';
+        document.getElementById('btnCleanPackageManagers').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('btnCleanPackageManagers').style.display = 'block';
+
+      list.innerHTML = packageManagers.map((cache, i) => `
+        <div class="cache-item">
+          <input type="checkbox" id="pkg${i}" data-index="${i}" class="pkg-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
+          <div class="cache-info">
+            <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
+            <div class="cache-path">${cache.path}</div>
+          </div>
+          <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderDevTools() {
+      const section = document.getElementById('devToolsSection');
+      const list = document.getElementById('devToolsList');
+
+      section.style.display = 'block';
+
+      if (!devTools.length) {
+        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No development tool caches found</div></div></div>';
+        document.getElementById('btnCleanDevTools').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('btnCleanDevTools').style.display = 'block';
+
+      list.innerHTML = devTools.map((cache, i) => `
+        <div class="cache-item">
+          <input type="checkbox" id="dev${i}" data-index="${i}" class="dev-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
+          <div class="cache-info">
+            <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
+            <div class="cache-path">${cache.path}</div>
+          </div>
+          <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderSystemCaches() {
+      const section = document.getElementById('systemCachesSection');
+      const list = document.getElementById('systemCachesList');
+
+      section.style.display = 'block';
+
+      if (!systemCaches.length) {
+        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No system caches found</div></div></div>';
+        document.getElementById('btnCleanSystemCaches').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('btnCleanSystemCaches').style.display = 'block';
+
+      list.innerHTML = systemCaches.map((cache, i) => `
+        <div class="cache-item">
+          <input type="checkbox" id="sys${i}" data-index="${i}" class="sys-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
+          <div class="cache-info">
+            <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
+            <div class="cache-path">${cache.path}</div>
+          </div>
+          <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
         </div>
       `).join('');
     }
@@ -393,10 +506,13 @@
         return ['vscode', 'code', 'cursor'].includes(type);
       });
       const bcTotal = editorCaches.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
+      const browserTotal = browserCaches.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
+      const pkgTotal = packageManagers.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
+      const devTotal = devTools.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
+      const sysTotal = systemCaches.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
       const idbTotal = indexedDbItems.reduce((sum, i) => sum + i.size, 0);
       const lcTotal = largeCaches.reduce((sum, c) => sum + c.size_bytes, 0);
-      const ncTotal = npmCaches.reduce((sum, c) => sum + c.size_bytes, 0);
-      document.getElementById('totalSize').textContent = formatSize(bcTotal + idbTotal + lcTotal + ncTotal);
+      document.getElementById('totalSize').textContent = formatSize(bcTotal + browserTotal + pkgTotal + devTotal + sysTotal + idbTotal + lcTotal);
     }
 
     function getSelectedIndexedDbItems() {
@@ -414,26 +530,30 @@
         .map(cb => basicCaches[parseInt(cb.dataset.index)]);
     }
 
-    function getSelectedNpmCaches() {
-      return [...document.querySelectorAll('.nc-checkbox:checked')]
-        .map(cb => npmCaches[parseInt(cb.dataset.index)]);
-    }
-
     async function scanData() {
       showStatus('Scanning...');
       try {
-        basicCaches = await invoke('scan_caches');
+        const allCaches = await invoke('scan_caches');
+        
+        // Separate caches by category
+        basicCaches = allCaches.filter(c => ['vscode', 'code', 'cursor'].includes(c.cache_type.toLowerCase()));
+        browserCaches = allCaches.filter(c => ['chrome', 'safari', 'firefox', 'arc'].includes(c.cache_type.toLowerCase()));
+        packageManagers = allCaches.filter(c => ['npm', 'yarn', 'pnpm', 'pip', 'cocoapods', 'gradle', 'cargo'].includes(c.cache_type.toLowerCase()));
+        devTools = allCaches.filter(c => ['xcodederiveddata', 'xcodearchives', 'xcodesimulators'].includes(c.cache_type.toLowerCase()));
+        systemCaches = allCaches.filter(c => ['cachedir', 'systemcaches', 'userlogs', 'tempfiles', 'iosbackups'].includes(c.cache_type.toLowerCase()));
+        
         indexedDbItems = await invoke('scan_indexed_db_items', { thresholdMb: INDEXED_DB_THRESHOLD_MB });
         largeCaches = await invoke('scan_large_caches');
-        npmCaches = await invoke('scan_npm_caches');
         
         // Chrome warning removed - cleaning doesn't affect Chrome
         
         renderBasicCaches();
-        renderExtensions();
+        renderBrowserCaches();
+        renderPackageManagers();
+        renderDevTools();
+        renderSystemCaches();
         renderIndexedDb();
         renderLargeCaches();
-        renderNpmCaches();
         updateTotal();
         hideStatus();
       } catch (e) {
@@ -583,76 +703,6 @@
       }
     }
 
-    async function cleanNpmCaches() {
-      const selectedNc = getSelectedNpmCaches();
-      
-      if (!selectedNc.length) {
-        showStatus('Select at least one NPM cache');
-        return;
-      }
-      
-      let msg = 'Are you sure you want to clean the selected NPM caches?';
-      const ncTotal = selectedNc.reduce((sum, c) => sum + c.size_bytes, 0);
-      msg += `\n\n⚠️ WARNING: Will delete ${selectedNc.length} NPM cache directory(ies) from ~/.npm (${formatSize(ncTotal)}).`;
-
-      let confirmed = false;
-      try {
-        const tauri = window.__TAURI__;
-        if (tauri && tauri.dialog) {
-          confirmed = await tauri.dialog.ask(msg, {
-            title: 'Confirm Cleanup',
-            kind: 'warning',
-            okLabel: 'Yes, Clean',
-            cancelLabel: 'Cancel'
-          });
-        } else if (typeof window.confirm === 'function') {
-          confirmed = window.confirm(msg);
-        } else {
-          showStatus('Error: No dialog available.');
-          return;
-        }
-      } catch (err) {
-        if (typeof window.confirm === 'function') {
-          confirmed = window.confirm(msg);
-        } else {
-          showStatus('Error: Could not show confirmation dialog. ' + err);
-          return;
-        }
-      }
-
-      if (!confirmed) {
-        return;
-      }
-
-      showSectionProgress('npmCaches');
-      hideStatus();
-
-      try {
-        let totalFreed = 0;
-        const totalItems = selectedNc.length;
-
-        for (let i = 0; i < selectedNc.length; i++) {
-          const cache = selectedNc[i];
-          const percentage = Math.min(99, ((i + 1) / totalItems) * 100);
-          updateSectionProgress('npmCaches', percentage, `Cleaning NPM cache ${i + 1}/${totalItems} (${cache.name})...`);
-          
-          const ncResult = await invoke('remove_npm_caches', {
-            paths: [cache.path]
-          });
-          totalFreed += ncResult.total_freed_bytes || 0;
-        }
-        
-        updateSectionProgress('npmCaches', 100, 'Cleaning completed!');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        hideSectionProgress('npmCaches');
-        showStatus('✅ Freed ' + formatSize(totalFreed));
-        await scanData();
-      } catch(e) {
-        hideSectionProgress('npmCaches');
-        showStatus('Error: ' + e);
-      }
-    }
-
     async function cleanIndexedDbItems() {
       const selectedIdb = getSelectedIndexedDbItems();
       
@@ -775,13 +825,11 @@
       const selectedBc = getSelectedBasicCaches();
       const selectedIdb = getSelectedIndexedDbItems();
       const selectedLc = getSelectedLargeCaches();
-      const selectedNc = getSelectedNpmCaches();
 
       console.log("[UI] Selected basic caches:", selectedBc);
       console.log("[UI] Selected large caches:", selectedLc);
-      console.log("[UI] Selected NPM caches:", selectedNc);
       
-      if (!selectedBc.length && !selectedIdb.length && !selectedLc.length && !selectedNc.length) { 
+      if (!selectedBc.length && !selectedIdb.length && !selectedLc.length) { 
         console.warn("[UI] No items selected");
         showStatus('Select at least one item'); 
         return; 
@@ -798,10 +846,6 @@
       if (selectedLc.length) {
         const lcTotal = selectedLc.reduce((sum, c) => sum + c.size_bytes, 0);
         msg += `\n\n⚠️ WARNING: Will delete ${selectedLc.length} large cache directory(ies) from ~/Library/Caches (${formatSize(lcTotal)}).`;
-      }
-      if (selectedNc.length) {
-        const ncTotal = selectedNc.reduce((sum, c) => sum + c.size_bytes, 0);
-        msg += `\n\n⚠️ WARNING: Will delete ${selectedNc.length} NPM cache directory(ies) from ~/.npm (${formatSize(ncTotal)}).`;
       }
 
       let confirmed = false;
@@ -841,7 +885,7 @@
       }
 
       // Calculate total items to clean (each item individually)
-      const totalItems = selectedBc.length + selectedIdb.length + selectedLc.length + selectedNc.length;
+      const totalItems = selectedBc.length + selectedIdb.length + selectedLc.length;
       let currentItem = 0;
 
       // Show progress bar
@@ -899,21 +943,6 @@
           console.log("[UI] remove_large_caches result:", lcResult);
           totalFreed += lcResult.total_freed_bytes || 0;
         }
-
-        // Clean NPM caches - one by one
-        for (let i = 0; i < selectedNc.length; i++) {
-          const cache = selectedNc[i];
-          currentItem++;
-          const percentage = Math.min(99, (currentItem / totalItems) * 100);
-          updateProgress(percentage, `Cleaning NPM cache ${i + 1}/${selectedNc.length} (${cache.name})...`);
-          
-          console.log("[UI] Invoking remove_npm_caches for:", cache.path);
-          const ncResult = await invoke('remove_npm_caches', {
-            paths: [cache.path]
-          });
-          console.log("[UI] remove_npm_caches result:", ncResult);
-          totalFreed += ncResult.total_freed_bytes || 0;
-        }
         
         // Only set 100% after ALL items are actually deleted
         updateProgress(100, 'Cleaning completed!');
@@ -939,8 +968,6 @@
       document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
       document.getElementById('btnCleanLarge').addEventListener('click', cleanLargeCaches);
       document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
-      document.getElementById('btnCleanExtensions').addEventListener('click', cleanExtensions);
-      document.getElementById('btnCleanNpmCaches').addEventListener('click', cleanNpmCaches);
       scanData();
     } else {
       document.addEventListener('DOMContentLoaded', function() {
@@ -954,8 +981,6 @@
             document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
             document.getElementById('btnCleanLarge').addEventListener('click', cleanLargeCaches);
             document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
-            document.getElementById('btnCleanExtensions').addEventListener('click', cleanExtensions);
-            document.getElementById('btnCleanNpmCaches').addEventListener('click', cleanNpmCaches);
             scanData();
           } else {
             showStatus('Tauri API not available');
