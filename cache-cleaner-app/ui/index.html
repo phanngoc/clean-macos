@@ -43,7 +43,6 @@
     .btn-preview { background: #8b5cf6; color: #fff; }
     .btn-clean { background: #ef4444; color: #fff; }
     .status { text-align: center; margin-top: 15px; padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.05); white-space: pre-line; }
-    .warning { background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
     .alert { background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
     .alert-title { font-weight: 600; margin-bottom: 8px; }
     .total { text-align: center; font-size: 22px; margin: 15px 0; color: #4ade80; }
@@ -93,10 +92,6 @@
   <div class="container">
     <h1>🧹 Cache Cleaner</h1>
     
-    <div id="warning" class="warning" style="display:none;">
-      ⚠️ Chrome is running. Close it before cleaning Chrome data.
-    </div>
-
     <div class="total">Total: <span id="totalSize">0 MB</span></div>
 
     <div id="basicCachesSection" class="section" style="display:none;">
@@ -432,10 +427,7 @@
         largeCaches = await invoke('scan_large_caches');
         npmCaches = await invoke('scan_npm_caches');
         
-        try {
-          const chromeRunning = await invoke('check_chrome_running');
-          document.getElementById('warning').style.display = chromeRunning ? 'block' : 'none';
-        } catch(e) {}
+        // Chrome warning removed - cleaning doesn't affect Chrome
         
         renderBasicCaches();
         renderExtensions();
