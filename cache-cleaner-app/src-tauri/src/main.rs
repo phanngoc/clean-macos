@@ -10,7 +10,7 @@ use cache::{
     custom_scanner::CustomScannerConfig,
     registry::ScannerRegistry,
     scanner_trait::{ScanResult, CleanResultGeneric},
-    smart_suggestions::FolderSuggestion,
+    smart_suggestions::{FolderSuggestion, SmartSuggestionsCleanResult},
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -199,6 +199,11 @@ async fn get_folder_suggestion_info(path: String) -> Result<FolderSuggestion, St
     cache::smart_suggestions::get_folder_info(&path).await.map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn remove_smart_suggestions(paths: Vec<String>) -> Result<SmartSuggestionsCleanResult, String> {
+    cache::smart_suggestions::remove_suggested_folders(paths).await.map_err(|e| e.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -224,6 +229,7 @@ fn main() {
             // Smart suggestions commands
             scan_smart_suggestions,
             get_folder_suggestion_info,
+            remove_smart_suggestions,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

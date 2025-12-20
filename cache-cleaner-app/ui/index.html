@@ -86,12 +86,103 @@
       margin-top: 10px;
       display: none;
     }
+    /* Tab Navigation */
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 4px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px 20px;
+      background: transparent;
+      color: #888;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #3b82f6;
+      color: #fff;
+    }
+    .tab-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.1);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    /* Smart Scanner Styles */
+    .score-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .score-high { background: #ef4444; color: #fff; }
+    .score-medium { background: #f59e0b; color: #fff; }
+    .score-low { background: #22c55e; color: #fff; }
+    .reasons-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .reason-tag {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+    .last-accessed {
+      font-size: 10px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .filter-controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-group label {
+      font-size: 12px;
+      color: #888;
+    }
+    .filter-group input {
+      width: 70px;
+      padding: 6px 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🧹 Cache Cleaner</h1>
     
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="cache-cleaner">🗂 Cache Cleaner</button>
+      <button class="tab-btn" data-tab="smart-scanner">🔍 Smart Scanner</button>
+    </div>
+
+    <!-- Cache Cleaner Tab -->
+    <div id="cache-cleaner-tab" class="tab-content active">
     <div class="total">Total: <span id="totalSize">0 MB</span></div>
 
     <div id="basicCachesSection" class="section" style="display:none;">
@@ -181,6 +272,43 @@
       </div>
       <div id="progressText" class="progress-text"></div>
     </div>
+    </div><!-- End Cache Cleaner Tab -->
+
+    <!-- Smart Scanner Tab -->
+    <div id="smart-scanner-tab" class="tab-content">
+      <div class="total">Smart Suggestions: <span id="smartScannerTotal">0 MB</span></div>
+      
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label>Min Size (MB):</label>
+          <input type="number" id="minSizeMb" value="100" min="0">
+        </div>
+        <div class="filter-group">
+          <label>Max Age (days):</label>
+          <input type="number" id="maxAgeDays" value="30" min="0">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-scan" id="btnSmartScan">🔍 Scan Suggestions</button>
+      </div>
+
+      <div id="smartScannerSection" class="section" style="display:none;">
+        <h2>📁 Suggested Folders to Clean</h2>
+        <div id="smartScannerList" class="cache-list"></div>
+        <div class="section-actions">
+          <button class="btn-clean" id="btnCleanSmartScanner">🗑 Delete Selected</button>
+        </div>
+        <div id="smartScannerProgress" class="section-progress-container">
+          <div class="progress-bar-wrapper">
+            <div id="smartScannerProgressBar" class="progress-bar" style="width: 0%;">0%</div>
+          </div>
+          <div id="smartScannerProgressText" class="progress-text"></div>
+        </div>
+      </div>
+
+      <div id="smartScannerStatus" class="status" style="display:none;"></div>
+    </div><!-- End Smart Scanner Tab -->
   </div>
 
   <script>
@@ -192,6 +320,7 @@
     let packageManagers = [];
     let devTools = [];
     let systemCaches = [];
+    let smartSuggestions = [];
     const INDEXED_DB_THRESHOLD_MB = 10;
     let invoke;
 
@@ -267,6 +396,155 @@
 
     function hideProgress() {
       document.getElementById('progressContainer').style.display = 'none';
+    }
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+      document.getElementById(`${tabId}-tab`).classList.add('active');
+    }
+
+    // Smart Scanner Functions
+    function showSmartScannerStatus(msg) {
+      const el = document.getElementById('smartScannerStatus');
+      el.style.display = 'block';
+      el.textContent = msg;
+    }
+
+    function hideSmartScannerStatus() {
+      document.getElementById('smartScannerStatus').style.display = 'none';
+    }
+
+    function getScoreBadgeClass(score) {
+      if (score >= 0.7) return 'score-high';
+      if (score >= 0.4) return 'score-medium';
+      return 'score-low';
+    }
+
+    function renderSmartScannerFolders() {
+      const section = document.getElementById('smartScannerSection');
+      const list = document.getElementById('smartScannerList');
+
+      section.style.display = 'block';
+
+      if (!smartSuggestions.length) {
+        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No suggestions found</div></div></div>';
+        document.getElementById('btnCleanSmartScanner').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('btnCleanSmartScanner').style.display = 'block';
+
+      list.innerHTML = smartSuggestions.map((item, i) => `
+        <div class="cache-item ${item.score >= 0.7 ? 'ext-item' : ''}">
+          <input type="checkbox" id="ss${i}" data-index="${i}" class="ss-checkbox" ${item.score >= 0.5 ? 'checked' : ''}>
+          <div class="cache-info">
+            <div class="cache-name">
+              ${item.name}
+              <span class="score-badge ${getScoreBadgeClass(item.score)}">${Math.round(item.score * 100)}%</span>
+            </div>
+            <div class="cache-path">${item.path}</div>
+            <div class="reasons-tags">
+              ${item.reasons.map(r => `<span class="reason-tag">${r}</span>`).join('')}
+            </div>
+            ${item.last_accessed_days_ago ? `<div class="last-accessed">Last accessed: ${item.last_accessed_days_ago} days ago</div>` : ''}
+          </div>
+          <div class="cache-size ${item.size_bytes > 1073741824 ? 'large' : ''}">${formatSize(item.size_bytes)}</div>
+        </div>
+      `).join('');
+
+      updateSmartScannerTotal();
+    }
+
+    function updateSmartScannerTotal() {
+      const total = smartSuggestions.reduce((sum, s) => sum + s.size_bytes, 0);
+      document.getElementById('smartScannerTotal').textContent = formatSize(total);
+    }
+
+    function getSelectedSmartSuggestions() {
+      return [...document.querySelectorAll('.ss-checkbox:checked')]
+        .map(cb => smartSuggestions[parseInt(cb.dataset.index)]);
+    }
+
+    async function scanSmartSuggestions() {
+      showSmartScannerStatus('Scanning...');
+      try {
+        const minSizeMb = parseInt(document.getElementById('minSizeMb').value) || 100;
+        const maxAgeDays = parseInt(document.getElementById('maxAgeDays').value) || 30;
+        
+        smartSuggestions = await invoke('scan_smart_suggestions', { minSizeMb, maxAgeDays });
+        renderSmartScannerFolders();
+        hideSmartScannerStatus();
+      } catch (e) {
+        showSmartScannerStatus('Error: ' + e);
+      }
+    }
+
+    async function deleteSmartScannerFolders() {
+      const selected = getSelectedSmartSuggestions();
+      
+      if (!selected.length) {
+        showSmartScannerStatus('Select at least one folder');
+        return;
+      }
+
+      const totalSize = selected.reduce((sum, s) => sum + s.size_bytes, 0);
+      let msg = `Are you sure you want to delete ${selected.length} folder(s)?`;
+      msg += `\n\n⚠️ WARNING: This will permanently delete ${formatSize(totalSize)} of data.`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Confirm Deletion',
+            kind: 'warning',
+            okLabel: 'Yes, Delete',
+            cancelLabel: 'Cancel'
+          });
+        } else {
+          confirmed = window.confirm(msg);
+        }
+      } catch (err) {
+        confirmed = window.confirm(msg);
+      }
+
+      if (!confirmed) return;
+
+      const progressContainer = document.getElementById('smartScannerProgress');
+      const progressBar = document.getElementById('smartScannerProgressBar');
+      const progressText = document.getElementById('smartScannerProgressText');
+      progressContainer.style.display = 'block';
+      hideSmartScannerStatus();
+
+      try {
+        let totalFreed = 0;
+        const totalItems = selected.length;
+
+        for (let i = 0; i < selected.length; i++) {
+          const item = selected[i];
+          const percentage = Math.min(99, ((i + 1) / totalItems) * 100);
+          progressBar.style.width = percentage + '%';
+          progressBar.textContent = Math.round(percentage) + '%';
+          progressText.textContent = `Deleting ${i + 1}/${totalItems} (${item.name})...`;
+
+          const result = await invoke('remove_smart_suggestions', { paths: [item.path] });
+          totalFreed += result.total_freed_bytes || 0;
+        }
+
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+        progressText.textContent = 'Completed!';
+        await new Promise(resolve => setTimeout(resolve, 500));
+        progressContainer.style.display = 'none';
+        showSmartScannerStatus('✅ Freed ' + formatSize(totalFreed));
+        await scanSmartSuggestions();
+      } catch (e) {
+        progressContainer.style.display = 'none';
+        showSmartScannerStatus('Error: ' + e);
+      }
     }
 
     function showSectionProgress(sectionId) {
@@ -1060,6 +1338,13 @@
       document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
       document.getElementById('btnCleanDevTools').addEventListener('click', cleanDevTools);
       document.getElementById('btnCleanSystemCaches').addEventListener('click', cleanSystemCaches);
+      // Tab navigation
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+      // Smart Scanner
+      document.getElementById('btnSmartScan').addEventListener('click', scanSmartSuggestions);
+      document.getElementById('btnCleanSmartScanner').addEventListener('click', deleteSmartScannerFolders);
       scanData();
     } else {
       document.addEventListener('DOMContentLoaded', function() {
@@ -1077,6 +1362,13 @@
             document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
             document.getElementById('btnCleanDevTools').addEventListener('click', cleanDevTools);
             document.getElementById('btnCleanSystemCaches').addEventListener('click', cleanSystemCaches);
+            // Tab navigation
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+              btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+            // Smart Scanner
+            document.getElementById('btnSmartScan').addEventListener('click', scanSmartSuggestions);
+            document.getElementById('btnCleanSmartScanner').addEventListener('click', deleteSmartScannerFolders);
             scanData();
           } else {
             showStatus('Tauri API not available');
