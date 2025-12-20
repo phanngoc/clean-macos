@@ -6,7 +6,9 @@ Fast, safe, and efficient macOS system cleanup utilities.
 
 `Cache Cleaner App` là ứng dụng desktop dọn dẹp hệ thống macOS được xây dựng với Rust + Tauri. Ứng dụng cung cấp giao diện đồ họa trực quan và an toàn để quản lý và dọn dẹp các cache trên macOS.
 
-![Cache Cleaner App Screenshot](./image.png)
+![Cache Cleaner App Screenshot 1](./image1.png)
+
+![Cache Cleaner App Screenshot 2](./image2.png)
 
 ## Features
 

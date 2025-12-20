@@ -6,8 +6,30 @@ mod utils;
 use cache::{
     CacheInfo, CacheType, CleanResult, IndexedDbCleanResult, IndexedDbItem,
     LargeCacheEntry, LargeCachesCleanResult, NpmCacheEntry, NpmCachesCleanResult,
+    config::AppConfig,
+    custom_scanner::CustomScannerConfig,
+    registry::ScannerRegistry,
+    scanner_trait::{ScanResult, CleanResultGeneric},
+    smart_suggestions::{FolderSuggestion, SmartSuggestionsCleanResult},
 };
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use tokio::sync::OnceCell;
+
+static REGISTRY: OnceCell<Arc<ScannerRegistry>> = OnceCell::const_new();
+
+async fn get_registry() -> &'static Arc<ScannerRegistry> {
+    REGISTRY.get_or_init(|| async {
+        let registry = Arc::new(ScannerRegistry::new());
+        // Load saved custom scanners
+        if let Ok(config) = AppConfig::load() {
+            for scanner_config in config.custom_scanners {
+                let _ = registry.register(scanner_config).await;
+            }
+        }
+        registry
+    }).await
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct PermissionStatus {
@@ -117,6 +139,71 @@ async fn remove_npm_caches(paths: Vec<String>) -> Result<NpmCachesCleanResult, S
         .map_err(|e| e.to_string())
 }
 
+// === Custom Scanner Commands ===
+
+#[tauri::command]
+async fn register_custom_scanner(config: CustomScannerConfig) -> Result<(), String> {
+    let registry = get_registry().await;
+    registry.register(config.clone()).await.map_err(|e| e.to_string())?;
+    
+    // Persist to config
+    let mut app_config = AppConfig::load().unwrap_or_default();
+    app_config.add_scanner(config);
+    app_config.save().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+async fn list_custom_scanners() -> Result<Vec<CustomScannerConfig>, String> {
+    let registry = get_registry().await;
+    Ok(registry.list().await)
+}
+
+#[tauri::command]
+async fn remove_custom_scanner(id: String) -> Result<bool, String> {
+    let registry = get_registry().await;
+    let removed = registry.unregister(&id).await;
+    
+    if removed {
+        let mut app_config = AppConfig::load().unwrap_or_default();
+        app_config.remove_scanner(&id);
+        app_config.save().map_err(|e| e.to_string())?;
+    }
+    Ok(removed)
+}
+
+#[tauri::command]
+async fn scan_custom_caches() -> Result<Vec<ScanResult>, String> {
+    let registry = get_registry().await;
+    Ok(registry.scan_all_custom().await)
+}
+
+#[tauri::command]
+async fn clean_custom_cache(id: String, dry_run: bool) -> Result<CleanResultGeneric, String> {
+    let registry = get_registry().await;
+    registry.clean_custom(&id, dry_run).await.map_err(|e| e.to_string())
+}
+
+// === Smart Suggestions Commands ===
+
+#[tauri::command]
+async fn scan_smart_suggestions(min_size_mb: Option<u64>, max_age_days: Option<u64>) -> Result<Vec<FolderSuggestion>, String> {
+    cache::smart_suggestions::scan_suggestions(
+        min_size_mb.unwrap_or(100),
+        max_age_days.unwrap_or(30),
+    ).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_folder_suggestion_info(path: String) -> Result<FolderSuggestion, String> {
+    cache::smart_suggestions::get_folder_info(&path).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn remove_smart_suggestions(paths: Vec<String>) -> Result<SmartSuggestionsCleanResult, String> {
+    cache::smart_suggestions::remove_suggested_folders(paths).await.map_err(|e| e.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -133,6 +220,16 @@ fn main() {
             remove_large_caches,
             scan_npm_caches,
             remove_npm_caches,
+            // Custom scanner commands
+            register_custom_scanner,
+            list_custom_scanners,
+            remove_custom_scanner,
+            scan_custom_caches,
+            clean_custom_cache,
+            // Smart suggestions commands
+            scan_smart_suggestions,
+            get_folder_suggestion_info,
+            remove_smart_suggestions,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
