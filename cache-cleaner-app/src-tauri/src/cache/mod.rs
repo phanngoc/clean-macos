@@ -10,6 +10,14 @@ pub mod browser_caches;
 pub mod dev_tools;
 pub mod package_managers;
 
+// New modules for custom scanner & smart suggestions
+pub mod scanner_trait;
+pub mod config;
+pub mod custom_scanner;
+pub mod registry;
+pub mod smart_suggestions;
+pub mod parallel_scanner;
+
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 

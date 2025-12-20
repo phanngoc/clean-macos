@@ -34,30 +34,27 @@ pub async fn clean(cache_type: &CacheType, dry_run: bool) -> Result<CleanResult>
 
 async fn clean_cursor_cache(dry_run: bool) -> Result<CleanResult> {
     let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-    let base_path = home.join("Library/Application Support/Cursor/User/globalStorage");
-    let file1 = base_path.join("state.vscdb");
-    let file2 = base_path.join("state.vscdb.backup");
+    let cursor_cache_paths = get_cursor_cache_paths(&home);
     
     let mut total_size = 0u64;
     let mut item_count = 0usize;
+    let mut existing_paths = Vec::new();
     
-    if file1.exists() {
-        total_size += filesystem::calculate_file_size(&file1).await?;
-        item_count += 1;
+    for path in &cursor_cache_paths {
+        if path.exists() {
+            total_size += filesystem::calculate_dir_size(path).await?;
+            item_count += filesystem::count_items(path)?;
+            existing_paths.push(path.clone());
+        }
     }
     
-    if file2.exists() {
-        total_size += filesystem::calculate_file_size(&file2).await?;
-        item_count += 1;
-    }
-    
-    if item_count == 0 {
+    if existing_paths.is_empty() {
         return Ok(CleanResult {
             cache_type: CacheType::Cursor,
             freed_bytes: 0,
             items_removed: 0,
             success: true,
-            message: "Cursor cache files do not exist".to_string(),
+            message: "Cursor cache directories do not exist".to_string(),
             dry_run,
         });
     }
@@ -68,17 +65,14 @@ async fn clean_cursor_cache(dry_run: bool) -> Result<CleanResult> {
             freed_bytes: total_size,
             items_removed: item_count,
             success: true,
-            message: format!("Would free {} bytes ({} files)", total_size, item_count),
+            message: format!("Would free {} bytes ({} items)", total_size, item_count),
             dry_run: true,
         });
     }
     
-    // Actually delete the files
-    if file1.exists() {
-        filesystem::remove_file(&file1)?;
-    }
-    if file2.exists() {
-        filesystem::remove_file(&file2)?;
+    // Clean contents of each cache directory
+    for path in &existing_paths {
+        filesystem::remove_dir_contents(path)?;
     }
     
     Ok(CleanResult {
@@ -86,9 +80,42 @@ async fn clean_cursor_cache(dry_run: bool) -> Result<CleanResult> {
         freed_bytes: total_size,
         items_removed: item_count,
         success: true,
-        message: format!("Freed {} bytes ({} files)", total_size, item_count),
+        message: format!("Freed {} bytes ({} items)", total_size, item_count),
         dry_run: false,
     })
+}
+
+/// Get all safe Cursor cache directories
+fn get_cursor_cache_paths(home: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut paths = Vec::new();
+    
+    // Main cache in Library/Caches (todesktop bundle ID)
+    let caches_dir = home.join("Library/Caches");
+    if let Ok(entries) = std::fs::read_dir(&caches_dir) {
+        for entry in entries.filter_map(|e| e.ok()) {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with("com.todesktop.") && entry.path().is_dir() {
+                paths.push(entry.path());
+            }
+        }
+    }
+    
+    // Secondary cache directory
+    let cursor_cache = caches_dir.join("Cursor");
+    if cursor_cache.exists() {
+        paths.push(cursor_cache);
+    }
+    
+    // Safe directories in Application Support
+    let app_support = home.join("Library/Application Support/Cursor");
+    for subdir in ["CachedExtensions", "CachedExtensionVSIXs", "logs"] {
+        let path = app_support.join(subdir);
+        if path.exists() {
+            paths.push(path);
+        }
+    }
+    
+    paths
 }
 
 async fn clean_directory_cache(cache_type: &CacheType, dry_run: bool) -> Result<CleanResult> {

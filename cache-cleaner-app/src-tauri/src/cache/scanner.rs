@@ -60,29 +60,25 @@ pub async fn scan_cache(cache_type: &CacheType) -> Result<CacheInfo> {
         // Existing cache types
         CacheType::Cursor => {
             let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-            let base_path = home.join("Library/Application Support/Cursor/User/globalStorage");
-            let file1 = base_path.join("state.vscdb");
-            let file2 = base_path.join("state.vscdb.backup");
+            let cursor_cache_paths = get_cursor_cache_paths(&home);
             
             let mut total_size = 0u64;
             let mut item_count = 0usize;
             let mut exists = false;
+            let mut display_path = home.join("Library/Caches/Cursor");
             
-            if file1.exists() {
-                total_size += filesystem::calculate_file_size(&file1).await?;
-                item_count += 1;
-                exists = true;
-            }
-            
-            if file2.exists() {
-                total_size += filesystem::calculate_file_size(&file2).await?;
-                item_count += 1;
-                exists = true;
+            for path in &cursor_cache_paths {
+                if path.exists() {
+                    exists = true;
+                    display_path = path.clone();
+                    total_size += filesystem::calculate_dir_size(path).await?;
+                    item_count += filesystem::count_items(path)?;
+                }
             }
             
             Ok(CacheInfo {
                 cache_type: cache_type.clone(),
-                path: base_path,
+                path: display_path,
                 size: total_size,
                 exists,
                 item_count,
@@ -113,18 +109,14 @@ pub async fn scan_cache(cache_type: &CacheType) -> Result<CacheInfo> {
 pub async fn get_size(cache_type: &CacheType) -> Result<u64> {
     match cache_type {
         CacheType::Cursor => {
-            // Calculate size of 2 Cursor files
             let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-            let base_path = home.join("Library/Application Support/Cursor/User/globalStorage");
-            let file1 = base_path.join("state.vscdb");
-            let file2 = base_path.join("state.vscdb.backup");
+            let cursor_cache_paths = get_cursor_cache_paths(&home);
             
             let mut total_size = 0u64;
-            if file1.exists() {
-                total_size += filesystem::calculate_file_size(&file1).await?;
-            }
-            if file2.exists() {
-                total_size += filesystem::calculate_file_size(&file2).await?;
+            for path in cursor_cache_paths {
+                if path.exists() {
+                    total_size += filesystem::calculate_dir_size(&path).await?;
+                }
             }
             Ok(total_size)
         }
@@ -141,6 +133,39 @@ pub async fn get_size(cache_type: &CacheType) -> Result<u64> {
             }
         }
     }
+}
+
+/// Get all safe Cursor cache directories
+fn get_cursor_cache_paths(home: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut paths = Vec::new();
+    
+    // Main cache in Library/Caches (todesktop bundle ID)
+    let caches_dir = home.join("Library/Caches");
+    if let Ok(entries) = std::fs::read_dir(&caches_dir) {
+        for entry in entries.filter_map(|e| e.ok()) {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with("com.todesktop.") && entry.path().is_dir() {
+                paths.push(entry.path());
+            }
+        }
+    }
+    
+    // Secondary cache directory
+    let cursor_cache = caches_dir.join("Cursor");
+    if cursor_cache.exists() {
+        paths.push(cursor_cache);
+    }
+    
+    // Safe directories in Application Support
+    let app_support = home.join("Library/Application Support/Cursor");
+    for subdir in ["CachedExtensions", "CachedExtensionVSIXs", "logs"] {
+        let path = app_support.join(subdir);
+        if path.exists() {
+            paths.push(path);
+        }
+    }
+    
+    paths
 }
 
 fn get_cache_path(cache_type: &CacheType) -> Result<std::path::PathBuf> {
