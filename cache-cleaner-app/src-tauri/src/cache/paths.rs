@@ -165,3 +165,110 @@ impl MacPaths {
         ]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_home_returns_valid_path() {
+        let home = MacPaths::home();
+        assert!(!home.as_os_str().is_empty());
+    }
+
+    #[test]
+    fn test_browser_cache_paths() {
+        let chrome = MacPaths::chrome_cache();
+        assert!(chrome.to_string_lossy().contains("Library/Caches/Google/Chrome"));
+
+        let safari = MacPaths::safari_cache();
+        assert!(safari.to_string_lossy().contains("com.apple.Safari"));
+
+        let firefox = MacPaths::firefox_profiles();
+        assert!(firefox.to_string_lossy().contains("Firefox"));
+
+        let arc = MacPaths::arc_cache();
+        assert!(arc.to_string_lossy().contains("company.thebrowser.Browser"));
+    }
+
+    #[test]
+    fn test_package_manager_paths() {
+        let npm = MacPaths::npm_cache();
+        assert!(npm.to_string_lossy().contains(".npm"));
+
+        let yarn = MacPaths::yarn_cache();
+        assert!(yarn.to_string_lossy().contains("Yarn"));
+
+        let pip = MacPaths::pip_cache();
+        assert!(pip.to_string_lossy().contains("pip"));
+
+        let cargo = MacPaths::cargo_cache();
+        assert!(cargo.to_string_lossy().contains(".cargo"));
+    }
+
+    #[test]
+    fn test_xcode_paths() {
+        let derived = MacPaths::xcode_derived_data();
+        assert!(derived.to_string_lossy().contains("DerivedData"));
+
+        let archives = MacPaths::xcode_archives();
+        assert!(archives.to_string_lossy().contains("Archives"));
+
+        let simulators = MacPaths::xcode_simulators();
+        assert!(simulators.to_string_lossy().contains("CoreSimulator"));
+    }
+
+    #[test]
+    fn test_system_paths() {
+        let tmp = MacPaths::tmp();
+        assert_eq!(tmp, PathBuf::from("/tmp"));
+
+        let system_caches = MacPaths::system_caches();
+        assert_eq!(system_caches, PathBuf::from("/Library/Caches"));
+
+        let system_logs = MacPaths::system_logs();
+        assert_eq!(system_logs, PathBuf::from("/var/log"));
+    }
+
+    #[test]
+    fn test_is_system_path() {
+        assert!(MacPaths::is_system_path(&PathBuf::from("/System/Library")));
+        assert!(MacPaths::is_system_path(&PathBuf::from("/usr/bin")));
+        assert!(MacPaths::is_system_path(&PathBuf::from("/bin/bash")));
+        assert!(MacPaths::is_system_path(&PathBuf::from("/private/var/db/test")));
+        
+        assert!(!MacPaths::is_system_path(&PathBuf::from("/Users/test")));
+        assert!(!MacPaths::is_system_path(&PathBuf::from("/Applications")));
+        assert!(!MacPaths::is_system_path(&PathBuf::from("/tmp")));
+    }
+
+    #[test]
+    fn test_all_cache_paths_not_empty() {
+        let paths = MacPaths::all_cache_paths();
+        assert!(!paths.is_empty());
+        assert!(paths.len() >= 10);
+        
+        for (name, path) in &paths {
+            assert!(!name.is_empty());
+            assert!(!path.as_os_str().is_empty());
+        }
+    }
+
+    #[test]
+    fn test_user_directories() {
+        let trash = MacPaths::trash();
+        assert!(trash.to_string_lossy().contains(".Trash"));
+
+        let downloads = MacPaths::downloads();
+        assert!(downloads.to_string_lossy().contains("Downloads"));
+
+        let documents = MacPaths::documents();
+        assert!(documents.to_string_lossy().contains("Documents"));
+    }
+
+    #[test]
+    fn test_ios_paths() {
+        let backups = MacPaths::ios_backups();
+        assert!(backups.to_string_lossy().contains("MobileSync/Backup"));
+    }
+}

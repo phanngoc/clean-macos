@@ -140,3 +140,126 @@ fn remove_large_caches_sync(paths: &[PathBuf]) -> Result<super::LargeCachesClean
     })
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::{self, File};
+    use std::io::Write;
+    use tempfile::TempDir;
+
+    fn create_test_dir() -> TempDir {
+        tempfile::tempdir().unwrap()
+    }
+
+    #[test]
+    fn test_one_gb_constant() {
+        assert_eq!(ONE_GB, 1_073_741_824);
+        assert_eq!(ONE_GB, 1024 * 1024 * 1024);
+    }
+
+    #[test]
+    fn test_scan_large_caches_sync_empty_dir() {
+        let dir = create_test_dir();
+        let result = scan_large_caches_sync(dir.path()).unwrap();
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_scan_large_caches_sync_small_dirs() {
+        let dir = create_test_dir();
+        
+        // Create small subdirectory
+        let subdir = dir.path().join("small_cache");
+        fs::create_dir(&subdir).unwrap();
+        let mut file = File::create(subdir.join("test.txt")).unwrap();
+        file.write_all(b"small content").unwrap();
+        
+        let result = scan_large_caches_sync(dir.path()).unwrap();
+        assert!(result.is_empty()); // No dirs > 1GB
+    }
+
+    #[test]
+    fn test_scan_large_caches_sync_ignores_files() {
+        let dir = create_test_dir();
+        
+        // Create a file (not directory) in the caches dir
+        let mut file = File::create(dir.path().join("file.txt")).unwrap();
+        file.write_all(b"test").unwrap();
+        
+        let result = scan_large_caches_sync(dir.path()).unwrap();
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_remove_large_caches_sync_empty() {
+        let paths: Vec<PathBuf> = vec![];
+        let result = remove_large_caches_sync(&paths).unwrap();
+        
+        assert_eq!(result.items_removed, 0);
+        assert_eq!(result.total_freed_bytes, 0);
+        assert!(result.success);
+    }
+
+    #[test]
+    fn test_remove_large_caches_sync_nonexistent() {
+        let paths = vec![PathBuf::from("/nonexistent/path")];
+        let result = remove_large_caches_sync(&paths).unwrap();
+        
+        assert_eq!(result.items_removed, 0);
+        assert!(result.success);
+    }
+
+    #[test]
+    fn test_remove_large_caches_sync_removes_dir() {
+        let dir = create_test_dir();
+        let subdir = dir.path().join("to_remove");
+        fs::create_dir(&subdir).unwrap();
+        
+        let mut file = File::create(subdir.join("test.txt")).unwrap();
+        file.write_all(b"content").unwrap();
+        
+        assert!(subdir.exists());
+        
+        let paths = vec![subdir.clone()];
+        let result = remove_large_caches_sync(&paths).unwrap();
+        
+        assert_eq!(result.items_removed, 1);
+        assert!(result.success);
+        assert!(!subdir.exists());
+    }
+
+    #[test]
+    fn test_large_cache_entry_sorting() {
+        let mut entries = vec![
+            LargeCacheEntry {
+                name: "small".to_string(),
+                path: "/small".to_string(),
+                size_bytes: 1_000_000,
+            },
+            LargeCacheEntry {
+                name: "large".to_string(),
+                path: "/large".to_string(),
+                size_bytes: 5_000_000_000,
+            },
+            LargeCacheEntry {
+                name: "medium".to_string(),
+                path: "/medium".to_string(),
+                size_bytes: 2_000_000_000,
+            },
+        ];
+        
+        entries.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
+        
+        assert_eq!(entries[0].name, "large");
+        assert_eq!(entries[1].name, "medium");
+        assert_eq!(entries[2].name, "small");
+    }
+
+    #[tokio::test]
+    async fn test_scan_large_caches_no_panic() {
+        // Just verify it doesn't panic - actual results depend on system state
+        let result = scan_large_caches().await;
+        assert!(result.is_ok());
+    }
+}
+

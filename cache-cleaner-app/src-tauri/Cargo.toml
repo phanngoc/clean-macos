@@ -18,6 +18,9 @@ dirs = "5.0"
 anyhow = "1.0"
 thiserror = "1.0"
 
+[dev-dependencies]
+tempfile = "3.10"
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]

@@ -148,3 +148,55 @@ async fn clean_directory_cache(cache_type: &CacheType, dry_run: bool) -> Result<
         dry_run: false,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_clean_unsupported_type() {
+        let result = clean(&CacheType::IosBackups, true).await.unwrap();
+        assert!(!result.success);
+        assert_eq!(result.message, "Unsupported cache type");
+    }
+
+    #[tokio::test]
+    async fn test_clean_dry_run_returns_dry_run_flag() {
+        let result = clean(&CacheType::Npm, true).await.unwrap();
+        assert!(result.dry_run);
+    }
+
+    #[tokio::test]
+    async fn test_clean_cursor_nonexistent() {
+        // This test verifies behavior when Cursor cache doesn't exist
+        let result = clean_cursor_cache(true).await.unwrap();
+        // Either files exist or they don't - both are valid
+        assert!(result.success);
+    }
+
+    #[tokio::test]
+    async fn test_clean_result_structure() {
+        let result = clean(&CacheType::Chrome, true).await.unwrap();
+        // Verify the result has expected structure
+        assert!(matches!(result.cache_type, CacheType::Chrome));
+        assert!(result.dry_run);
+    }
+
+    #[tokio::test]
+    async fn test_clean_browser_caches() {
+        let result = clean(&CacheType::Safari, true).await.unwrap();
+        assert!(matches!(result.cache_type, CacheType::Safari));
+    }
+
+    #[tokio::test]
+    async fn test_clean_package_managers() {
+        let result = clean(&CacheType::Yarn, true).await.unwrap();
+        assert!(matches!(result.cache_type, CacheType::Yarn));
+    }
+
+    #[tokio::test]
+    async fn test_clean_dev_tools() {
+        let result = clean(&CacheType::XcodeDerivedData, true).await.unwrap();
+        assert!(matches!(result.cache_type, CacheType::XcodeDerivedData));
+    }
+}

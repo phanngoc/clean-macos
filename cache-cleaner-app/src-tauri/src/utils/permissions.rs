@@ -21,3 +21,28 @@ pub fn can_access_home() -> bool {
         .map(|h| std::fs::read_dir(h).is_ok())
         .unwrap_or(false)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_chrome_running_returns_result() {
+        // Just verify it doesn't panic and returns a valid Result
+        let result = is_chrome_running();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_has_full_disk_access_returns_bool() {
+        // Just verify it returns a boolean without panicking
+        let _result = has_full_disk_access();
+    }
+
+    #[test]
+    fn test_can_access_home() {
+        // Home directory should be accessible in test environment
+        let result = can_access_home();
+        assert!(result);
+    }
+}
