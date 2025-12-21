@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cache Cleaner</title>
+  <!-- Google AdSense SDK -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-PLACEHOLDER"
+     crossorigin="anonymous"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -323,6 +326,95 @@
     let smartSuggestions = [];
     const INDEXED_DB_THRESHOLD_MB = 10;
     let invoke;
+
+    // AdSense Configuration
+    const ADSENSE_CONFIG = {
+      publisherId: 'ca-pub-PLACEHOLDER', // Replace with your AdSense Publisher ID
+      adUnitId: 'ca-app-pub-PLACEHOLDER/PLACEHOLDER', // Replace with your Ad Unit ID
+      testAdUnitId: 'ca-app-pub-3940256099942544/5224354917', // Google test ad unit
+      environment: 'development', // 'development' or 'production'
+      adDurationSeconds: 15
+    };
+
+    // Initialize AdSense
+    function initAdSense() {
+      // Replace placeholder in script tag if needed
+      const adScript = document.querySelector('script[src*="adsbygoogle"]');
+      if (adScript && ADSENSE_CONFIG.publisherId !== 'ca-pub-PLACEHOLDER') {
+        adScript.src = adScript.src.replace('ca-pub-PLACEHOLDER', ADSENSE_CONFIG.publisherId);
+      }
+      console.log('[AdSense] Initialized with publisher ID:', ADSENSE_CONFIG.publisherId);
+    }
+
+    // Load and display a rewarded video ad
+    async function loadAd() {
+      return new Promise((resolve, reject) => {
+        try {
+          const adUnitId = ADSENSE_CONFIG.environment === 'development' 
+            ? ADSENSE_CONFIG.testAdUnitId 
+            : ADSENSE_CONFIG.adUnitId;
+
+          console.log('[AdSense] Loading ad with unit ID:', adUnitId);
+
+          // Create ad container if it doesn't exist
+          let adContainer = document.getElementById('adsense-container');
+          if (!adContainer) {
+            adContainer = document.createElement('div');
+            adContainer.id = 'adsense-container';
+            adContainer.style.display = 'none';
+            document.body.appendChild(adContainer);
+          }
+
+          // Create ad element
+          const adElement = document.createElement('ins');
+          adElement.className = 'adsbygoogle';
+          adElement.style.display = 'block';
+          adElement.setAttribute('data-ad-client', ADSENSE_CONFIG.publisherId);
+          adElement.setAttribute('data-ad-slot', adUnitId);
+          adElement.setAttribute('data-ad-format', 'auto');
+          adElement.setAttribute('data-full-width-responsive', 'true');
+
+          adContainer.innerHTML = '';
+          adContainer.appendChild(adElement);
+          adContainer.style.display = 'block';
+
+          // Push ad to AdSense
+          try {
+            (adsbygoogle = window.adsbygoogle || []).push({});
+            console.log('[AdSense] Ad pushed to AdSense queue');
+
+            // Simulate ad completion after duration (for testing)
+            // In production, this should be handled by AdSense events
+            setTimeout(() => {
+              console.log('[AdSense] Ad completed');
+              adContainer.style.display = 'none';
+              resolve({ success: true, duration: ADSENSE_CONFIG.adDurationSeconds });
+            }, ADSENSE_CONFIG.adDurationSeconds * 1000);
+
+          } catch (error) {
+            console.error('[AdSense] Error pushing ad:', error);
+            reject(new Error('Failed to load ad: ' + error.message));
+          }
+
+        } catch (error) {
+          console.error('[AdSense] Error loading ad:', error);
+          reject(error);
+        }
+      });
+    }
+
+    // Test ad loading
+    async function testAdLoading() {
+      try {
+        showStatus('Loading test ad...');
+        const result = await loadAd();
+        showStatus('✅ Test ad loaded successfully! Duration: ' + result.duration + 's');
+        return result;
+      } catch (error) {
+        showStatus('❌ Ad loading failed: ' + error.message);
+        throw error;
+      }
+    }
 
     function getCacheTypeName(type) {
       const names = {
@@ -1328,6 +1420,7 @@
     if (window.__TAURI__) {
       console.log("[UI] Tauri detected, initializing immediately");
       invoke = window.__TAURI__.core.invoke;
+      initAdSense();
       document.getElementById('btnScan').addEventListener('click', scanData);
       document.getElementById('btnPreview').addEventListener('click', previewClean);
       document.getElementById('btnClean').addEventListener('click', cleanSelected);
@@ -1352,6 +1445,7 @@
           if (window.__TAURI__) {
             console.log("[UI] Tauri became available after DOMContentLoaded");
             invoke = window.__TAURI__.core.invoke;
+            initAdSense();
             document.getElementById('btnScan').addEventListener('click', scanData);
             document.getElementById('btnPreview').addEventListener('click', previewClean);
             document.getElementById('btnClean').addEventListener('click', cleanSelected);

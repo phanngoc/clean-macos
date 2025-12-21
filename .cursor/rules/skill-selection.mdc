@@ -1,0 +1,56 @@
+---
+alwaysApply: true
+---
+
+**Important**: Only use the `description` field (line 3) from the frontmatter for matching. Do not read the full SKILL.md content unless the skill is selected.
+
+## Example Matching
+
+### Example 1: Spec Builder Skill
+**Skill Description**: "Generate comprehensive specification documents including requirements, technical design, and detailed task breakdown from any feature request. Use when the user asks to create specs, requirements docs, design docs, or needs to break down a feature into implementation tasks."
+
+**User Query**: "Tạo spec cho tính năng đăng nhập"
+**Match**: ✅ YES - User wants to create a spec (specification document)
+
+**User Query**: "Break down this feature into tasks"
+**Match**: ✅ YES - User wants to break down a feature into tasks
+
+**User Query**: "Write a design document for authentication"
+**Match**: ✅ YES - User wants to create a design doc
+
+### Example 2: Non-Matching
+**User Query**: "Fix the login bug"
+**Match**: ❌ NO - This is a bug fix, not spec generation
+
+## Implementation Instructions
+
+1. **When user makes a query**:
+   - First, scan `.claude/skills/` for all SKILL.md files
+   - Read only the frontmatter (first 6 lines) of each SKILL.md
+   - Extract the `description` field
+   - Compare user query intent with each description
+   - Select the best matching skill (if any)
+
+2. **If a skill matches**:
+   - Inform the user that you're using the skill
+   - Reference the skill by its `name` field
+   - Follow the skill's instructions from the full SKILL.md file
+
+3. **If no skill matches**:
+   - Proceed with normal assistance
+   - Don't force a skill match
+
+## Best Practices
+
+- **Be precise**: Only suggest skills when there's a clear match
+- **Be transparent**: Tell the user which skill you're using and why
+- **Be flexible**: Skills are helpers, not requirements - if a skill doesn't fit perfectly, use your judgment
+- **Read efficiently**: Only read SKILL.md frontmatter for matching, read full content only after selection
+
+## Notes
+
+- Skills are located in `.claude/skills/[skill-name]/SKILL.md`
+- The description field is the primary matching criterion
+- Multiple skills might match - choose the most specific/relevant one
+- If multiple skills are equally relevant, you can suggest using multiple skills sequentially
+
