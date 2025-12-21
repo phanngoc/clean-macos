@@ -2,6 +2,8 @@
 
 mod cache;
 mod utils;
+mod payment;
+mod monetization;
 
 use cache::{
     CacheInfo, CacheType, CleanResult, IndexedDbCleanResult, IndexedDbItem,
