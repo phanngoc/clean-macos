@@ -172,11 +172,393 @@
       color: #fff;
       font-size: 12px;
     }
+    /* Header & Premium Styles */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-title h1 {
+      margin-bottom: 0;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .premium-badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #facc15, #f97316);
+      color: #111827;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .btn-upgrade {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+    .btn-upgrade span {
+      font-size: 14px;
+    }
+    .btn-upgrade:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(236, 72, 153, 0.45);
+    }
+    .btn-upgrade:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(236, 72, 153, 0.35);
+    }
+    .btn-upgrade.hidden {
+      display: none;
+    }
+    /* Payment Component Styles */
+    .payment-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      padding: 20px;
+    }
+    .payment-overlay.show {
+      display: flex;
+    }
+    .payment-container {
+      background: rgba(17, 24, 39, 0.95);
+      border-radius: 18px;
+      padding: 24px 26px 20px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .payment-header {
+      text-align: left;
+    }
+    .payment-title {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .payment-subtitle {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .payment-status {
+      font-size: 13px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: #e5e7eb;
+      display: none;
+      white-space: pre-line;
+    }
+    .payment-status.show {
+      display: block;
+    }
+    .payment-status.success {
+      border-color: rgba(74, 222, 128, 0.8);
+      background: rgba(22, 163, 74, 0.15);
+      color: #bbf7d0;
+    }
+    .payment-status.error {
+      border-color: rgba(248, 113, 113, 0.8);
+      background: rgba(185, 28, 28, 0.2);
+      color: #fecaca;
+    }
+    .payment-body {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .payment-price {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .payment-price-amount {
+      font-size: 32px;
+      font-weight: 700;
+      color: #4ade80;
+    }
+    .payment-price-label {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .payment-steps {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .payment-steps ol {
+      padding-left: 18px;
+      margin: 6px 0 0;
+    }
+    .payment-steps li {
+      margin-bottom: 3px;
+    }
+    .payment-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .payment-field label {
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+    .payment-field input {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 13px;
+    }
+    .payment-field input::placeholder {
+      color: #6b7280;
+    }
+    .payment-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+    .payment-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
+    }
+    .payment-btn-primary {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .payment-btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      transform: translateY(-1px);
+    }
+    .payment-btn-secondary {
+      background: rgba(31, 41, 55, 0.9);
+      color: #e5e7eb;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+    .payment-btn-secondary:hover:not(:disabled) {
+      background: rgba(55, 65, 81, 1);
+    }
+    .payment-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    @media (max-width: 480px) {
+      .payment-container {
+        padding: 18px 16px 14px;
+      }
+      .payment-title {
+        font-size: 19px;
+      }
+      .payment-price-amount {
+        font-size: 26px;
+      }
+      .payment-actions {
+        justify-content: center;
+      }
+    }
+    /* AdDisplay Component Styles */
+    .ad-display-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .ad-display-overlay.show {
+      display: flex;
+    }
+    .ad-display-container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 90%;
+      max-height: 90%;
+      width: 600px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .ad-display-header {
+      text-align: center;
+      width: 100%;
+    }
+    .ad-display-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .ad-display-subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 20px;
+    }
+    .ad-display-timer {
+      font-size: 48px;
+      font-weight: 700;
+      color: #4ade80;
+      margin: 20px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .ad-display-content {
+      width: 100%;
+      min-height: 300px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .ad-display-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      color: #888;
+    }
+    .ad-display-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .ad-display-error {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      color: #f87171;
+      padding: 20px;
+      text-align: center;
+    }
+    .ad-display-error-icon {
+      font-size: 48px;
+    }
+    .ad-display-error-message {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .ad-display-error-details {
+      font-size: 12px;
+      color: #888;
+    }
+    .ad-display-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .ad-display-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ad-display-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .ad-display-btn-retry {
+      background: #3b82f6;
+      color: #fff;
+    }
+    .ad-display-btn-retry:hover:not(:disabled) {
+      background: #2563eb;
+    }
+    .ad-display-btn-close {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      display: none;
+    }
+    .ad-display-btn-close.enabled {
+      display: block;
+    }
+    .ad-display-btn-close:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .ad-display-adsense-container {
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+    }
+    .ad-display-adsense-container ins {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="header">
+      <div class="header-title">
     <h1>🧹 Cache Cleaner</h1>
+      </div>
+      <div class="header-right">
+        <span id="premiumBadge" class="premium-badge" style="display:none;">Premium</span>
+        <button id="btnUpgrade" class="btn-upgrade">
+          <span>⭐</span>
+          <span>Upgrade to Premium</span>
+        </button>
+      </div>
+    </div>
     
     <!-- Tab Navigation -->
     <div class="tab-nav">
@@ -310,8 +692,84 @@
         </div>
       </div>
 
-      <div id="smartScannerStatus" class="status" style="display:none;"></div>
+      <div id="smartScannerStatus" class="status" style="display:none;">      </div>
     </div><!-- End Smart Scanner Tab -->
+  </div>
+
+  <!-- AdDisplay Component -->
+  <div id="adDisplayOverlay" class="ad-display-overlay">
+    <div class="ad-display-container">
+      <div class="ad-display-header">
+        <div class="ad-display-title">Advertisement</div>
+        <div class="ad-display-subtitle">Please watch this ad to continue</div>
+      </div>
+      <div class="ad-display-timer" id="adDisplayTimer">15</div>
+      <div class="ad-display-content" id="adDisplayContent">
+        <div class="ad-display-loading">
+          <div class="ad-display-spinner"></div>
+          <div>Loading advertisement...</div>
+        </div>
+      </div>
+      <div class="ad-display-actions">
+        <button class="ad-display-btn ad-display-btn-retry" id="adDisplayRetry" style="display: none;">Retry</button>
+        <button class="ad-display-btn ad-display-btn-close" id="adDisplayClose" disabled>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PaymentComponent -->
+  <div id="paymentOverlay" class="payment-overlay">
+    <div class="payment-container">
+      <div class="payment-header">
+        <div class="payment-title">Upgrade to Premium</div>
+        <div class="payment-subtitle">
+          One-time purchase • Remove ads and unlock unlimited cache cleaning
+        </div>
+      </div>
+      <div id="paymentStatus" class="payment-status"></div>
+      <div class="payment-body">
+        <div class="payment-price">
+          <span class="payment-price-amount">$15</span>
+          <span class="payment-price-label">One-time • Lifetime access</span>
+        </div>
+        <div class="payment-steps">
+          <strong>How it works:</strong>
+          <ol>
+            <li>Click <strong>Start Payment</strong> to open secure Paddle checkout.</li>
+            <li>Complete the payment in your browser.</li>
+            <li>Copy the <strong>Transaction ID</strong> from the receipt.</li>
+            <li>Paste it below and click <strong>Confirm Payment</strong>.</li>
+          </ol>
+        </div>
+        <div class="payment-field">
+          <label for="transactionIdInput">Transaction ID (from Paddle receipt)</label>
+          <input
+            id="transactionIdInput"
+            type="text"
+            placeholder="e.g. txn_123456789"
+            autocomplete="off"
+          />
+        </div>
+      </div>
+      <div class="payment-actions">
+        <button id="paymentStartButton" class="payment-btn payment-btn-primary">
+          <span>💳</span>
+          <span>Start Payment</span>
+        </button>
+        <button id="paymentConfirmButton" class="payment-btn payment-btn-primary" disabled>
+          <span>✅</span>
+          <span>Confirm Payment</span>
+        </button>
+        <button id="paymentRestoreButton" class="payment-btn payment-btn-secondary">
+          <span>🔄</span>
+          <span>Restore Purchase</span>
+        </button>
+        <button id="paymentCloseButton" class="payment-btn payment-btn-secondary">
+          <span>✕</span>
+          <span>Close</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -324,6 +782,7 @@
     let devTools = [];
     let systemCaches = [];
     let smartSuggestions = [];
+    let isPremium = false;
     const INDEXED_DB_THRESHOLD_MB = 10;
     let invoke;
 
@@ -346,73 +805,427 @@
       console.log('[AdSense] Initialized with publisher ID:', ADSENSE_CONFIG.publisherId);
     }
 
-    // Load and display a rewarded video ad
-    async function loadAd() {
+    // Premium Status Helpers
+    function updatePremiumUI() {
+      const badge = document.getElementById('premiumBadge');
+      const upgradeBtn = document.getElementById('btnUpgrade');
+      if (!badge || !upgradeBtn) return;
+
+      if (isPremium) {
+        badge.style.display = 'inline-flex';
+        upgradeBtn.classList.add('hidden');
+      } else {
+        badge.style.display = 'none';
+        upgradeBtn.classList.remove('hidden');
+      }
+    }
+
+    async function refreshPremiumStatus(showErrors = false) {
+      if (!window.__TAURI__ || !invoke) return;
+      try {
+        const status = await invoke('check_premium_status');
+        isPremium = !!status;
+        console.log('[UI] Premium status:', isPremium);
+        updatePremiumUI();
+      } catch (e) {
+        console.error('[UI] Failed to check premium status:', e);
+        if (showErrors) {
+          showStatus('Error checking premium status: ' + e);
+        }
+      }
+    }
+
+    // AdDisplay Component
+    class AdDisplay {
+      constructor() {
+        this.overlay = document.getElementById('adDisplayOverlay');
+        this.content = document.getElementById('adDisplayContent');
+        this.timer = document.getElementById('adDisplayTimer');
+        this.retryBtn = document.getElementById('adDisplayRetry');
+        this.closeBtn = document.getElementById('adDisplayClose');
+        this.currentAdId = null;
+        this.timerInterval = null;
+        this.remainingSeconds = 0;
+        this.isCompleted = false;
+        this.onCompleteCallback = null;
+        this.onErrorCallback = null;
+        
+        // Setup event listeners
+        this.retryBtn.addEventListener('click', () => this.loadAd());
+        this.closeBtn.addEventListener('click', () => this.close());
+      }
+
+      async show(onComplete, onError) {
+        this.onCompleteCallback = onComplete;
+        this.onErrorCallback = onError;
+        this.overlay.classList.add('show');
+        this.isCompleted = false;
+        this.closeBtn.disabled = true;
+        this.closeBtn.classList.remove('enabled');
+        this.retryBtn.style.display = 'none';
+        await this.loadAd();
+      }
+
+      async loadAd() {
+        try {
+          // Show loading state
+          this.showLoading();
+          
+          // Request ad from backend
+          if (!invoke) {
+            throw new Error('Tauri invoke not available');
+          }
+
+          const adRequest = await invoke('request_ad');
+          console.log('[AdDisplay] Ad requested:', adRequest);
+          
+          this.currentAdId = adRequest.ad_id;
+          this.remainingSeconds = adRequest.duration_seconds || 15;
+
+          // Load AdSense ad
+          await this.loadAdSenseAd(adRequest);
+          
+          // Start countdown timer
+          this.startTimer();
+          
+        } catch (error) {
+          console.error('[AdDisplay] Error loading ad:', error);
+          this.showError(error.message || 'Failed to load advertisement');
+          if (this.onErrorCallback) {
+            this.onErrorCallback(error);
+          }
+        }
+      }
+
+      async loadAdSenseAd(adRequest) {
       return new Promise((resolve, reject) => {
         try {
           const adUnitId = ADSENSE_CONFIG.environment === 'development' 
             ? ADSENSE_CONFIG.testAdUnitId 
-            : ADSENSE_CONFIG.adUnitId;
+              : adRequest.ad_unit_id || ADSENSE_CONFIG.adUnitId;
 
-          console.log('[AdSense] Loading ad with unit ID:', adUnitId);
+            console.log('[AdDisplay] Loading AdSense ad with unit ID:', adUnitId);
 
-          // Create ad container if it doesn't exist
-          let adContainer = document.getElementById('adsense-container');
-          if (!adContainer) {
-            adContainer = document.createElement('div');
-            adContainer.id = 'adsense-container';
-            adContainer.style.display = 'none';
-            document.body.appendChild(adContainer);
-          }
+            // Clear content
+            this.content.innerHTML = '';
+
+            // Create ad container
+            const adContainer = document.createElement('div');
+            adContainer.className = 'ad-display-adsense-container';
+            adContainer.id = 'ad-display-adsense-' + Date.now();
 
           // Create ad element
           const adElement = document.createElement('ins');
           adElement.className = 'adsbygoogle';
           adElement.style.display = 'block';
-          adElement.setAttribute('data-ad-client', ADSENSE_CONFIG.publisherId);
+            adElement.setAttribute('data-ad-client', adRequest.publisher_id || ADSENSE_CONFIG.publisherId);
           adElement.setAttribute('data-ad-slot', adUnitId);
-          adElement.setAttribute('data-ad-format', 'auto');
+            adElement.setAttribute('data-ad-format', adRequest.format || 'auto');
           adElement.setAttribute('data-full-width-responsive', 'true');
 
-          adContainer.innerHTML = '';
           adContainer.appendChild(adElement);
-          adContainer.style.display = 'block';
+            this.content.appendChild(adContainer);
 
           // Push ad to AdSense
           try {
-            (adsbygoogle = window.adsbygoogle || []).push({});
-            console.log('[AdSense] Ad pushed to AdSense queue');
+              (window.adsbygoogle = window.adsbygoogle || []).push({});
+              console.log('[AdDisplay] Ad pushed to AdSense queue');
 
-            // Simulate ad completion after duration (for testing)
-            // In production, this should be handled by AdSense events
+              // For testing: simulate ad completion after duration
+              // In production, listen to AdSense events
             setTimeout(() => {
-              console.log('[AdSense] Ad completed');
-              adContainer.style.display = 'none';
-              resolve({ success: true, duration: ADSENSE_CONFIG.adDurationSeconds });
-            }, ADSENSE_CONFIG.adDurationSeconds * 1000);
+                console.log('[AdDisplay] Ad playback completed');
+                this.completeAd();
+                resolve();
+              }, (adRequest.duration_seconds || 15) * 1000);
 
           } catch (error) {
-            console.error('[AdSense] Error pushing ad:', error);
+              console.error('[AdDisplay] Error pushing ad:', error);
             reject(new Error('Failed to load ad: ' + error.message));
           }
 
         } catch (error) {
-          console.error('[AdSense] Error loading ad:', error);
+            console.error('[AdDisplay] Error creating ad element:', error);
           reject(error);
         }
       });
     }
 
-    // Test ad loading
+      showLoading() {
+        this.content.innerHTML = `
+          <div class="ad-display-loading">
+            <div class="ad-display-spinner"></div>
+            <div>Loading advertisement...</div>
+          </div>
+        `;
+      }
+
+      showError(message) {
+        this.content.innerHTML = `
+          <div class="ad-display-error">
+            <div class="ad-display-error-icon">⚠️</div>
+            <div class="ad-display-error-message">${message}</div>
+            <div class="ad-display-error-details">Please try again or check your connection</div>
+          </div>
+        `;
+        this.retryBtn.style.display = 'block';
+        this.timer.textContent = '0';
+      }
+
+      startTimer() {
+        this.timer.textContent = this.remainingSeconds.toString();
+        
+        this.timerInterval = setInterval(() => {
+          this.remainingSeconds--;
+          this.timer.textContent = Math.max(0, this.remainingSeconds).toString();
+          
+          if (this.remainingSeconds <= 0) {
+            this.completeAd();
+          }
+        }, 1000);
+      }
+
+      stopTimer() {
+        if (this.timerInterval) {
+          clearInterval(this.timerInterval);
+          this.timerInterval = null;
+        }
+      }
+
+      async completeAd() {
+        if (this.isCompleted) return;
+        
+        this.isCompleted = true;
+        this.stopTimer();
+        this.timer.textContent = '0';
+        
+        // Notify backend that ad is completed
+        try {
+          if (this.currentAdId && invoke) {
+            await invoke('ad_completed', { ad_id: this.currentAdId });
+            console.log('[AdDisplay] Ad completion notified to backend:', this.currentAdId);
+          }
+        } catch (error) {
+          console.error('[AdDisplay] Error notifying ad completion:', error);
+          // Continue anyway - ad was watched
+        }
+
+        // Enable close button
+        this.closeBtn.disabled = false;
+        this.closeBtn.classList.add('enabled');
+        
+        // Call completion callback
+        if (this.onCompleteCallback) {
+          this.onCompleteCallback();
+        }
+      }
+
+      close() {
+        if (!this.isCompleted) {
+          // Prevent closing if ad not completed
+          return;
+        }
+        
+        this.overlay.classList.remove('show');
+        this.stopTimer();
+        this.currentAdId = null;
+        this.isCompleted = false;
+        this.onCompleteCallback = null;
+        this.onErrorCallback = null;
+      }
+    }
+
+    // Create global AdDisplay instance
+    const adDisplay = new AdDisplay();
+
+    // PaymentComponent
+    class PaymentComponent {
+      constructor() {
+        this.overlay = document.getElementById('paymentOverlay');
+        this.statusEl = document.getElementById('paymentStatus');
+        this.transactionInput = document.getElementById('transactionIdInput');
+        this.startButton = document.getElementById('paymentStartButton');
+        this.confirmButton = document.getElementById('paymentConfirmButton');
+        this.restoreButton = document.getElementById('paymentRestoreButton');
+        this.closeButton = document.getElementById('paymentCloseButton');
+        this.currentSession = null;
+        this.isProcessing = false;
+
+        this.startButton.addEventListener('click', () => this.startPayment());
+        this.confirmButton.addEventListener('click', () => this.confirmPayment());
+        this.restoreButton.addEventListener('click', () => this.restorePurchase());
+        this.closeButton.addEventListener('click', () => this.close());
+      }
+
+      show() {
+        if (this.overlay) {
+          this.overlay.classList.add('show');
+        }
+        this.clearStatus();
+        this.transactionInput.value = '';
+        this.confirmButton.disabled = true;
+        this.startButton.disabled = false;
+        this.isProcessing = false;
+
+        if (isPremium) {
+          this.showStatus('You already have premium access. Thank you!', 'success');
+          this.startButton.disabled = true;
+          this.confirmButton.disabled = true;
+        }
+      }
+
+      close() {
+        if (this.overlay) {
+          this.overlay.classList.remove('show');
+        }
+      }
+
+      setProcessing(isProcessing) {
+        this.isProcessing = isProcessing;
+        this.startButton.disabled = isProcessing;
+        this.confirmButton.disabled = isProcessing || !this.transactionInput.value.trim();
+        this.restoreButton.disabled = isProcessing;
+        this.closeButton.disabled = isProcessing;
+      }
+
+      showStatus(message, type) {
+        if (!this.statusEl) return;
+        this.statusEl.textContent = message;
+        this.statusEl.classList.add('show');
+        this.statusEl.classList.remove('success', 'error');
+        if (type === 'success') {
+          this.statusEl.classList.add('success');
+        } else if (type === 'error') {
+          this.statusEl.classList.add('error');
+        }
+      }
+
+      clearStatus() {
+        if (!this.statusEl) return;
+        this.statusEl.textContent = '';
+        this.statusEl.classList.remove('show', 'success', 'error');
+      }
+
+      async startPayment() {
+        if (!window.__TAURI__ || !invoke) {
+          this.showStatus('Tauri API not available. Cannot start payment.', 'error');
+          return;
+        }
+
+        try {
+          this.setProcessing(true);
+          this.showStatus('Starting secure checkout session...', null);
+
+          const session = await invoke('initiate_purchase', { amount: 15.0 });
+          console.log('[PaymentComponent] Purchase session:', session);
+          this.currentSession = session;
+
+          const url = session.checkout_url || session.payment_url;
+          if (!url) {
+            throw new Error('No checkout URL returned from payment provider');
+          }
+
+          try {
+            const tauri = window.__TAURI__;
+            if (tauri && tauri.shell && typeof tauri.shell.open === 'function') {
+              await tauri.shell.open(url);
+            } else {
+              window.open(url, '_blank', 'noopener,noreferrer');
+            }
+          } catch (e) {
+            console.warn('[PaymentComponent] Failed to open checkout via shell, falling back to window.open', e);
+            window.open(url, '_blank', 'noopener,noreferrer');
+          }
+
+          this.showStatus(
+            'Checkout opened in your browser.\n' +
+            'After completing payment, copy the Transaction ID from the receipt\n' +
+            'and paste it below, then click "Confirm Payment".',
+            null
+          );
+          this.confirmButton.disabled = false;
+        } catch (e) {
+          console.error('[PaymentComponent] Failed to start payment:', e);
+          this.showStatus('Failed to start payment: ' + e, 'error');
+        } finally {
+          this.setProcessing(false);
+        }
+      }
+
+      async confirmPayment() {
+        if (!window.__TAURI__ || !invoke) {
+          this.showStatus('Tauri API not available. Cannot confirm payment.', 'error');
+          return;
+        }
+
+        const transactionId = this.transactionInput.value.trim();
+        if (!transactionId) {
+          this.showStatus('Please enter the Transaction ID from your Paddle receipt.', 'error');
+          return;
+        }
+
+        try {
+          this.setProcessing(true);
+          this.showStatus('Verifying payment...', null);
+
+          const receipt = await invoke('process_payment', { transactionId });
+          console.log('[PaymentComponent] Payment processed:', receipt);
+
+          this.showStatus('✅ Payment successful! Premium has been activated for this device.', 'success');
+          await refreshPremiumStatus(true);
+        } catch (e) {
+          console.error('[PaymentComponent] Failed to confirm payment:', e);
+          this.showStatus('Failed to verify payment: ' + e, 'error');
+        } finally {
+          this.setProcessing(false);
+        }
+      }
+
+      async restorePurchase() {
+        if (!window.__TAURI__ || !invoke) {
+          this.showStatus('Tauri API not available. Cannot restore purchase.', 'error');
+          return;
+        }
+
+        try {
+          this.setProcessing(true);
+          this.showStatus('Checking for previous purchases...', null);
+
+          const receipts = await invoke('restore_purchases');
+          console.log('[PaymentComponent] Restore purchases result:', receipts);
+
+          if (Array.isArray(receipts) && receipts.length > 0) {
+            this.showStatus('✅ Previous purchase restored. Premium has been activated.', 'success');
+            await refreshPremiumStatus(true);
+          } else {
+            this.showStatus('No previous purchases found for this device.', 'error');
+          }
+        } catch (e) {
+          console.error('[PaymentComponent] Failed to restore purchases:', e);
+          this.showStatus('Failed to restore purchases: ' + e, 'error');
+        } finally {
+          this.setProcessing(false);
+        }
+      }
+    }
+
+    // Create global AdDisplay instance
+    const paymentComponent = new PaymentComponent();
+
+    // Test ad loading (for development)
     async function testAdLoading() {
       try {
         showStatus('Loading test ad...');
-        const result = await loadAd();
-        showStatus('✅ Test ad loaded successfully! Duration: ' + result.duration + 's');
-        return result;
-      } catch (error) {
+        await adDisplay.show(
+          () => {
+            showStatus('✅ Test ad completed successfully!');
+          },
+          (error) => {
         showStatus('❌ Ad loading failed: ' + error.message);
-        throw error;
+          }
+        );
+      } catch (error) {
+        showStatus('❌ Ad display error: ' + error.message);
       }
     }
 
@@ -1416,10 +2229,8 @@
       }
     }
 
-    // Initialize
-    if (window.__TAURI__) {
-      console.log("[UI] Tauri detected, initializing immediately");
-      invoke = window.__TAURI__.core.invoke;
+    function initializeUI() {
+      console.log("[UI] Initializing UI");
       initAdSense();
       document.getElementById('btnScan').addEventListener('click', scanData);
       document.getElementById('btnPreview').addEventListener('click', previewClean);
@@ -1438,6 +2249,19 @@
       // Smart Scanner
       document.getElementById('btnSmartScan').addEventListener('click', scanSmartSuggestions);
       document.getElementById('btnCleanSmartScanner').addEventListener('click', deleteSmartScannerFolders);
+      // Upgrade to Premium
+      const upgradeBtn = document.getElementById('btnUpgrade');
+      if (upgradeBtn) {
+        upgradeBtn.addEventListener('click', () => paymentComponent.show());
+      }
+    }
+
+    // Initialize
+    if (window.__TAURI__) {
+      console.log("[UI] Tauri detected, initializing immediately");
+      invoke = window.__TAURI__.core.invoke;
+      initializeUI();
+      refreshPremiumStatus(false);
       scanData();
     } else {
       document.addEventListener('DOMContentLoaded', function() {
@@ -1445,24 +2269,8 @@
           if (window.__TAURI__) {
             console.log("[UI] Tauri became available after DOMContentLoaded");
             invoke = window.__TAURI__.core.invoke;
-            initAdSense();
-            document.getElementById('btnScan').addEventListener('click', scanData);
-            document.getElementById('btnPreview').addEventListener('click', previewClean);
-            document.getElementById('btnClean').addEventListener('click', cleanSelected);
-            document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
-            document.getElementById('btnCleanLarge').addEventListener('click', cleanLargeCaches);
-            document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
-            document.getElementById('btnCleanBrowserCaches').addEventListener('click', cleanBrowserCaches);
-            document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
-            document.getElementById('btnCleanDevTools').addEventListener('click', cleanDevTools);
-            document.getElementById('btnCleanSystemCaches').addEventListener('click', cleanSystemCaches);
-            // Tab navigation
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-              btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-            });
-            // Smart Scanner
-            document.getElementById('btnSmartScan').addEventListener('click', scanSmartSuggestions);
-            document.getElementById('btnCleanSmartScanner').addEventListener('click', deleteSmartScannerFolders);
+            initializeUI();
+            refreshPremiumStatus(false);
             scanData();
           } else {
             showStatus('Tauri API not available');
