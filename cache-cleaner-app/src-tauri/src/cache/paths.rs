@@ -26,7 +26,7 @@ impl MacPaths {
     }
 
     pub fn arc_cache() -> PathBuf {
-        Self::home().join("Library/Caches/company.thebrowser.Browser")
+        Self::home().join("Library/Caches/Arc")
     }
 
     // Package Manager Caches

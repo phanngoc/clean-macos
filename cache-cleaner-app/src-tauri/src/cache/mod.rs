@@ -22,11 +22,13 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum CacheType {
     Npm,
     Chrome,
     CacheDir,
 
+    #[serde(rename = "vscode")]
     VSCode,
     Cursor,
     Safari,
@@ -35,6 +37,7 @@ pub enum CacheType {
     Yarn,
     Pnpm,
     Pip,
+    #[serde(rename = "cocoapods")]
     CocoaPods,
     Gradle,
     Cargo,

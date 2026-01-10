@@ -39,7 +39,20 @@ pub struct PermissionStatus {
 
 #[tauri::command]
 async fn scan_caches() -> Result<Vec<CacheInfo>, String> {
-    cache::scanner::scan_all().await.map_err(|e| e.to_string())
+    println!("[Rust] scan_caches called");
+    let result = cache::scanner::scan_all().await.map_err(|e| e.to_string())?;
+    println!("[Rust] scan_caches found {} caches", result.len());
+    for cache in &result {
+        println!("[Rust] - {:?}: {} bytes, exists={}", cache.cache_type, cache.size, cache.exists);
+    }
+    // Debug: print actual JSON to see serde serialization
+    if let Some(first) = result.first() {
+        match serde_json::to_string(first) {
+            Ok(json) => println!("[Rust] First cache as JSON: {}", json),
+            Err(e) => println!("[Rust] JSON error: {}", e),
+        }
+    }
+    Ok(result)
 }
 
 #[tauri::command]

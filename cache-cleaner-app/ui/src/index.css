@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Light mode colors - Friendly and modern */
+  --color-background: oklch(0.99 0.005 240);
+  --color-foreground: oklch(0.15 0.02 240);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.15 0.02 240);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.15 0.02 240);
+  --color-primary: oklch(0.55 0.18 250);
+  --color-primary-foreground: oklch(0.99 0.005 240);
+  --color-secondary: oklch(0.96 0.01 240);
+  --color-secondary-foreground: oklch(0.25 0.02 240);
+  --color-muted: oklch(0.95 0.01 240);
+  --color-muted-foreground: oklch(0.475 0.02 240);
+  --color-accent: oklch(0.96 0.015 250);
+  --color-accent-foreground: oklch(0.25 0.02 240);
+  --color-destructive: oklch(0.58 0.22 25);
+  --color-destructive-foreground: oklch(0.99 0.005 240);
+  --color-border: oklch(0.9 0.01 240);
+  --color-input: oklch(0.9 0.01 240);
+  --color-ring: oklch(0.55 0.18 250);
+  --radius: 0.75rem;
+  
+  /* Score colors */
+  --color-score-high: oklch(0.6 0.22 25);
+  --color-score-medium: oklch(0.7 0.15 70);
+  --color-score-low: oklch(0.6 0.18 145);
+}
+
+.dark {
+  --color-background: oklch(0.11 0.02 260);
+  --color-foreground: oklch(0.96 0.01 240);
+  --color-card: oklch(0.15 0.02 260);
+  --color-card-foreground: oklch(0.96 0.01 240);
+  --color-popover: oklch(0.15 0.02 260);
+  --color-popover-foreground: oklch(0.96 0.01 240);
+  --color-primary: oklch(0.65 0.2 250);
+  --color-primary-foreground: oklch(0.11 0.02 260);
+  --color-secondary: oklch(0.2 0.02 260);
+  --color-secondary-foreground: oklch(0.96 0.01 240);
+  --color-muted: oklch(0.2 0.02 260);
+  --color-muted-foreground: oklch(0.6 0.01 240);
+  --color-accent: oklch(0.2 0.02 260);
+  --color-accent-foreground: oklch(0.96 0.01 240);
+  --color-destructive: oklch(0.55 0.25 25);
+  --color-destructive-foreground: oklch(0.96 0.01 240);
+  --color-border: oklch(0.24 0.02 260);
+  --color-input: oklch(0.24 0.02 260);
+  --color-ring: oklch(0.65 0.2 250);
+  
+  /* Score colors for dark mode */
+  --color-score-high: oklch(0.65 0.25 25);
+  --color-score-medium: oklch(0.75 0.18 70);
+  --color-score-low: oklch(0.65 0.2 145);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Smooth transitions for interactive elements */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.7 0.01 240);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.6 0.01 240);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: oklch(0.4 0.01 240);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0.01 240);
+}
