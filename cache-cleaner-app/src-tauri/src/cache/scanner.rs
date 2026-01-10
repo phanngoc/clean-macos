@@ -264,5 +264,12 @@ fn get_cache_path(cache_type: &CacheType) -> Result<std::path::PathBuf> {
         CacheType::UserLogs => MacPaths::user_logs(),
         CacheType::TempFiles => MacPaths::tmp(),
         CacheType::IosBackups => MacPaths::ios_backups(),
+        // Docker cache types don't have file paths - they're managed by Docker CLI
+        CacheType::DockerContainers | 
+        CacheType::DockerImages | 
+        CacheType::DockerVolumes | 
+        CacheType::DockerBuildCache => {
+            return Err(anyhow::anyhow!("Docker cache types should be managed through docker module"))
+        }
     })
 }

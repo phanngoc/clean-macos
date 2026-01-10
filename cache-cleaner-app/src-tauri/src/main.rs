@@ -11,6 +11,7 @@ use cache::{
     registry::ScannerRegistry,
     scanner_trait::{ScanResult, CleanResultGeneric},
     smart_suggestions::{FolderSuggestion, SmartSuggestionsCleanResult},
+    docker::{DockerScanResult, DockerCleanResult, DockerSuggestion},
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -190,6 +191,118 @@ async fn remove_smart_suggestions(paths: Vec<String>) -> Result<SmartSuggestions
     cache::smart_suggestions::remove_suggested_folders(paths).await.map_err(|e| e.to_string())
 }
 
+// === Docker Cleanup Commands ===
+
+/// Check if Docker is installed and daemon is running
+#[tauri::command]
+async fn check_docker_status() -> Result<bool, String> {
+    Ok(cache::docker::is_docker_running().await)
+}
+
+/// Scan all Docker resources (containers, images, volumes, networks)
+#[tauri::command]
+async fn scan_docker() -> Result<DockerScanResult, String> {
+    cache::docker::scan_docker_resources()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Get smart suggestions for Docker cleanup
+#[tauri::command]
+async fn get_docker_suggestions() -> Result<Vec<DockerSuggestion>, String> {
+    cache::docker::get_docker_suggestions()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Remove specific Docker containers
+#[tauri::command]
+async fn clean_docker_containers(ids: Vec<String>, force: bool) -> Result<DockerCleanResult, String> {
+    cache::docker::remove_containers(ids, force)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Remove specific Docker images
+#[tauri::command]
+async fn clean_docker_images(ids: Vec<String>, force: bool) -> Result<DockerCleanResult, String> {
+    cache::docker::remove_images(ids, force)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Remove specific Docker volumes
+#[tauri::command]
+async fn clean_docker_volumes(names: Vec<String>) -> Result<DockerCleanResult, String> {
+    cache::docker::remove_volumes(names)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Remove specific Docker networks
+#[tauri::command]
+async fn clean_docker_networks(ids: Vec<String>) -> Result<DockerCleanResult, String> {
+    cache::docker::remove_networks(ids)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Prune Docker system (all unused resources)
+#[tauri::command]
+async fn docker_system_prune(all: bool, include_volumes: bool) -> Result<DockerCleanResult, String> {
+    cache::docker::docker_system_prune(all, include_volumes)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Prune Docker builder cache
+#[tauri::command]
+async fn docker_builder_prune() -> Result<DockerCleanResult, String> {
+    cache::docker::docker_builder_prune()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Prune stopped containers
+#[tauri::command]
+async fn docker_prune_containers() -> Result<DockerCleanResult, String> {
+    cache::docker::prune_containers()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Prune unused images (dangling or all)
+#[tauri::command]
+async fn docker_prune_images(all: bool) -> Result<DockerCleanResult, String> {
+    cache::docker::prune_images(all)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Prune unused volumes
+#[tauri::command]
+async fn docker_prune_volumes() -> Result<DockerCleanResult, String> {
+    cache::docker::prune_volumes()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Prune unused networks
+#[tauri::command]
+async fn docker_prune_networks() -> Result<DockerCleanResult, String> {
+    cache::docker::prune_networks()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Clean Docker resources based on suggestions
+#[tauri::command]
+async fn clean_docker_suggestions(suggestions: Vec<DockerSuggestion>) -> Result<DockerCleanResult, String> {
+    cache::docker::clean_docker_suggestions(suggestions)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -214,6 +327,21 @@ fn main() {
             scan_smart_suggestions,
             get_folder_suggestion_info,
             remove_smart_suggestions,
+            // Docker cleanup commands
+            check_docker_status,
+            scan_docker,
+            get_docker_suggestions,
+            clean_docker_containers,
+            clean_docker_images,
+            clean_docker_volumes,
+            clean_docker_networks,
+            docker_system_prune,
+            docker_builder_prune,
+            docker_prune_containers,
+            docker_prune_images,
+            docker_prune_volumes,
+            docker_prune_networks,
+            clean_docker_suggestions,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

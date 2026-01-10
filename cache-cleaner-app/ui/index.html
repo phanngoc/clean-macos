@@ -352,6 +352,255 @@
       height: 14px;
       cursor: pointer;
     }
+    /* Docker Cleanup Styles */
+    .docker-status-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .docker-status-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .docker-status-indicator {
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+    .docker-status-indicator.running { color: #4ade80; }
+    .docker-status-indicator.stopped { color: #f87171; }
+    .docker-status-indicator.checking { color: #fbbf24; animation: pulse 1s infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .docker-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .docker-summary-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .docker-total-size {
+      font-size: 20px;
+      font-weight: 600;
+      color: #4ade80;
+    }
+    .docker-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .docker-stat-item {
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .docker-stat-icon {
+      font-size: 20px;
+    }
+    .docker-stat-label {
+      flex: 1;
+      font-size: 12px;
+      color: #888;
+    }
+    .docker-stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .docker-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      padding: 8px 0;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .docker-section-header h2 {
+      font-size: 15px;
+      color: #a0aec0;
+      margin: 0;
+    }
+    .docker-section-toggle {
+      font-size: 12px;
+      color: #888;
+      transition: transform 0.3s;
+    }
+    .docker-section-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+    .docker-section-content.collapsed {
+      display: none;
+    }
+    .docker-item {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .docker-item.auto-select {
+      background: rgba(239, 68, 68, 0.15);
+      border-left: 3px solid #f87171;
+    }
+    .docker-item.dangling {
+      background: rgba(251, 191, 36, 0.15);
+      border-left: 3px solid #fbbf24;
+    }
+    .docker-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      margin-top: 2px;
+    }
+    .docker-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .docker-item-name {
+      font-weight: 500;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .docker-item-id {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+      font-family: monospace;
+    }
+    .docker-item-meta {
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .docker-item-size {
+      font-size: 14px;
+      color: #4ade80;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .docker-item-size.large {
+      color: #f87171;
+    }
+    .docker-badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .docker-badge.dangling {
+      background: rgba(251, 191, 36, 0.3);
+      color: #fbbf24;
+    }
+    .docker-badge.unused {
+      background: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .docker-badge.orphan {
+      background: rgba(139, 92, 246, 0.3);
+      color: #a78bfa;
+    }
+    .docker-badge.exited {
+      background: rgba(107, 114, 128, 0.3);
+      color: #9ca3af;
+    }
+    .docker-badge.dead {
+      background: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .docker-score-badge {
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-left: auto;
+    }
+    .docker-score-badge.high { background: #ef4444; color: #fff; }
+    .docker-score-badge.medium { background: #f59e0b; color: #fff; }
+    .docker-score-badge.low { background: #22c55e; color: #fff; }
+    .docker-reasons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .docker-reason-tag {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+    .docker-empty-state {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+      font-size: 14px;
+    }
+    .docker-not-running {
+      text-align: center;
+      padding: 40px 20px;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+    .docker-not-running-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .docker-not-running-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .docker-not-running-text {
+      color: #888;
+      font-size: 14px;
+    }
+    .docker-build-cache-item {
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .docker-build-cache-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .docker-build-cache-icon {
+      font-size: 24px;
+    }
+    .docker-build-cache-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .docker-build-cache-size {
+      font-size: 18px;
+      font-weight: 600;
+      color: #4ade80;
+    }
   </style>
 </head>
 <body>
@@ -362,6 +611,7 @@
     <div class="tab-nav">
       <button class="tab-btn active" data-tab="cache-cleaner">🗂 Cache Cleaner</button>
       <button class="tab-btn" data-tab="smart-scanner">🔍 Smart Scanner</button>
+      <button class="tab-btn" data-tab="docker-cleanup">🐳 Docker</button>
     </div>
 
     <!-- Cache Cleaner Tab -->
@@ -470,6 +720,122 @@
 
       <div id="smartScannerStatus" class="status" style="display:none;"></div>
     </div><!-- End Smart Scanner Tab -->
+
+    <!-- Docker Cleanup Tab -->
+    <div id="docker-cleanup-tab" class="tab-content">
+      <!-- Docker Status Card -->
+      <div class="docker-status-card">
+        <div class="docker-status-header">
+          <span class="docker-status-indicator" id="dockerStatusIndicator">●</span>
+          <span id="dockerStatusText">Checking Docker...</span>
+        </div>
+        <div class="docker-summary" id="dockerSummary">
+          <div class="docker-summary-item">
+            <span>Total Reclaimable:</span>
+            <span class="docker-total-size" id="dockerTotalSize">0 MB</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Docker Stats Overview -->
+      <div class="docker-stats" id="dockerStats" style="display:none;">
+        <div class="docker-stat-item">
+          <span class="docker-stat-icon">📦</span>
+          <span class="docker-stat-label">Stopped Containers</span>
+          <span class="docker-stat-value" id="dockerStoppedCount">0</span>
+        </div>
+        <div class="docker-stat-item">
+          <span class="docker-stat-icon">🖼️</span>
+          <span class="docker-stat-label">Unused Images</span>
+          <span class="docker-stat-value" id="dockerUnusedImagesCount">0</span>
+        </div>
+        <div class="docker-stat-item">
+          <span class="docker-stat-icon">💾</span>
+          <span class="docker-stat-label">Orphan Volumes</span>
+          <span class="docker-stat-value" id="dockerOrphanVolumesCount">0</span>
+        </div>
+        <div class="docker-stat-item">
+          <span class="docker-stat-icon">🌐</span>
+          <span class="docker-stat-label">Unused Networks</span>
+          <span class="docker-stat-value" id="dockerUnusedNetworksCount">0</span>
+        </div>
+      </div>
+
+      <!-- Scan Button -->
+      <div class="actions">
+        <button class="btn-scan" id="btnDockerScan">🔍 Scan Docker</button>
+        <button class="btn-preview" id="btnDockerPruneAll" style="display:none;">🧹 Prune All</button>
+      </div>
+
+      <!-- Docker Containers Section -->
+      <div id="dockerContainersSection" class="section" style="display:none;">
+        <div class="docker-section-header" onclick="toggleDockerSection('containers')">
+          <h2>📦 Stopped Containers</h2>
+          <span class="docker-section-toggle" id="containersToggle">▼</span>
+        </div>
+        <div id="dockerContainersList" class="cache-list docker-section-content"></div>
+        <div class="section-actions">
+          <button class="btn-clean" id="btnCleanDockerContainers">🗑 Remove Selected Containers</button>
+        </div>
+      </div>
+
+      <!-- Docker Images Section -->
+      <div id="dockerImagesSection" class="section" style="display:none;">
+        <div class="docker-section-header" onclick="toggleDockerSection('images')">
+          <h2>🖼️ Docker Images</h2>
+          <span class="docker-section-toggle" id="imagesToggle">▼</span>
+        </div>
+        <div id="dockerImagesList" class="cache-list docker-section-content"></div>
+        <div class="section-actions">
+          <button class="btn-clean" id="btnCleanDockerImages">🗑 Remove Selected Images</button>
+        </div>
+      </div>
+
+      <!-- Docker Volumes Section -->
+      <div id="dockerVolumesSection" class="section" style="display:none;">
+        <div class="docker-section-header" onclick="toggleDockerSection('volumes')">
+          <h2>💾 Orphan Volumes</h2>
+          <span class="docker-section-toggle" id="volumesToggle">▼</span>
+        </div>
+        <div id="dockerVolumesList" class="cache-list docker-section-content"></div>
+        <div class="section-actions">
+          <button class="btn-clean" id="btnCleanDockerVolumes">🗑 Remove Selected Volumes</button>
+        </div>
+      </div>
+
+      <!-- Docker Networks Section -->
+      <div id="dockerNetworksSection" class="section" style="display:none;">
+        <div class="docker-section-header" onclick="toggleDockerSection('networks')">
+          <h2>🌐 Unused Networks</h2>
+          <span class="docker-section-toggle" id="networksToggle">▼</span>
+        </div>
+        <div id="dockerNetworksList" class="cache-list docker-section-content"></div>
+        <div class="section-actions">
+          <button class="btn-clean" id="btnCleanDockerNetworks">🗑 Remove Selected Networks</button>
+        </div>
+      </div>
+
+      <!-- Docker Build Cache Section -->
+      <div id="dockerBuildCacheSection" class="section" style="display:none;">
+        <div class="docker-section-header">
+          <h2>🔨 Build Cache</h2>
+        </div>
+        <div id="dockerBuildCacheInfo" class="cache-list"></div>
+        <div class="section-actions">
+          <button class="btn-clean" id="btnCleanDockerBuildCache">🗑 Clear Build Cache</button>
+        </div>
+      </div>
+
+      <!-- Docker Progress -->
+      <div id="dockerProgress" class="section-progress-container" style="display:none;">
+        <div class="progress-bar-wrapper">
+          <div id="dockerProgressBar" class="progress-bar" style="width: 0%;">0%</div>
+        </div>
+        <div id="dockerProgressText" class="progress-text"></div>
+      </div>
+
+      <div id="dockerStatus" class="status" style="display:none;"></div>
+    </div><!-- End Docker Cleanup Tab -->
   </div>
 
   <script>
@@ -483,6 +849,16 @@
     let smartSuggestions = [];
     const INDEXED_DB_THRESHOLD_MB = 10;
     let invoke;
+
+    // Docker state variables
+    let dockerScanResult = null;
+    let dockerContainers = [];
+    let dockerImages = [];
+    let dockerVolumes = [];
+    let dockerNetworks = [];
+    let dockerSuggestions = [];
+    let dockerBuildCacheSize = 0;
+    let dockerDaemonRunning = false;
 
     function getCacheTypeName(type) {
       const names = {
@@ -733,6 +1109,740 @@
       } catch (e) {
         progressContainer.style.display = 'none';
         showSmartScannerStatus('Error: ' + e);
+      }
+    }
+
+    // ==================== Docker Functions ====================
+
+    function showDockerStatus(msg) {
+      const el = document.getElementById('dockerStatus');
+      el.style.display = 'block';
+      el.textContent = msg;
+    }
+
+    function hideDockerStatus() {
+      document.getElementById('dockerStatus').style.display = 'none';
+    }
+
+    function updateDockerStatusIndicator(running) {
+      const indicator = document.getElementById('dockerStatusIndicator');
+      const text = document.getElementById('dockerStatusText');
+      
+      indicator.classList.remove('running', 'stopped', 'checking');
+      
+      if (running) {
+        indicator.classList.add('running');
+        text.textContent = 'Docker is running';
+      } else {
+        indicator.classList.add('stopped');
+        text.textContent = 'Docker is not running';
+      }
+    }
+
+    function setDockerChecking() {
+      const indicator = document.getElementById('dockerStatusIndicator');
+      const text = document.getElementById('dockerStatusText');
+      indicator.classList.remove('running', 'stopped');
+      indicator.classList.add('checking');
+      text.textContent = 'Checking Docker...';
+    }
+
+    function toggleDockerSection(sectionName) {
+      const toggle = document.getElementById(sectionName + 'Toggle');
+      const content = document.querySelector(`#docker${sectionName.charAt(0).toUpperCase() + sectionName.slice(1)}sList`);
+      if (toggle && content) {
+        toggle.classList.toggle('collapsed');
+        content.classList.toggle('collapsed');
+      }
+    }
+
+    function getDockerScoreBadgeClass(score) {
+      if (score >= 0.7) return 'high';
+      if (score >= 0.4) return 'medium';
+      return 'low';
+    }
+
+    function getContainerStateBadge(state) {
+      const stateStr = typeof state === 'string' ? state.toLowerCase() : 'unknown';
+      const badges = {
+        'exited': '<span class="docker-badge exited">Exited</span>',
+        'dead': '<span class="docker-badge dead">Dead</span>',
+        'created': '<span class="docker-badge exited">Created</span>',
+        'paused': '<span class="docker-badge exited">Paused</span>',
+      };
+      return badges[stateStr] || '';
+    }
+
+    async function scanDocker() {
+      setDockerChecking();
+      showDockerStatus('Scanning Docker resources...');
+      
+      try {
+        // First check if Docker is running
+        dockerDaemonRunning = await invoke('check_docker_status');
+        updateDockerStatusIndicator(dockerDaemonRunning);
+        
+        if (!dockerDaemonRunning) {
+          showDockerNotRunning();
+          hideDockerStatus();
+          return;
+        }
+
+        // Scan Docker resources
+        dockerScanResult = await invoke('scan_docker');
+        
+        if (!dockerScanResult.daemon_running) {
+          dockerDaemonRunning = false;
+          updateDockerStatusIndicator(false);
+          showDockerNotRunning();
+          hideDockerStatus();
+          return;
+        }
+
+        dockerContainers = dockerScanResult.containers || [];
+        dockerImages = dockerScanResult.images || [];
+        dockerVolumes = dockerScanResult.volumes || [];
+        dockerNetworks = dockerScanResult.networks || [];
+        dockerBuildCacheSize = dockerScanResult.build_cache_size || 0;
+
+        // Get smart suggestions
+        try {
+          dockerSuggestions = await invoke('get_docker_suggestions');
+        } catch (e) {
+          console.warn('Could not get Docker suggestions:', e);
+          dockerSuggestions = [];
+        }
+
+        // Update stats
+        updateDockerStats();
+        
+        // Render sections
+        renderDockerContainers();
+        renderDockerImages();
+        renderDockerVolumes();
+        renderDockerNetworks();
+        renderDockerBuildCache();
+        
+        // Update total
+        updateDockerTotal();
+        
+        // Show prune button
+        document.getElementById('btnDockerPruneAll').style.display = 'inline-block';
+        document.getElementById('dockerStats').style.display = 'grid';
+        
+        hideDockerStatus();
+      } catch (e) {
+        console.error('Docker scan error:', e);
+        showDockerStatus('Error: ' + e);
+        updateDockerStatusIndicator(false);
+      }
+    }
+
+    function showDockerNotRunning() {
+      // Hide all sections
+      document.getElementById('dockerContainersSection').style.display = 'none';
+      document.getElementById('dockerImagesSection').style.display = 'none';
+      document.getElementById('dockerVolumesSection').style.display = 'none';
+      document.getElementById('dockerNetworksSection').style.display = 'none';
+      document.getElementById('dockerBuildCacheSection').style.display = 'none';
+      document.getElementById('dockerStats').style.display = 'none';
+      document.getElementById('btnDockerPruneAll').style.display = 'none';
+      
+      // Show not running message
+      showDockerStatus(`
+        🐳 Docker Desktop is not running
+        
+        Please start Docker Desktop to scan and clean Docker resources.
+      `);
+    }
+
+    function updateDockerStats() {
+      if (!dockerScanResult) return;
+      
+      document.getElementById('dockerStoppedCount').textContent = dockerScanResult.stopped_containers_count || 0;
+      document.getElementById('dockerUnusedImagesCount').textContent = dockerScanResult.unused_images_count || 0;
+      document.getElementById('dockerOrphanVolumesCount').textContent = dockerScanResult.orphan_volumes_count || 0;
+      document.getElementById('dockerUnusedNetworksCount').textContent = dockerScanResult.unused_networks_count || 0;
+    }
+
+    function updateDockerTotal() {
+      if (!dockerScanResult) {
+        document.getElementById('dockerTotalSize').textContent = '0 MB';
+        return;
+      }
+      document.getElementById('dockerTotalSize').textContent = formatSize(dockerScanResult.total_reclaimable || 0);
+    }
+
+    function getSuggestionForResource(resourceType, id) {
+      return dockerSuggestions.find(s => 
+        s.resource_type === resourceType && s.id === id
+      );
+    }
+
+    function renderDockerContainers() {
+      const section = document.getElementById('dockerContainersSection');
+      const list = document.getElementById('dockerContainersList');
+
+      // Filter stopped containers
+      const stoppedContainers = dockerContainers.filter(c => {
+        const state = typeof c.state === 'string' ? c.state.toLowerCase() : '';
+        return state !== 'running';
+      });
+
+      if (!stoppedContainers.length) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      list.innerHTML = stoppedContainers.map((container, i) => {
+        const suggestion = getSuggestionForResource('Container', container.id);
+        const score = suggestion ? suggestion.score : 0;
+        const reasons = suggestion ? suggestion.reasons : [];
+        const autoSelect = suggestion ? suggestion.auto_select : false;
+        const stateStr = typeof container.state === 'string' ? container.state : 'Unknown';
+        const isTop5 = i < 5;
+
+        return `
+          <div class="docker-item ${autoSelect ? 'auto-select' : ''}">
+            <input type="checkbox" id="dc${i}" data-id="${container.id}" class="docker-container-checkbox" ${isTop5 ? 'checked' : ''}>
+            <div class="docker-item-info">
+              <div class="docker-item-name">
+                ${container.name}
+                ${getContainerStateBadge(stateStr)}
+                ${score > 0 ? `<span class="docker-score-badge ${getDockerScoreBadgeClass(score)}">${Math.round(score * 100)}%</span>` : ''}
+              </div>
+              <div class="docker-item-id">ID: ${container.id.substring(0, 12)}</div>
+              <div class="docker-item-meta">Image: ${container.image} | ${container.status}</div>
+              ${reasons.length ? `<div class="docker-reasons">${reasons.map(r => `<span class="docker-reason-tag">${r}</span>`).join('')}</div>` : ''}
+            </div>
+            <div class="docker-item-size ${container.size > 100 * 1024 * 1024 ? 'large' : ''}">${formatSize(container.size)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDockerImages() {
+      const section = document.getElementById('dockerImagesSection');
+      const list = document.getElementById('dockerImagesList');
+
+      // Filter unused images
+      const unusedImages = dockerImages.filter(img => 
+        img.is_dangling || img.used_by_containers.length === 0
+      );
+
+      if (!unusedImages.length) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      // Sort: dangling first, then by size
+      unusedImages.sort((a, b) => {
+        if (a.is_dangling && !b.is_dangling) return -1;
+        if (!a.is_dangling && b.is_dangling) return 1;
+        return b.size - a.size;
+      });
+
+      list.innerHTML = unusedImages.map((image, i) => {
+        const suggestion = getSuggestionForResource('Image', image.id);
+        const score = suggestion ? suggestion.score : 0;
+        const reasons = suggestion ? suggestion.reasons : [];
+        const autoSelect = suggestion ? suggestion.auto_select : image.is_dangling;
+        const isTop5 = i < 5;
+        
+        const displayName = image.repository === '<none>' 
+          ? `<none>:<none>` 
+          : `${image.repository}:${image.tag}`;
+
+        return `
+          <div class="docker-item ${image.is_dangling ? 'dangling' : ''} ${autoSelect ? 'auto-select' : ''}">
+            <input type="checkbox" id="di${i}" data-id="${image.id}" class="docker-image-checkbox" ${isTop5 ? 'checked' : ''}>
+            <div class="docker-item-info">
+              <div class="docker-item-name">
+                ${displayName}
+                ${image.is_dangling ? '<span class="docker-badge dangling">Dangling</span>' : '<span class="docker-badge unused">Unused</span>'}
+                ${score > 0 ? `<span class="docker-score-badge ${getDockerScoreBadgeClass(score)}">${Math.round(score * 100)}%</span>` : ''}
+              </div>
+              <div class="docker-item-id">ID: ${image.id.substring(0, 19)}</div>
+              <div class="docker-item-meta">Created: ${image.created}</div>
+              ${reasons.length ? `<div class="docker-reasons">${reasons.map(r => `<span class="docker-reason-tag">${r}</span>`).join('')}</div>` : ''}
+            </div>
+            <div class="docker-item-size ${image.size > 500 * 1024 * 1024 ? 'large' : ''}">${formatSize(image.size)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDockerVolumes() {
+      const section = document.getElementById('dockerVolumesSection');
+      const list = document.getElementById('dockerVolumesList');
+
+      // Filter orphan volumes
+      const orphanVolumes = dockerVolumes.filter(v => v.used_by_containers.length === 0);
+
+      if (!orphanVolumes.length) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      list.innerHTML = orphanVolumes.map((volume, i) => {
+        const suggestion = getSuggestionForResource('Volume', volume.name);
+        const score = suggestion ? suggestion.score : 1.0; // Orphan volumes always high score
+        const reasons = suggestion ? suggestion.reasons : ['Orphan volume'];
+        const isTop5 = i < 5;
+
+        return `
+          <div class="docker-item auto-select">
+            <input type="checkbox" id="dv${i}" data-name="${volume.name}" class="docker-volume-checkbox" ${isTop5 ? 'checked' : ''}>
+            <div class="docker-item-info">
+              <div class="docker-item-name">
+                ${volume.name.length > 40 ? volume.name.substring(0, 40) + '...' : volume.name}
+                <span class="docker-badge orphan">Orphan</span>
+                <span class="docker-score-badge ${getDockerScoreBadgeClass(score)}">${Math.round(score * 100)}%</span>
+              </div>
+              <div class="docker-item-id">Driver: ${volume.driver}</div>
+              ${reasons.length ? `<div class="docker-reasons">${reasons.map(r => `<span class="docker-reason-tag">${r}</span>`).join('')}</div>` : ''}
+            </div>
+            <div class="docker-item-size">${volume.size ? formatSize(volume.size) : '-'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDockerNetworks() {
+      const section = document.getElementById('dockerNetworksSection');
+      const list = document.getElementById('dockerNetworksList');
+
+      // Filter unused networks (excluding defaults)
+      const defaultNetworks = ['bridge', 'host', 'none'];
+      const unusedNetworks = dockerNetworks.filter(n => 
+        n.used_by_containers.length === 0 && !defaultNetworks.includes(n.name)
+      );
+
+      if (!unusedNetworks.length) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      list.innerHTML = unusedNetworks.map((network, i) => {
+        const isTop5 = i < 5;
+        return `
+          <div class="docker-item">
+            <input type="checkbox" id="dn${i}" data-id="${network.id}" class="docker-network-checkbox" ${isTop5 ? 'checked' : ''}>
+            <div class="docker-item-info">
+              <div class="docker-item-name">
+                ${network.name}
+                <span class="docker-badge unused">Unused</span>
+              </div>
+              <div class="docker-item-id">ID: ${network.id.substring(0, 12)}</div>
+              <div class="docker-item-meta">Driver: ${network.driver} | Scope: ${network.scope}</div>
+            </div>
+            <div class="docker-item-size">-</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDockerBuildCache() {
+      const section = document.getElementById('dockerBuildCacheSection');
+      const info = document.getElementById('dockerBuildCacheInfo');
+
+      if (!dockerBuildCacheSize || dockerBuildCacheSize === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      info.innerHTML = `
+        <div class="docker-build-cache-item">
+          <div class="docker-build-cache-info">
+            <span class="docker-build-cache-icon">🔨</span>
+            <span class="docker-build-cache-label">Docker Build Cache</span>
+          </div>
+          <div class="docker-build-cache-size">${formatSize(dockerBuildCacheSize)}</div>
+        </div>
+      `;
+    }
+
+    // Docker Cleanup Functions
+    function showDockerProgress() {
+      const container = document.getElementById('dockerProgress');
+      const bar = document.getElementById('dockerProgressBar');
+      const text = document.getElementById('dockerProgressText');
+      container.style.display = 'block';
+      bar.style.width = '0%';
+      bar.textContent = '0%';
+      text.textContent = '';
+    }
+
+    function updateDockerProgress(percentage, message) {
+      const bar = document.getElementById('dockerProgressBar');
+      const text = document.getElementById('dockerProgressText');
+      const clamped = Math.min(100, Math.max(0, percentage));
+      bar.style.width = clamped + '%';
+      bar.textContent = Math.round(clamped) + '%';
+      if (message) text.textContent = message;
+    }
+
+    function hideDockerProgress() {
+      document.getElementById('dockerProgress').style.display = 'none';
+    }
+
+    function getSelectedDockerContainers() {
+      return [...document.querySelectorAll('.docker-container-checkbox:checked')]
+        .map(cb => cb.dataset.id);
+    }
+
+    function getSelectedDockerImages() {
+      return [...document.querySelectorAll('.docker-image-checkbox:checked')]
+        .map(cb => cb.dataset.id);
+    }
+
+    function getSelectedDockerVolumes() {
+      return [...document.querySelectorAll('.docker-volume-checkbox:checked')]
+        .map(cb => cb.dataset.name);
+    }
+
+    function getSelectedDockerNetworks() {
+      return [...document.querySelectorAll('.docker-network-checkbox:checked')]
+        .map(cb => cb.dataset.id);
+    }
+
+    async function cleanDockerContainers() {
+      const ids = getSelectedDockerContainers();
+      
+      if (!ids.length) {
+        showDockerStatus('Select at least one container');
+        return;
+      }
+
+      const containers = dockerContainers.filter(c => ids.includes(c.id));
+      const totalSize = containers.reduce((sum, c) => sum + c.size, 0);
+      
+      let msg = `Are you sure you want to remove ${ids.length} container(s)?`;
+      msg += `\n\nThis will free approximately ${formatSize(totalSize)}.`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Remove Docker Containers',
+            kind: 'warning',
+            okLabel: 'Yes, Remove',
+            cancelLabel: 'Cancel'
+          });
+        } else {
+          confirmed = window.confirm(msg);
+        }
+      } catch (err) {
+        confirmed = window.confirm(msg);
+      }
+
+      if (!confirmed) return;
+
+      showDockerProgress();
+      hideDockerStatus();
+
+      try {
+        updateDockerProgress(50, 'Removing containers...');
+        const result = await invoke('clean_docker_containers', { ids, force: true });
+        
+        updateDockerProgress(100, 'Completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideDockerProgress();
+        
+        if (result.success) {
+          showDockerStatus(`✅ Removed ${result.containers_removed} container(s). Freed ${formatSize(result.freed_bytes)}`);
+        } else {
+          showDockerStatus(`⚠️ ${result.message}`);
+        }
+        
+        await scanDocker();
+      } catch (e) {
+        hideDockerProgress();
+        showDockerStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanDockerImages() {
+      const ids = getSelectedDockerImages();
+      
+      if (!ids.length) {
+        showDockerStatus('Select at least one image');
+        return;
+      }
+
+      const images = dockerImages.filter(img => ids.includes(img.id));
+      const totalSize = images.reduce((sum, img) => sum + img.size, 0);
+      
+      let msg = `Are you sure you want to remove ${ids.length} image(s)?`;
+      msg += `\n\nThis will free approximately ${formatSize(totalSize)}.`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Remove Docker Images',
+            kind: 'warning',
+            okLabel: 'Yes, Remove',
+            cancelLabel: 'Cancel'
+          });
+        } else {
+          confirmed = window.confirm(msg);
+        }
+      } catch (err) {
+        confirmed = window.confirm(msg);
+      }
+
+      if (!confirmed) return;
+
+      showDockerProgress();
+      hideDockerStatus();
+
+      try {
+        updateDockerProgress(50, 'Removing images...');
+        const result = await invoke('clean_docker_images', { ids, force: true });
+        
+        updateDockerProgress(100, 'Completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideDockerProgress();
+        
+        if (result.success) {
+          showDockerStatus(`✅ Removed ${result.images_removed} image(s). Freed ${formatSize(result.freed_bytes)}`);
+        } else {
+          showDockerStatus(`⚠️ ${result.message}`);
+        }
+        
+        await scanDocker();
+      } catch (e) {
+        hideDockerProgress();
+        showDockerStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanDockerVolumes() {
+      const names = getSelectedDockerVolumes();
+      
+      if (!names.length) {
+        showDockerStatus('Select at least one volume');
+        return;
+      }
+
+      let msg = `Are you sure you want to remove ${names.length} volume(s)?`;
+      msg += `\n\n⚠️ WARNING: This will permanently delete all data in these volumes.`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Remove Docker Volumes',
+            kind: 'warning',
+            okLabel: 'Yes, Remove',
+            cancelLabel: 'Cancel'
+          });
+        } else {
+          confirmed = window.confirm(msg);
+        }
+      } catch (err) {
+        confirmed = window.confirm(msg);
+      }
+
+      if (!confirmed) return;
+
+      showDockerProgress();
+      hideDockerStatus();
+
+      try {
+        updateDockerProgress(50, 'Removing volumes...');
+        const result = await invoke('clean_docker_volumes', { names });
+        
+        updateDockerProgress(100, 'Completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideDockerProgress();
+        
+        if (result.success) {
+          showDockerStatus(`✅ Removed ${result.volumes_removed} volume(s)`);
+        } else {
+          showDockerStatus(`⚠️ ${result.message}`);
+        }
+        
+        await scanDocker();
+      } catch (e) {
+        hideDockerProgress();
+        showDockerStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanDockerNetworks() {
+      const ids = getSelectedDockerNetworks();
+      
+      if (!ids.length) {
+        showDockerStatus('Select at least one network');
+        return;
+      }
+
+      let msg = `Are you sure you want to remove ${ids.length} network(s)?`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Remove Docker Networks',
+            kind: 'warning',
+            okLabel: 'Yes, Remove',
+            cancelLabel: 'Cancel'
+          });
+        } else {
+          confirmed = window.confirm(msg);
+        }
+      } catch (err) {
+        confirmed = window.confirm(msg);
+      }
+
+      if (!confirmed) return;
+
+      showDockerProgress();
+      hideDockerStatus();
+
+      try {
+        updateDockerProgress(50, 'Removing networks...');
+        const result = await invoke('clean_docker_networks', { ids });
+        
+        updateDockerProgress(100, 'Completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideDockerProgress();
+        
+        if (result.success) {
+          showDockerStatus(`✅ Removed ${result.networks_removed} network(s)`);
+        } else {
+          showDockerStatus(`⚠️ ${result.message}`);
+        }
+        
+        await scanDocker();
+      } catch (e) {
+        hideDockerProgress();
+        showDockerStatus('Error: ' + e);
+      }
+    }
+
+    async function cleanDockerBuildCache() {
+      let msg = `Are you sure you want to clear the Docker build cache?`;
+      msg += `\n\nThis will free approximately ${formatSize(dockerBuildCacheSize)}.`;
+      msg += `\n\nNote: Future builds may take longer as layers need to be rebuilt.`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Clear Build Cache',
+            kind: 'warning',
+            okLabel: 'Yes, Clear',
+            cancelLabel: 'Cancel'
+          });
+        } else {
+          confirmed = window.confirm(msg);
+        }
+      } catch (err) {
+        confirmed = window.confirm(msg);
+      }
+
+      if (!confirmed) return;
+
+      showDockerProgress();
+      hideDockerStatus();
+
+      try {
+        updateDockerProgress(50, 'Clearing build cache...');
+        const result = await invoke('docker_builder_prune');
+        
+        updateDockerProgress(100, 'Completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideDockerProgress();
+        
+        if (result.success) {
+          showDockerStatus(`✅ Build cache cleared. Freed ${formatSize(result.freed_bytes)}`);
+        } else {
+          showDockerStatus(`⚠️ ${result.message}`);
+        }
+        
+        await scanDocker();
+      } catch (e) {
+        hideDockerProgress();
+        showDockerStatus('Error: ' + e);
+      }
+    }
+
+    async function pruneDockerAll() {
+      let msg = `Are you sure you want to prune ALL unused Docker resources?`;
+      msg += `\n\nThis will remove:`;
+      msg += `\n• All stopped containers`;
+      msg += `\n• All unused images`;
+      msg += `\n• All unused volumes`;
+      msg += `\n• All unused networks`;
+      msg += `\n• All build cache`;
+      msg += `\n\n⚠️ This action cannot be undone!`;
+      msg += `\n\nEstimated space to be freed: ${formatSize(dockerScanResult?.total_reclaimable || 0)}`;
+
+      let confirmed = false;
+      try {
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Prune All Docker Resources',
+            kind: 'warning',
+            okLabel: 'Yes, Prune All',
+            cancelLabel: 'Cancel'
+          });
+        } else {
+          confirmed = window.confirm(msg);
+        }
+      } catch (err) {
+        confirmed = window.confirm(msg);
+      }
+
+      if (!confirmed) return;
+
+      showDockerProgress();
+      hideDockerStatus();
+
+      try {
+        updateDockerProgress(30, 'Pruning containers...');
+        await invoke('docker_prune_containers');
+        
+        updateDockerProgress(50, 'Pruning images...');
+        await invoke('docker_prune_images', { all: true });
+        
+        updateDockerProgress(70, 'Pruning volumes...');
+        await invoke('docker_prune_volumes');
+        
+        updateDockerProgress(85, 'Pruning networks...');
+        await invoke('docker_prune_networks');
+        
+        updateDockerProgress(95, 'Pruning build cache...');
+        await invoke('docker_builder_prune');
+        
+        updateDockerProgress(100, 'Completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideDockerProgress();
+        
+        showDockerStatus(`✅ All unused Docker resources have been pruned!`);
+        await scanDocker();
+      } catch (e) {
+        hideDockerProgress();
+        showDockerStatus('Error: ' + e);
       }
     }
 
@@ -1514,9 +2624,8 @@
     }
 
     // Initialize
-    if (window.__TAURI__) {
-      console.log("[UI] Tauri detected, initializing immediately");
-      invoke = window.__TAURI__.core.invoke;
+    function initializeEventHandlers() {
+      // Cache Cleaner
       document.getElementById('btnScan').addEventListener('click', scanData);
       document.getElementById('btnPreview').addEventListener('click', previewClean);
       document.getElementById('btnClean').addEventListener('click', cleanSelected);
@@ -1525,13 +2634,30 @@
       document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
       document.getElementById('btnCleanDevTools').addEventListener('click', cleanDevTools);
       document.getElementById('btnCleanSystemCaches').addEventListener('click', cleanSystemCaches);
+      
       // Tab navigation
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
       });
+      
       // Smart Scanner
       document.getElementById('btnSmartScan').addEventListener('click', scanSmartSuggestions);
       document.getElementById('btnCleanSmartScanner').addEventListener('click', deleteSmartScannerFolders);
+      
+      // Docker Cleanup
+      document.getElementById('btnDockerScan').addEventListener('click', scanDocker);
+      document.getElementById('btnDockerPruneAll').addEventListener('click', pruneDockerAll);
+      document.getElementById('btnCleanDockerContainers').addEventListener('click', cleanDockerContainers);
+      document.getElementById('btnCleanDockerImages').addEventListener('click', cleanDockerImages);
+      document.getElementById('btnCleanDockerVolumes').addEventListener('click', cleanDockerVolumes);
+      document.getElementById('btnCleanDockerNetworks').addEventListener('click', cleanDockerNetworks);
+      document.getElementById('btnCleanDockerBuildCache').addEventListener('click', cleanDockerBuildCache);
+    }
+
+    if (window.__TAURI__) {
+      console.log("[UI] Tauri detected, initializing immediately");
+      invoke = window.__TAURI__.core.invoke;
+      initializeEventHandlers();
       scanData();
     } else {
       document.addEventListener('DOMContentLoaded', function() {
@@ -1539,21 +2665,7 @@
           if (window.__TAURI__) {
             console.log("[UI] Tauri became available after DOMContentLoaded");
             invoke = window.__TAURI__.core.invoke;
-            document.getElementById('btnScan').addEventListener('click', scanData);
-            document.getElementById('btnPreview').addEventListener('click', previewClean);
-            document.getElementById('btnClean').addEventListener('click', cleanSelected);
-            document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
-            document.getElementById('btnCleanBrowserCaches').addEventListener('click', cleanBrowserCaches);
-            document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
-            document.getElementById('btnCleanDevTools').addEventListener('click', cleanDevTools);
-            document.getElementById('btnCleanSystemCaches').addEventListener('click', cleanSystemCaches);
-            // Tab navigation
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-              btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-            });
-            // Smart Scanner
-            document.getElementById('btnSmartScan').addEventListener('click', scanSmartSuggestions);
-            document.getElementById('btnCleanSmartScanner').addEventListener('click', deleteSmartScannerFolders);
+            initializeEventHandlers();
             scanData();
           } else {
             showStatus('Tauri API not available');

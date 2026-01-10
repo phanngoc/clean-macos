@@ -17,6 +17,9 @@ pub mod registry;
 pub mod smart_suggestions;
 pub mod parallel_scanner;
 
+// Docker cleanup module
+pub mod docker;
+
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -44,6 +47,12 @@ pub enum CacheType {
     UserLogs,
     TempFiles,
     IosBackups,
+    
+    // Docker cache types
+    DockerContainers,
+    DockerImages,
+    DockerVolumes,
+    DockerBuildCache,
 }
 
 impl CacheType {
@@ -71,6 +80,11 @@ impl CacheType {
             "user_logs" | "userlogs" => Ok(CacheType::UserLogs),
             "temp_files" | "tempfiles" | "tmp" => Ok(CacheType::TempFiles),
             "ios_backups" | "iosbackups" => Ok(CacheType::IosBackups),
+            // Docker cache types
+            "docker_containers" | "dockercontainers" => Ok(CacheType::DockerContainers),
+            "docker_images" | "dockerimages" => Ok(CacheType::DockerImages),
+            "docker_volumes" | "dockervolumes" => Ok(CacheType::DockerVolumes),
+            "docker_build_cache" | "dockerbuildcache" | "docker_buildcache" => Ok(CacheType::DockerBuildCache),
             _ => Err(format!("Unknown cache type: {}", s)),
         }
     }
@@ -180,6 +194,18 @@ mod tests {
         assert!(matches!(CacheType::from_str("tempfiles"), Ok(CacheType::TempFiles)));
         assert!(matches!(CacheType::from_str("tmp"), Ok(CacheType::TempFiles)));
         assert!(matches!(CacheType::from_str("iosbackups"), Ok(CacheType::IosBackups)));
+    }
+
+    #[test]
+    fn test_cache_type_from_str_docker() {
+        assert!(matches!(CacheType::from_str("docker_containers"), Ok(CacheType::DockerContainers)));
+        assert!(matches!(CacheType::from_str("dockercontainers"), Ok(CacheType::DockerContainers)));
+        assert!(matches!(CacheType::from_str("docker_images"), Ok(CacheType::DockerImages)));
+        assert!(matches!(CacheType::from_str("dockerimages"), Ok(CacheType::DockerImages)));
+        assert!(matches!(CacheType::from_str("docker_volumes"), Ok(CacheType::DockerVolumes)));
+        assert!(matches!(CacheType::from_str("dockervolumes"), Ok(CacheType::DockerVolumes)));
+        assert!(matches!(CacheType::from_str("docker_build_cache"), Ok(CacheType::DockerBuildCache)));
+        assert!(matches!(CacheType::from_str("dockerbuildcache"), Ok(CacheType::DockerBuildCache)));
     }
 
     #[test]
