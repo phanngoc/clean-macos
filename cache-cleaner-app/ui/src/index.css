@@ -1,0 +1,459 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* 🌈 Vibrant & Friendly Color Palette - HSL for Safari 14 compatibility */
+  --color-background: hsl(280, 5%, 98%);
+  --color-foreground: hsl(280, 8%, 20%);
+  --color-card: hsl(0, 0%, 100%);
+  --color-card-foreground: hsl(280, 8%, 20%);
+  --color-popover: hsl(0, 0%, 100%);
+  --color-popover-foreground: hsl(280, 8%, 20%);
+  
+  /* Primary - Vibrant Coral/Pink */
+  --color-primary: hsl(8, 80%, 60%);
+  --color-primary-foreground: hsl(0, 0%, 100%);
+  
+  /* Secondary - Soft Lavender */
+  --color-secondary: hsl(290, 15%, 94%);
+  --color-secondary-foreground: hsl(290, 40%, 35%);
+  
+  /* Muted - Warm Gray */
+  --color-muted: hsl(280, 5%, 96%);
+  --color-muted-foreground: hsl(280, 8%, 50%);
+  
+  /* Accent - Mint Green */
+  --color-accent: hsl(165, 25%, 94%);
+  --color-accent-foreground: hsl(165, 35%, 30%);
+  
+  /* Destructive - Soft Red */
+  --color-destructive: hsl(8, 75%, 55%);
+  --color-destructive-foreground: hsl(0, 0%, 100%);
+  
+  --color-border: hsl(280, 5%, 92%);
+  --color-input: hsl(280, 8%, 92%);
+  --color-ring: hsl(8, 80%, 60%);
+  --radius: 1rem;
+  
+  /* Custom gradient colors */
+  --color-gradient-start: hsl(330, 75%, 60%);
+  --color-gradient-mid: hsl(8, 80%, 60%);
+  --color-gradient-end: hsl(35, 75%, 60%);
+  
+  /* Category colors - more vibrant */
+  --color-editor: hsl(240, 70%, 55%);
+  --color-browser: hsl(155, 65%, 45%);
+  --color-package: hsl(35, 85%, 55%);
+  --color-devtools: hsl(70, 70%, 55%);
+  --color-system: hsl(280, 50%, 45%);
+  --color-large: hsl(8, 75%, 55%);
+  --color-database: hsl(280, 70%, 55%);
+  
+  /* Success/Info colors */
+  --color-success: hsl(155, 70%, 55%);
+  --color-info: hsl(250, 70%, 50%);
+  --color-warning: hsl(50, 75%, 65%);
+}
+
+.dark {
+  --color-background: hsl(280, 8%, 14%);
+  --color-foreground: hsl(280, 5%, 95%);
+  --color-card: hsl(280, 8%, 18%);
+  --color-card-foreground: hsl(280, 5%, 95%);
+  --color-popover: hsl(280, 8%, 18%);
+  --color-popover-foreground: hsl(280, 5%, 95%);
+  
+  --color-primary: hsl(8, 80%, 65%);
+  --color-primary-foreground: hsl(280, 8%, 14%);
+  
+  --color-secondary: hsl(290, 15%, 25%);
+  --color-secondary-foreground: hsl(290, 30%, 85%);
+  
+  --color-muted: hsl(280, 8%, 22%);
+  --color-muted-foreground: hsl(280, 5%, 65%);
+  
+  --color-accent: hsl(165, 20%, 25%);
+  --color-accent-foreground: hsl(165, 35%, 85%);
+  
+  --color-destructive: hsl(8, 75%, 55%);
+  --color-destructive-foreground: hsl(280, 5%, 95%);
+  
+  --color-border: hsl(280, 8%, 28%);
+  --color-input: hsl(280, 8%, 28%);
+  --color-ring: hsl(8, 80%, 65%);
+  
+  /* Gradient colors for dark mode */
+  --color-gradient-start: hsl(330, 70%, 55%);
+  --color-gradient-mid: hsl(8, 75%, 60%);
+  --color-gradient-end: hsl(35, 70%, 60%);
+  
+  /* Category colors - dark mode */
+  --color-editor: hsl(240, 70%, 60%);
+  --color-browser: hsl(155, 70%, 60%);
+  --color-package: hsl(35, 80%, 60%);
+  --color-devtools: hsl(70, 75%, 65%);
+  --color-system: hsl(280, 50%, 55%);
+  --color-large: hsl(8, 75%, 60%);
+  --color-database: hsl(280, 70%, 60%);
+  
+  --color-success: hsl(155, 75%, 60%);
+  --color-info: hsl(250, 70%, 60%);
+  --color-warning: hsl(50, 75%, 70%);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: 'SF Pro Display', 'SF Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ✨ Animated gradient background */
+.gradient-bg {
+  background: linear-gradient(
+    135deg,
+    var(--color-gradient-start) 0%,
+    var(--color-gradient-mid) 50%,
+    var(--color-gradient-end) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 🎨 Category color utilities */
+.category-editor {
+  --category-color: var(--color-editor);
+}
+.category-browser {
+  --category-color: var(--color-browser);
+}
+.category-package {
+  --category-color: var(--color-package);
+}
+.category-devtools {
+  --category-color: var(--color-devtools);
+}
+.category-system {
+  --category-color: var(--color-system);
+}
+.category-large {
+  --category-color: var(--color-large);
+}
+.category-database {
+  --category-color: var(--color-database);
+}
+
+/* 🌟 Glassmorphism effect - Safari 14 compatible */
+.glass {
+  background: hsla(0, 0%, 100%, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid hsla(280, 5%, 92%, 0.5);
+}
+
+.glass-subtle {
+  background: hsla(0, 0%, 100%, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Dark mode glass effects */
+.dark .glass {
+  background: hsla(280, 8%, 18%, 0.8);
+  border: 1px solid hsla(280, 8%, 28%, 0.5);
+}
+
+.dark .glass-subtle {
+  background: hsla(280, 8%, 18%, 0.6);
+}
+
+/* 💫 Smooth transitions */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    transition-property: color, background-color, border-color, opacity, transform, box-shadow, filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+}
+
+/* 🎭 Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.4s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Staggered animations */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+
+/* 🎯 Interactive states */
+.interactive {
+  cursor: pointer;
+  user-select: none;
+}
+
+.interactive:hover {
+  transform: translateY(-2px);
+}
+
+.interactive:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 📜 Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(280, 10%, 75%);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(280, 15%, 65%);
+  background-clip: content-box;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(280, 10%, 35%);
+  background-clip: content-box;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(280, 15%, 45%);
+  background-clip: content-box;
+}
+
+/* 🌈 Colorful shadows - Safari 14 compatible */
+.shadow-glow-primary {
+  box-shadow: 0 8px 30px -5px hsla(8, 80%, 60%, 0.3);
+}
+
+.shadow-glow-success {
+  box-shadow: 0 8px 30px -5px hsla(155, 70%, 55%, 0.3);
+}
+
+/* Category-specific glow shadows for Safari 14 compatibility */
+.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(0, 0%, 50%, 0.2);
+}
+
+.category-editor .shadow-glow-category,
+.category-editor.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(240, 70%, 55%, 0.25);
+}
+
+.category-browser .shadow-glow-category,
+.category-browser.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(155, 65%, 45%, 0.25);
+}
+
+.category-package .shadow-glow-category,
+.category-package.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(35, 85%, 55%, 0.25);
+}
+
+.category-devtools .shadow-glow-category,
+.category-devtools.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(70, 70%, 55%, 0.25);
+}
+
+.category-system .shadow-glow-category,
+.category-system.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(280, 50%, 45%, 0.25);
+}
+
+.category-large .shadow-glow-category,
+.category-large.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(8, 75%, 55%, 0.25);
+}
+
+.category-database .shadow-glow-category,
+.category-database.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(280, 70%, 55%, 0.25);
+}
+
+/* Dark mode shadow adjustments */
+.dark .shadow-glow-primary {
+  box-shadow: 0 8px 30px -5px hsla(8, 80%, 65%, 0.3);
+}
+
+.dark .shadow-glow-success {
+  box-shadow: 0 8px 30px -5px hsla(155, 75%, 60%, 0.3);
+}
+
+/* 🎪 Fun decorative elements */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.blob-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--color-gradient-start);
+  top: -100px;
+  left: -100px;
+}
+
+.blob-2 {
+  width: 300px;
+  height: 300px;
+  background: var(--color-gradient-end);
+  bottom: -50px;
+  right: -50px;
+}
+
+/* 🔘 Checkbox custom styles */
+.checkbox-vibrant {
+  border-radius: 6px;
+  border-width: 2px;
+}
+
+.checkbox-vibrant[data-state="checked"] {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-gradient-end) 100%);
+  border-color: transparent;
+}
+
+/* 📊 Progress bar styles */
+.progress-gradient {
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-gradient-end) 100%);
+}
+
+/* 🏷️ Badge styles */
+.badge-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-gradient-end) 100%);
+  color: white;
+}
+
+/* 📱 Responsive utilities */
+@media (max-width: 640px) {
+  .gradient-bg {
+    background-size: 300% 300%;
+  }
+}
+
+/* 🎨 Selection styling - Safari 14 compatible */
+::selection {
+  background: hsla(8, 80%, 60%, 0.3);
+  color: var(--color-foreground);
+}
+
+.dark ::selection {
+  background: hsla(8, 80%, 65%, 0.3);
+}

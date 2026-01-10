@@ -3,7 +3,6 @@ pub mod cleaner;
 pub mod npm;
 pub mod cache_dir;
 pub mod indexeddb;
-pub mod large_caches;
 pub mod npm_caches;
 pub mod paths;
 pub mod browser_caches;
@@ -80,7 +79,7 @@ impl CacheType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheInfo {
     pub cache_type: CacheType,
-    pub path: PathBuf,
+    pub path: String,
     pub size: u64,
     pub exists: bool,
     pub item_count: usize,
@@ -112,21 +111,6 @@ pub struct IndexedDbCleanResult {
     pub total_freed_bytes: u64,
     pub items_removed: usize,
     pub dry_run: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LargeCacheEntry {
-    pub name: String,
-    pub path: String,
-    pub size_bytes: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LargeCachesCleanResult {
-    pub total_freed_bytes: u64,
-    pub items_removed: usize,
-    pub success: bool,
-    pub message: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -216,7 +200,7 @@ mod tests {
     fn test_cache_info_creation() {
         let info = CacheInfo {
             cache_type: CacheType::Npm,
-            path: std::path::PathBuf::from("/test/path"),
+            path: "/test/path".to_string(),
             size: 1024,
             exists: true,
             item_count: 10,
@@ -255,17 +239,6 @@ mod tests {
     }
 
     #[test]
-    fn test_large_cache_entry_creation() {
-        let entry = LargeCacheEntry {
-            name: "TestCache".to_string(),
-            path: "/Library/Caches/TestCache".to_string(),
-            size_bytes: 2_000_000_000,
-        };
-        assert_eq!(entry.name, "TestCache");
-        assert!(entry.size_bytes > 1_000_000_000);
-    }
-
-    #[test]
     fn test_cache_type_serialization() {
         let cache_type = CacheType::Npm;
         let serialized = serde_json::to_string(&cache_type).unwrap();
@@ -279,7 +252,7 @@ mod tests {
     fn test_cache_info_serialization() {
         let info = CacheInfo {
             cache_type: CacheType::Chrome,
-            path: std::path::PathBuf::from("/test"),
+            path: "/test".to_string(),
             size: 100,
             exists: true,
             item_count: 5,

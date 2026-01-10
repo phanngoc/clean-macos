@@ -65,16 +65,54 @@ pub async fn scan_cache(cache_type: &CacheType) -> Result<CacheInfo> {
             let mut total_size = 0u64;
             let mut item_count = 0usize;
             let mut exists = false;
-            let mut display_path = home.join("Library/Caches/Cursor");
+            let mut existing_paths = Vec::new();
             
             for path in &cursor_cache_paths {
                 if path.exists() {
                     exists = true;
-                    display_path = path.clone();
+                    existing_paths.push(path.display().to_string());
                     total_size += filesystem::calculate_dir_size(path).await?;
                     item_count += filesystem::count_items(path)?;
                 }
             }
+            
+            let display_path = if existing_paths.is_empty() {
+                home.join("Library/Caches/Cursor").display().to_string()
+            } else {
+                existing_paths.join("\n")
+            };
+            
+            Ok(CacheInfo {
+                cache_type: cache_type.clone(),
+                path: display_path,
+                size: total_size,
+                exists,
+                item_count,
+            })
+        }
+        CacheType::VSCode => {
+            let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
+            let vscode_cache_paths = get_vscode_cache_paths(&home);
+            
+            let mut total_size = 0u64;
+            let mut item_count = 0usize;
+            let mut exists = false;
+            let mut existing_paths = Vec::new();
+            
+            for path in &vscode_cache_paths {
+                if path.exists() {
+                    exists = true;
+                    existing_paths.push(path.display().to_string());
+                    total_size += filesystem::calculate_dir_size(path).await?;
+                    item_count += filesystem::count_items(path)?;
+                }
+            }
+            
+            let display_path = if existing_paths.is_empty() {
+                home.join("Library/Application Support/Code/Cache/Cache_Data").display().to_string()
+            } else {
+                existing_paths.join("\n")
+            };
             
             Ok(CacheInfo {
                 cache_type: cache_type.clone(),
@@ -86,6 +124,7 @@ pub async fn scan_cache(cache_type: &CacheType) -> Result<CacheInfo> {
         }
         _ => {
             let path = get_cache_path(cache_type)?;
+            let path_str = path.display().to_string();
             let exists = path.exists();
             let (size, item_count) = if exists {
                 let size = filesystem::calculate_dir_size(&path).await?;
@@ -97,7 +136,7 @@ pub async fn scan_cache(cache_type: &CacheType) -> Result<CacheInfo> {
 
             Ok(CacheInfo {
                 cache_type: cache_type.clone(),
-                path,
+                path: path_str,
                 size,
                 exists,
                 item_count,
@@ -114,6 +153,18 @@ pub async fn get_size(cache_type: &CacheType) -> Result<u64> {
             
             let mut total_size = 0u64;
             for path in cursor_cache_paths {
+                if path.exists() {
+                    total_size += filesystem::calculate_dir_size(&path).await?;
+                }
+            }
+            Ok(total_size)
+        }
+        CacheType::VSCode => {
+            let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
+            let vscode_cache_paths = get_vscode_cache_paths(&home);
+            
+            let mut total_size = 0u64;
+            for path in vscode_cache_paths {
                 if path.exists() {
                     total_size += filesystem::calculate_dir_size(&path).await?;
                 }
@@ -168,6 +219,25 @@ fn get_cursor_cache_paths(home: &std::path::Path) -> Vec<std::path::PathBuf> {
     paths
 }
 
+/// Get all VSCode cache directories
+fn get_vscode_cache_paths(home: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut paths = Vec::new();
+    
+    // Cache/Cache_Data directory
+    let cache_data = home.join("Library/Application Support/Code/Cache/Cache_Data");
+    if cache_data.exists() {
+        paths.push(cache_data);
+    }
+    
+    // User/workspaceStorage directory
+    let workspace_storage = home.join("Library/Application Support/Code/User/workspaceStorage");
+    if workspace_storage.exists() {
+        paths.push(workspace_storage);
+    }
+    
+    paths
+}
+
 fn get_cache_path(cache_type: &CacheType) -> Result<std::path::PathBuf> {
     let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
     
@@ -176,7 +246,7 @@ fn get_cache_path(cache_type: &CacheType) -> Result<std::path::PathBuf> {
         CacheType::Chrome => home.join("Library/Caches/Google/Chrome"),
         CacheType::CacheDir => home.join(".cache"),
 
-        CacheType::VSCode => home.join("Library/Application Support/Code/WebStorage"),
+        CacheType::VSCode => home.join("Library/Application Support/Code/Cache/Cache_Data"),
         CacheType::Cursor => home.join("Library/Application Support/Cursor/User/globalStorage"),
         CacheType::Safari => MacPaths::safari_cache(),
         CacheType::Firefox => MacPaths::firefox_profiles(),

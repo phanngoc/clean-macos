@@ -4,6 +4,7 @@ use std::fs;
 
 pub fn get_safari_cache_info() -> CacheInfo {
     let path = MacPaths::safari_cache();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = if path.exists() {
         match calculate_dir_size(&path) {
             Ok((s, c)) => (s, c, true),
@@ -15,7 +16,7 @@ pub fn get_safari_cache_info() -> CacheInfo {
 
     CacheInfo {
         cache_type: CacheType::Safari,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,
@@ -24,6 +25,7 @@ pub fn get_safari_cache_info() -> CacheInfo {
 
 pub fn get_firefox_cache_info() -> CacheInfo {
     let path = MacPaths::firefox_profiles();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = if path.exists() {
         match calculate_dir_size(&path) {
             Ok((s, c)) => (s, c, true),
@@ -35,7 +37,7 @@ pub fn get_firefox_cache_info() -> CacheInfo {
 
     CacheInfo {
         cache_type: CacheType::Firefox,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,
@@ -44,6 +46,7 @@ pub fn get_firefox_cache_info() -> CacheInfo {
 
 pub fn get_arc_cache_info() -> CacheInfo {
     let path = MacPaths::arc_cache();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = if path.exists() {
         match calculate_dir_size(&path) {
             Ok((s, c)) => (s, c, true),
@@ -55,7 +58,7 @@ pub fn get_arc_cache_info() -> CacheInfo {
 
     CacheInfo {
         cache_type: CacheType::Arc,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,

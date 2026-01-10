@@ -4,11 +4,12 @@ use std::fs;
 
 pub fn get_yarn_cache_info() -> CacheInfo {
     let path = MacPaths::yarn_cache();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = get_cache_stats(&path);
     
     CacheInfo {
         cache_type: CacheType::Yarn,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,
@@ -17,11 +18,12 @@ pub fn get_yarn_cache_info() -> CacheInfo {
 
 pub fn get_pnpm_cache_info() -> CacheInfo {
     let path = MacPaths::pnpm_cache();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = get_cache_stats(&path);
     
     CacheInfo {
         cache_type: CacheType::Pnpm,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,
@@ -30,11 +32,12 @@ pub fn get_pnpm_cache_info() -> CacheInfo {
 
 pub fn get_pip_cache_info() -> CacheInfo {
     let path = MacPaths::pip_cache();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = get_cache_stats(&path);
     
     CacheInfo {
         cache_type: CacheType::Pip,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,
@@ -43,11 +46,12 @@ pub fn get_pip_cache_info() -> CacheInfo {
 
 pub fn get_cocoapods_cache_info() -> CacheInfo {
     let path = MacPaths::cocoapods_cache();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = get_cache_stats(&path);
     
     CacheInfo {
         cache_type: CacheType::CocoaPods,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,
@@ -56,11 +60,12 @@ pub fn get_cocoapods_cache_info() -> CacheInfo {
 
 pub fn get_gradle_cache_info() -> CacheInfo {
     let path = MacPaths::gradle_cache();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = get_cache_stats(&path);
     
     CacheInfo {
         cache_type: CacheType::Gradle,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,
@@ -69,11 +74,12 @@ pub fn get_gradle_cache_info() -> CacheInfo {
 
 pub fn get_cargo_cache_info() -> CacheInfo {
     let path = MacPaths::cargo_cache();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = get_cache_stats(&path);
     
     CacheInfo {
         cache_type: CacheType::Cargo,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,

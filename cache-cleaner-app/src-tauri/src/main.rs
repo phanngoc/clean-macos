@@ -5,7 +5,7 @@ mod utils;
 
 use cache::{
     CacheInfo, CacheType, CleanResult, IndexedDbCleanResult, IndexedDbItem,
-    LargeCacheEntry, LargeCachesCleanResult, NpmCacheEntry, NpmCachesCleanResult,
+    NpmCacheEntry, NpmCachesCleanResult,
     config::AppConfig,
     custom_scanner::CustomScannerConfig,
     registry::ScannerRegistry,
@@ -112,20 +112,6 @@ async fn clean_indexed_db_items(
 }
 
 #[tauri::command]
-async fn scan_large_caches() -> Result<Vec<LargeCacheEntry>, String> {
-    cache::large_caches::scan_large_caches()
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn remove_large_caches(paths: Vec<String>) -> Result<LargeCachesCleanResult, String> {
-    cache::large_caches::remove_large_caches(paths)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
 async fn scan_npm_caches() -> Result<Vec<NpmCacheEntry>, String> {
     cache::npm_caches::scan_npm_caches()
         .await
@@ -216,8 +202,6 @@ fn main() {
             check_permissions,
             scan_indexed_db_items,
             clean_indexed_db_items,
-            scan_large_caches,
-            remove_large_caches,
             scan_npm_caches,
             remove_npm_caches,
             // Custom scanner commands

@@ -4,11 +4,12 @@ use std::fs;
 
 pub fn get_xcode_derived_data_info() -> CacheInfo {
     let path = MacPaths::xcode_derived_data();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = get_cache_stats(&path);
     
     CacheInfo {
         cache_type: CacheType::XcodeDerivedData,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,
@@ -17,11 +18,12 @@ pub fn get_xcode_derived_data_info() -> CacheInfo {
 
 pub fn get_xcode_archives_info() -> CacheInfo {
     let path = MacPaths::xcode_archives();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = get_cache_stats(&path);
     
     CacheInfo {
         cache_type: CacheType::XcodeArchives,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,
@@ -30,11 +32,12 @@ pub fn get_xcode_archives_info() -> CacheInfo {
 
 pub fn get_xcode_simulators_info() -> CacheInfo {
     let path = MacPaths::xcode_simulators();
+    let path_str = path.display().to_string();
     let (size, item_count, exists) = get_cache_stats(&path);
     
     CacheInfo {
         cache_type: CacheType::XcodeSimulators,
-        path,
+        path: path_str,
         size,
         exists,
         item_count,

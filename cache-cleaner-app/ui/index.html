@@ -169,6 +169,54 @@
       color: #fff;
       font-size: 12px;
     }
+    /* Multi-path display */
+    .cache-paths {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .path-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #888;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      word-break: break-all;
+    }
+    .path-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .path-icon {
+      flex-shrink: 0;
+      opacity: 0.6;
+    }
+    .path-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .path-copy-btn {
+      flex-shrink: 0;
+      padding: 2px 6px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 3px;
+      color: #888;
+      font-size: 10px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .path-item:hover .path-copy-btn {
+      opacity: 1;
+    }
+    .path-copy-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -196,20 +244,6 @@
           <div id="basicCachesProgressBar" class="progress-bar" style="width: 0%;">0%</div>
         </div>
         <div id="basicCachesProgressText" class="progress-text"></div>
-      </div>
-    </div>
-
-    <div id="largeCachesSection" class="section" style="display:none;">
-      <h2>📦 Large Caches (>1GB)</h2>
-      <div id="largeCachesList" class="cache-list"></div>
-      <div class="section-actions">
-        <button class="btn-clean" id="btnCleanLarge">🗑 Clear Large Caches</button>
-      </div>
-      <div id="largeCachesProgress" class="section-progress-container" style="display:none;">
-        <div class="progress-bar-wrapper">
-          <div id="largeCachesProgressBar" class="progress-bar" style="width: 0%;">0%</div>
-        </div>
-        <div id="largeCachesProgressText" class="progress-text"></div>
       </div>
     </div>
 
@@ -314,7 +348,6 @@
   <script>
     let basicCaches = [];
     let indexedDbItems = [];
-    let largeCaches = [];
     let npmCaches = [];
     let browserCaches = [];
     let packageManagers = [];
@@ -364,6 +397,35 @@
       if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
       if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
       return bytes + ' bytes';
+    }
+
+    function renderPaths(pathString) {
+      const paths = pathString.split('\n').filter(p => p.trim());
+      if (paths.length <= 1) {
+        return `<div class="cache-path">${pathString}</div>`;
+      }
+      
+      return `<div class="cache-paths">
+        ${paths.map(p => `
+          <div class="path-item">
+            <span class="path-icon">📁</span>
+            <span class="path-text">${p}</span>
+            <button class="path-copy-btn" onclick="copyPath('${p.replace(/'/g, "\\'")}', event)">Copy</button>
+          </div>
+        `).join('')}
+      </div>`;
+    }
+
+    function copyPath(path, event) {
+      navigator.clipboard.writeText(path).then(() => {
+        const btn = event.target;
+        btn.textContent = '✓';
+        btn.style.color = '#4ade80';
+        setTimeout(() => { 
+          btn.textContent = 'Copy'; 
+          btn.style.color = '';
+        }, 1000);
+      });
     }
 
     function showStatus(msg) {
@@ -445,7 +507,7 @@
               ${item.name}
               <span class="score-badge ${getScoreBadgeClass(item.score)}">${Math.round(item.score * 100)}%</span>
             </div>
-            <div class="cache-path">${item.path}</div>
+            ${renderPaths(item.path)}
             <div class="reasons-tags">
               ${item.reasons.map(r => `<span class="reason-tag">${r}</span>`).join('')}
             </div>
@@ -645,38 +707,12 @@
           <input type="checkbox" id="bc${i}" data-index="${originalIndex}" class="bc-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
           <div class="cache-info">
             <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
-            <div class="cache-path">${cache.path}</div>
+            ${renderPaths(cache.path)}
           </div>
           <div class="cache-size ${cache.size > 0 ? '' : ''}">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
         </div>
       `;
       }).join('');
-    }
-
-    function renderLargeCaches() {
-      const section = document.getElementById('largeCachesSection');
-      const list = document.getElementById('largeCachesList');
-
-      section.style.display = 'block';
-
-      if (!largeCaches.length) {
-        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No large caches found (>1GB)</div></div></div>';
-        document.getElementById('btnCleanLarge').style.display = 'none';
-        return;
-      }
-
-      document.getElementById('btnCleanLarge').style.display = 'block';
-
-      list.innerHTML = largeCaches.map((cache, i) => `
-        <div class="cache-item ext-item">
-          <input type="checkbox" id="lc${i}" data-index="${i}" class="lc-checkbox" checked>
-          <div class="cache-info">
-            <div class="cache-name">${cache.name}</div>
-            <div class="cache-path">${cache.path}</div>
-          </div>
-          <div class="cache-size large">${formatSize(cache.size_bytes)}</div>
-        </div>
-      `).join('');
     }
 
     function renderBrowserCaches() {
@@ -698,7 +734,7 @@
           <input type="checkbox" id="browser${i}" data-index="${i}" class="browser-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
           <div class="cache-info">
             <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
-            <div class="cache-path">${cache.path}</div>
+            ${renderPaths(cache.path)}
           </div>
           <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
         </div>
@@ -724,7 +760,7 @@
           <input type="checkbox" id="pkg${i}" data-index="${i}" class="pkg-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
           <div class="cache-info">
             <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
-            <div class="cache-path">${cache.path}</div>
+            ${renderPaths(cache.path)}
           </div>
           <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
         </div>
@@ -750,7 +786,7 @@
           <input type="checkbox" id="dev${i}" data-index="${i}" class="dev-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
           <div class="cache-info">
             <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
-            <div class="cache-path">${cache.path}</div>
+            ${renderPaths(cache.path)}
           </div>
           <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
         </div>
@@ -776,7 +812,7 @@
           <input type="checkbox" id="sys${i}" data-index="${i}" class="sys-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
           <div class="cache-info">
             <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
-            <div class="cache-path">${cache.path}</div>
+            ${renderPaths(cache.path)}
           </div>
           <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
         </div>
@@ -795,18 +831,12 @@
       const devTotal = devTools.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
       const sysTotal = systemCaches.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
       const idbTotal = indexedDbItems.reduce((sum, i) => sum + i.size, 0);
-      const lcTotal = largeCaches.reduce((sum, c) => sum + c.size_bytes, 0);
-      document.getElementById('totalSize').textContent = formatSize(bcTotal + browserTotal + pkgTotal + devTotal + sysTotal + idbTotal + lcTotal);
+      document.getElementById('totalSize').textContent = formatSize(bcTotal + browserTotal + pkgTotal + devTotal + sysTotal + idbTotal);
     }
 
     function getSelectedIndexedDbItems() {
       return [...document.querySelectorAll('.idb-checkbox:checked')]
         .map(cb => indexedDbItems[parseInt(cb.dataset.index)]);
-    }
-
-    function getSelectedLargeCaches() {
-      return [...document.querySelectorAll('.lc-checkbox:checked')]
-        .map(cb => largeCaches[parseInt(cb.dataset.index)]);
     }
 
     function getSelectedBasicCaches() {
@@ -827,7 +857,6 @@
         systemCaches = allCaches.filter(c => ['cachedir', 'systemcaches', 'userlogs', 'tempfiles', 'iosbackups'].includes(c.cache_type.toLowerCase()));
         
         indexedDbItems = await invoke('scan_indexed_db_items', { thresholdMb: INDEXED_DB_THRESHOLD_MB });
-        largeCaches = await invoke('scan_large_caches');
         
         // Chrome warning removed - cleaning doesn't affect Chrome
         
@@ -837,7 +866,6 @@
         renderDevTools();
         renderSystemCaches();
         renderIndexedDb();
-        renderLargeCaches();
         updateTotal();
         hideStatus();
       } catch (e) {
@@ -913,76 +941,6 @@
         await scanData();
       } catch(e) {
         hideSectionProgress('basicCaches');
-        showStatus('Error: ' + e);
-      }
-    }
-
-    async function cleanLargeCaches() {
-      const selectedLc = getSelectedLargeCaches();
-      
-      if (!selectedLc.length) {
-        showStatus('Select at least one large cache');
-        return;
-      }
-      
-      let msg = 'Are you sure you want to clean the selected large caches?';
-      const lcTotal = selectedLc.reduce((sum, c) => sum + c.size_bytes, 0);
-      msg += `\n\n⚠️ WARNING: Will delete ${selectedLc.length} large cache directory(ies) from ~/Library/Caches (${formatSize(lcTotal)}).`;
-
-      let confirmed = false;
-      try {
-        const tauri = window.__TAURI__;
-        if (tauri && tauri.dialog) {
-          confirmed = await tauri.dialog.ask(msg, {
-            title: 'Confirm Cleanup',
-            kind: 'warning',
-            okLabel: 'Yes, Clean',
-            cancelLabel: 'Cancel'
-          });
-        } else if (typeof window.confirm === 'function') {
-          confirmed = window.confirm(msg);
-        } else {
-          showStatus('Error: No dialog available.');
-          return;
-        }
-      } catch (err) {
-        if (typeof window.confirm === 'function') {
-          confirmed = window.confirm(msg);
-        } else {
-          showStatus('Error: Could not show confirmation dialog. ' + err);
-          return;
-        }
-      }
-
-      if (!confirmed) {
-        return;
-      }
-
-      showSectionProgress('largeCaches');
-      hideStatus();
-
-      try {
-        let totalFreed = 0;
-        const totalItems = selectedLc.length;
-
-        for (let i = 0; i < selectedLc.length; i++) {
-          const cache = selectedLc[i];
-          const percentage = Math.min(99, ((i + 1) / totalItems) * 100);
-          updateSectionProgress('largeCaches', percentage, `Cleaning cache ${i + 1}/${totalItems} (${cache.name})...`);
-          
-          const lcResult = await invoke('remove_large_caches', {
-            paths: [cache.path]
-          });
-          totalFreed += lcResult.total_freed_bytes || 0;
-        }
-        
-        updateSectionProgress('largeCaches', 100, 'Cleaning completed!');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        hideSectionProgress('largeCaches');
-        showStatus('✅ Freed ' + formatSize(totalFreed));
-        await scanData();
-      } catch(e) {
-        hideSectionProgress('largeCaches');
         showStatus('Error: ' + e);
       }
     }
@@ -1142,9 +1100,8 @@
     async function previewClean() {
       const selectedBc = getSelectedBasicCaches();
       const selectedIdb = getSelectedIndexedDbItems();
-      const selectedLc = getSelectedLargeCaches();
       
-      if (!selectedBc.length && !selectedIdb.length && !selectedLc.length) { 
+      if (!selectedBc.length && !selectedIdb.length) { 
         showStatus('Select at least one item'); 
         return; 
       }
@@ -1173,11 +1130,6 @@
             results.push(`IndexedDB (${idbResult.items_removed} origins): ${formatSize(idbResult.total_freed_bytes)}`);
           }
         }
-
-        if (selectedLc.length) {
-          const lcTotal = selectedLc.reduce((sum, c) => sum + c.size_bytes, 0);
-          results.push(`Large Caches (${selectedLc.length} directories): ${formatSize(lcTotal)}`);
-        }
         
         showStatus('Would free:\n' + results.join('\n'));
       } catch(e) {
@@ -1190,12 +1142,10 @@
 
       const selectedBc = getSelectedBasicCaches();
       const selectedIdb = getSelectedIndexedDbItems();
-      const selectedLc = getSelectedLargeCaches();
 
       console.log("[UI] Selected basic caches:", selectedBc);
-      console.log("[UI] Selected large caches:", selectedLc);
       
-      if (!selectedBc.length && !selectedIdb.length && !selectedLc.length) { 
+      if (!selectedBc.length && !selectedIdb.length) { 
         console.warn("[UI] No items selected");
         showStatus('Select at least one item'); 
         return; 
@@ -1208,10 +1158,6 @@
       }
       if (selectedIdb.length) {
         msg += `\n\n⚠️ WARNING: Cleaning IndexedDB will remove site data for ${selectedIdb.length} origin(s).`;
-      }
-      if (selectedLc.length) {
-        const lcTotal = selectedLc.reduce((sum, c) => sum + c.size_bytes, 0);
-        msg += `\n\n⚠️ WARNING: Will delete ${selectedLc.length} large cache directory(ies) from ~/Library/Caches (${formatSize(lcTotal)}).`;
       }
 
       let confirmed = false;
@@ -1251,7 +1197,7 @@
       }
 
       // Calculate total items to clean (each item individually)
-      const totalItems = selectedBc.length + selectedIdb.length + selectedLc.length;
+      const totalItems = selectedBc.length + selectedIdb.length;
       let currentItem = 0;
 
       // Show progress bar
@@ -1294,21 +1240,6 @@
           console.log("[UI] clean_indexed_db_items result:", idbResult);
           totalFreed += idbResult.total_freed_bytes || 0;
         }
-
-        // Clean large caches - one by one
-        for (let i = 0; i < selectedLc.length; i++) {
-          const cache = selectedLc[i];
-          currentItem++;
-          const percentage = Math.min(99, (currentItem / totalItems) * 100);
-          updateProgress(percentage, `Cleaning cache ${i + 1}/${selectedLc.length} (${cache.name})...`);
-          
-          console.log("[UI] Invoking remove_large_caches for:", cache.path);
-          const lcResult = await invoke('remove_large_caches', {
-            paths: [cache.path]
-          });
-          console.log("[UI] remove_large_caches result:", lcResult);
-          totalFreed += lcResult.total_freed_bytes || 0;
-        }
         
         // Only set 100% after ALL items are actually deleted
         updateProgress(100, 'Cleaning completed!');
@@ -1332,7 +1263,6 @@
       document.getElementById('btnPreview').addEventListener('click', previewClean);
       document.getElementById('btnClean').addEventListener('click', cleanSelected);
       document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
-      document.getElementById('btnCleanLarge').addEventListener('click', cleanLargeCaches);
       document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
       document.getElementById('btnCleanBrowserCaches').addEventListener('click', cleanBrowserCaches);
       document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
@@ -1356,7 +1286,6 @@
             document.getElementById('btnPreview').addEventListener('click', previewClean);
             document.getElementById('btnClean').addEventListener('click', cleanSelected);
             document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
-            document.getElementById('btnCleanLarge').addEventListener('click', cleanLargeCaches);
             document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
             document.getElementById('btnCleanBrowserCaches').addEventListener('click', cleanBrowserCaches);
             document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
