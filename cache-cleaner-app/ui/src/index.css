@@ -1,103 +1,103 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* 🌈 Vibrant & Friendly Color Palette */
-  --color-background: oklch(0.985 0.01 280);
-  --color-foreground: oklch(0.2 0.03 280);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.2 0.03 280);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.2 0.03 280);
+  /* 🌈 Vibrant & Friendly Color Palette - HSL for Safari 14 compatibility */
+  --color-background: hsl(280, 5%, 98%);
+  --color-foreground: hsl(280, 8%, 20%);
+  --color-card: hsl(0, 0%, 100%);
+  --color-card-foreground: hsl(280, 8%, 20%);
+  --color-popover: hsl(0, 0%, 100%);
+  --color-popover-foreground: hsl(280, 8%, 20%);
   
   /* Primary - Vibrant Coral/Pink */
-  --color-primary: oklch(0.65 0.22 15);
-  --color-primary-foreground: oklch(1 0 0);
+  --color-primary: hsl(8, 80%, 60%);
+  --color-primary-foreground: hsl(0, 0%, 100%);
   
   /* Secondary - Soft Lavender */
-  --color-secondary: oklch(0.94 0.04 290);
-  --color-secondary-foreground: oklch(0.35 0.12 290);
+  --color-secondary: hsl(290, 15%, 94%);
+  --color-secondary-foreground: hsl(290, 40%, 35%);
   
   /* Muted - Warm Gray */
-  --color-muted: oklch(0.96 0.01 280);
-  --color-muted-foreground: oklch(0.5 0.02 280);
+  --color-muted: hsl(280, 5%, 96%);
+  --color-muted-foreground: hsl(280, 8%, 50%);
   
   /* Accent - Mint Green */
-  --color-accent: oklch(0.94 0.06 165);
-  --color-accent-foreground: oklch(0.3 0.1 165);
+  --color-accent: hsl(165, 25%, 94%);
+  --color-accent-foreground: hsl(165, 35%, 30%);
   
   /* Destructive - Soft Red */
-  --color-destructive: oklch(0.6 0.2 25);
-  --color-destructive-foreground: oklch(1 0 0);
+  --color-destructive: hsl(8, 75%, 55%);
+  --color-destructive-foreground: hsl(0, 0%, 100%);
   
-  --color-border: oklch(0.92 0.01 280);
-  --color-input: oklch(0.92 0.02 280);
-  --color-ring: oklch(0.65 0.22 15);
+  --color-border: hsl(280, 5%, 92%);
+  --color-input: hsl(280, 8%, 92%);
+  --color-ring: hsl(8, 80%, 60%);
   --radius: 1rem;
   
   /* Custom gradient colors */
-  --color-gradient-start: oklch(0.7 0.2 350);
-  --color-gradient-mid: oklch(0.65 0.22 15);
-  --color-gradient-end: oklch(0.7 0.18 50);
+  --color-gradient-start: hsl(330, 75%, 60%);
+  --color-gradient-mid: hsl(8, 80%, 60%);
+  --color-gradient-end: hsl(35, 75%, 60%);
   
   /* Category colors - more vibrant */
-  --color-editor: oklch(0.6 0.2 260);
-  --color-browser: oklch(0.6 0.18 145);
-  --color-package: oklch(0.65 0.2 50);
-  --color-devtools: oklch(0.7 0.18 85);
-  --color-system: oklch(0.55 0.12 280);
-  --color-large: oklch(0.6 0.22 15);
-  --color-database: oklch(0.6 0.2 290);
+  --color-editor: hsl(240, 70%, 55%);
+  --color-browser: hsl(155, 65%, 45%);
+  --color-package: hsl(35, 85%, 55%);
+  --color-devtools: hsl(70, 70%, 55%);
+  --color-system: hsl(280, 50%, 45%);
+  --color-large: hsl(8, 75%, 55%);
+  --color-database: hsl(280, 70%, 55%);
   
   /* Success/Info colors */
-  --color-success: oklch(0.65 0.2 145);
-  --color-info: oklch(0.6 0.18 250);
-  --color-warning: oklch(0.75 0.18 70);
+  --color-success: hsl(155, 70%, 55%);
+  --color-info: hsl(250, 70%, 50%);
+  --color-warning: hsl(50, 75%, 65%);
 }
 
 .dark {
-  --color-background: oklch(0.14 0.02 280);
-  --color-foreground: oklch(0.95 0.01 280);
-  --color-card: oklch(0.18 0.02 280);
-  --color-card-foreground: oklch(0.95 0.01 280);
-  --color-popover: oklch(0.18 0.02 280);
-  --color-popover-foreground: oklch(0.95 0.01 280);
+  --color-background: hsl(280, 8%, 14%);
+  --color-foreground: hsl(280, 5%, 95%);
+  --color-card: hsl(280, 8%, 18%);
+  --color-card-foreground: hsl(280, 5%, 95%);
+  --color-popover: hsl(280, 8%, 18%);
+  --color-popover-foreground: hsl(280, 5%, 95%);
   
-  --color-primary: oklch(0.7 0.22 15);
-  --color-primary-foreground: oklch(0.14 0.02 280);
+  --color-primary: hsl(8, 80%, 65%);
+  --color-primary-foreground: hsl(280, 8%, 14%);
   
-  --color-secondary: oklch(0.25 0.04 290);
-  --color-secondary-foreground: oklch(0.85 0.08 290);
+  --color-secondary: hsl(290, 15%, 25%);
+  --color-secondary-foreground: hsl(290, 30%, 85%);
   
-  --color-muted: oklch(0.22 0.02 280);
-  --color-muted-foreground: oklch(0.65 0.02 280);
+  --color-muted: hsl(280, 8%, 22%);
+  --color-muted-foreground: hsl(280, 5%, 65%);
   
-  --color-accent: oklch(0.25 0.05 165);
-  --color-accent-foreground: oklch(0.85 0.1 165);
+  --color-accent: hsl(165, 20%, 25%);
+  --color-accent-foreground: hsl(165, 35%, 85%);
   
-  --color-destructive: oklch(0.55 0.22 25);
-  --color-destructive-foreground: oklch(0.95 0.01 280);
+  --color-destructive: hsl(8, 75%, 55%);
+  --color-destructive-foreground: hsl(280, 5%, 95%);
   
-  --color-border: oklch(0.28 0.02 280);
-  --color-input: oklch(0.28 0.02 280);
-  --color-ring: oklch(0.7 0.22 15);
+  --color-border: hsl(280, 8%, 28%);
+  --color-input: hsl(280, 8%, 28%);
+  --color-ring: hsl(8, 80%, 65%);
   
   /* Gradient colors for dark mode */
-  --color-gradient-start: oklch(0.55 0.18 350);
-  --color-gradient-mid: oklch(0.6 0.2 15);
-  --color-gradient-end: oklch(0.6 0.16 50);
+  --color-gradient-start: hsl(330, 70%, 55%);
+  --color-gradient-mid: hsl(8, 75%, 60%);
+  --color-gradient-end: hsl(35, 70%, 60%);
   
   /* Category colors - dark mode */
-  --color-editor: oklch(0.65 0.2 260);
-  --color-browser: oklch(0.65 0.18 145);
-  --color-package: oklch(0.7 0.2 50);
-  --color-devtools: oklch(0.75 0.18 85);
-  --color-system: oklch(0.6 0.12 280);
-  --color-large: oklch(0.65 0.22 15);
-  --color-database: oklch(0.65 0.2 290);
+  --color-editor: hsl(240, 70%, 60%);
+  --color-browser: hsl(155, 70%, 60%);
+  --color-package: hsl(35, 80%, 60%);
+  --color-devtools: hsl(70, 75%, 65%);
+  --color-system: hsl(280, 50%, 55%);
+  --color-large: hsl(8, 75%, 60%);
+  --color-database: hsl(280, 70%, 60%);
   
-  --color-success: oklch(0.7 0.2 145);
-  --color-info: oklch(0.65 0.18 250);
-  --color-warning: oklch(0.75 0.18 70);
+  --color-success: hsl(155, 75%, 60%);
+  --color-info: hsl(250, 70%, 60%);
+  --color-warning: hsl(50, 75%, 70%);
 }
 
 * {
@@ -161,18 +161,28 @@ body {
   --category-color: var(--color-database);
 }
 
-/* 🌟 Glassmorphism effect */
+/* 🌟 Glassmorphism effect - Safari 14 compatible */
 .glass {
-  background: oklch(from var(--color-card) l c h / 0.8);
+  background: hsla(0, 0%, 100%, 0.8);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid oklch(from var(--color-border) l c h / 0.5);
+  border: 1px solid hsla(280, 5%, 92%, 0.5);
 }
 
 .glass-subtle {
-  background: oklch(from var(--color-card) l c h / 0.6);
+  background: hsla(0, 0%, 100%, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+/* Dark mode glass effects */
+.dark .glass {
+  background: hsla(280, 8%, 18%, 0.8);
+  border: 1px solid hsla(280, 8%, 28%, 0.5);
+}
+
+.dark .glass-subtle {
+  background: hsla(280, 8%, 18%, 0.6);
 }
 
 /* 💫 Smooth transitions */
@@ -304,38 +314,83 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.75 0.04 280);
+  background: hsl(280, 10%, 75%);
   border-radius: 5px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.65 0.06 280);
+  background: hsl(280, 15%, 65%);
   background-clip: content-box;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: oklch(0.35 0.04 280);
+  background: hsl(280, 10%, 35%);
   background-clip: content-box;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.45 0.06 280);
+  background: hsl(280, 15%, 45%);
   background-clip: content-box;
 }
 
-/* 🌈 Colorful shadows */
+/* 🌈 Colorful shadows - Safari 14 compatible */
 .shadow-glow-primary {
-  box-shadow: 0 8px 30px -5px oklch(from var(--color-primary) l c h / 0.3);
+  box-shadow: 0 8px 30px -5px hsla(8, 80%, 60%, 0.3);
 }
 
 .shadow-glow-success {
-  box-shadow: 0 8px 30px -5px oklch(from var(--color-success) l c h / 0.3);
+  box-shadow: 0 8px 30px -5px hsla(155, 70%, 55%, 0.3);
 }
 
+/* Category-specific glow shadows for Safari 14 compatibility */
 .shadow-glow-category {
-  box-shadow: 0 8px 30px -5px oklch(from var(--category-color) l c h / 0.25);
+  box-shadow: 0 8px 30px -5px hsla(0, 0%, 50%, 0.2);
+}
+
+.category-editor .shadow-glow-category,
+.category-editor.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(240, 70%, 55%, 0.25);
+}
+
+.category-browser .shadow-glow-category,
+.category-browser.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(155, 65%, 45%, 0.25);
+}
+
+.category-package .shadow-glow-category,
+.category-package.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(35, 85%, 55%, 0.25);
+}
+
+.category-devtools .shadow-glow-category,
+.category-devtools.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(70, 70%, 55%, 0.25);
+}
+
+.category-system .shadow-glow-category,
+.category-system.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(280, 50%, 45%, 0.25);
+}
+
+.category-large .shadow-glow-category,
+.category-large.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(8, 75%, 55%, 0.25);
+}
+
+.category-database .shadow-glow-category,
+.category-database.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px hsla(280, 70%, 55%, 0.25);
+}
+
+/* Dark mode shadow adjustments */
+.dark .shadow-glow-primary {
+  box-shadow: 0 8px 30px -5px hsla(8, 80%, 65%, 0.3);
+}
+
+.dark .shadow-glow-success {
+  box-shadow: 0 8px 30px -5px hsla(155, 75%, 60%, 0.3);
 }
 
 /* 🎪 Fun decorative elements */
@@ -393,8 +448,12 @@ body {
   }
 }
 
-/* 🎨 Selection styling */
+/* 🎨 Selection styling - Safari 14 compatible */
 ::selection {
-  background: oklch(from var(--color-primary) l c h / 0.3);
+  background: hsla(8, 80%, 60%, 0.3);
   color: var(--color-foreground);
+}
+
+.dark ::selection {
+  background: hsla(8, 80%, 65%, 0.3);
 }

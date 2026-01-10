@@ -13,25 +13,25 @@ function getScoreConfig(score: number) {
   if (score >= 0.7) return {
     variant: 'high' as const,
     label: 'High Risk',
-    gradient: 'from-[oklch(0.6_0.22_15)] to-[oklch(0.55_0.2_25)]',
-    bg: 'bg-[oklch(0.6_0.22_15)]/10',
-    text: 'text-[oklch(0.6_0.22_15)]',
+    gradient: 'from-[hsl(8,75%,55%)] to-[hsl(15,75%,50%)]',
+    bg: 'bg-[hsl(8,75%,55%)]/10',
+    text: 'text-[hsl(8,75%,55%)]',
     icon: AlertTriangle,
   }
   if (score >= 0.4) return {
     variant: 'medium' as const,
     label: 'Medium',
-    gradient: 'from-[oklch(0.75_0.18_70)] to-[oklch(0.7_0.16_55)]',
-    bg: 'bg-[oklch(0.75_0.18_70)]/10',
-    text: 'text-[oklch(0.7_0.16_55)]',
+    gradient: 'from-[hsl(50,75%,65%)] to-[hsl(45,70%,60%)]',
+    bg: 'bg-[hsl(50,75%,65%)]/10',
+    text: 'text-[hsl(45,70%,60%)]',
     icon: AlertCircle,
   }
   return {
     variant: 'low' as const,
     label: 'Low',
-    gradient: 'from-[oklch(0.6_0.18_145)] to-[oklch(0.55_0.16_165)]',
-    bg: 'bg-[oklch(0.6_0.18_145)]/10',
-    text: 'text-[oklch(0.6_0.18_145)]',
+    gradient: 'from-[hsl(155,65%,45%)] to-[hsl(165,60%,45%)]',
+    bg: 'bg-[hsl(155,65%,45%)]/10',
+    text: 'text-[hsl(155,65%,45%)]',
     icon: Info,
   }
 }

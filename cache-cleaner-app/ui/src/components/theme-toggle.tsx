@@ -32,7 +32,7 @@ export function ThemeToggle() {
       title={`Current: ${theme} (click to change)`}
       className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-muted/50 hover:bg-muted border-2 border-transparent hover:border-border transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
     >
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[oklch(0.75_0.18_70)] to-[oklch(0.7_0.16_50)] text-white shadow-md">
+      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[hsl(50,75%,65%)] to-[hsl(35,70%,60%)] text-white shadow-md">
         {getIcon()}
       </div>
       <span className="text-sm font-medium text-muted-foreground">{getLabel()}</span>

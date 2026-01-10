@@ -40,35 +40,35 @@ export function CacheSection({
   const someSelected = selectedCount > 0 && selectedCount < totalItems
 
   const colorClasses: Record<string, string> = {
-    editor: 'from-[oklch(0.6_0.2_260)] to-[oklch(0.55_0.18_280)]',
-    browser: 'from-[oklch(0.6_0.18_145)] to-[oklch(0.55_0.16_165)]',
-    package: 'from-[oklch(0.65_0.2_50)] to-[oklch(0.6_0.18_35)]',
-    devtools: 'from-[oklch(0.7_0.18_85)] to-[oklch(0.65_0.16_70)]',
-    system: 'from-[oklch(0.55_0.12_280)] to-[oklch(0.5_0.1_260)]',
-    large: 'from-[oklch(0.6_0.22_15)] to-[oklch(0.55_0.2_25)]',
-    database: 'from-[oklch(0.6_0.2_290)] to-[oklch(0.55_0.18_310)]',
-    primary: 'from-[oklch(0.65_0.22_15)] to-[oklch(0.6_0.2_35)]',
+    editor: 'from-[hsl(240,70%,55%)] to-[hsl(280,65%,45%)]',
+    browser: 'from-[hsl(155,65%,45%)] to-[hsl(165,60%,45%)]',
+    package: 'from-[hsl(35,85%,55%)] to-[hsl(25,70%,50%)]',
+    devtools: 'from-[hsl(70,70%,55%)] to-[hsl(60,65%,50%)]',
+    system: 'from-[hsl(280,50%,45%)] to-[hsl(260,45%,40%)]',
+    large: 'from-[hsl(8,75%,55%)] to-[hsl(15,75%,50%)]',
+    database: 'from-[hsl(280,70%,55%)] to-[hsl(310,65%,45%)]',
+    primary: 'from-[hsl(8,80%,60%)] to-[hsl(25,75%,55%)]',
   }
 
   const bgColorClasses: Record<string, string> = {
-    editor: 'bg-[oklch(0.6_0.2_260)]/10',
-    browser: 'bg-[oklch(0.6_0.18_145)]/10',
-    package: 'bg-[oklch(0.65_0.2_50)]/10',
-    devtools: 'bg-[oklch(0.7_0.18_85)]/10',
-    system: 'bg-[oklch(0.55_0.12_280)]/10',
-    large: 'bg-[oklch(0.6_0.22_15)]/10',
-    database: 'bg-[oklch(0.6_0.2_290)]/10',
+    editor: 'bg-[hsl(240,70%,55%)]/10',
+    browser: 'bg-[hsl(155,65%,45%)]/10',
+    package: 'bg-[hsl(35,85%,55%)]/10',
+    devtools: 'bg-[hsl(70,70%,55%)]/10',
+    system: 'bg-[hsl(280,50%,45%)]/10',
+    large: 'bg-[hsl(8,75%,55%)]/10',
+    database: 'bg-[hsl(280,70%,55%)]/10',
     primary: 'bg-primary/10',
   }
 
   const glowClasses: Record<string, string> = {
-    editor: 'shadow-[0_8px_30px_-5px_oklch(0.6_0.2_260_/_0.2)]',
-    browser: 'shadow-[0_8px_30px_-5px_oklch(0.6_0.18_145_/_0.2)]',
-    package: 'shadow-[0_8px_30px_-5px_oklch(0.65_0.2_50_/_0.2)]',
-    devtools: 'shadow-[0_8px_30px_-5px_oklch(0.7_0.18_85_/_0.2)]',
-    system: 'shadow-[0_8px_30px_-5px_oklch(0.55_0.12_280_/_0.2)]',
-    large: 'shadow-[0_8px_30px_-5px_oklch(0.6_0.22_15_/_0.2)]',
-    database: 'shadow-[0_8px_30px_-5px_oklch(0.6_0.2_290_/_0.2)]',
+    editor: 'shadow-[0_8px_30px_-5px_hsl(240,70%,55%,0.2)]',
+    browser: 'shadow-[0_8px_30px_-5px_hsl(155,65%,45%,0.2)]',
+    package: 'shadow-[0_8px_30px_-5px_hsl(35,85%,55%,0.2)]',
+    devtools: 'shadow-[0_8px_30px_-5px_hsl(70,70%,55%,0.2)]',
+    system: 'shadow-[0_8px_30px_-5px_hsl(280,50%,45%,0.2)]',
+    large: 'shadow-[0_8px_30px_-5px_hsl(8,75%,55%,0.2)]',
+    database: 'shadow-[0_8px_30px_-5px_hsl(280,70%,55%,0.2)]',
     primary: 'shadow-glow-primary',
   }
 

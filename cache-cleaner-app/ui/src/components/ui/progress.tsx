@@ -10,13 +10,13 @@ const Progress = React.forwardRef<
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
-      "relative h-3 w-full overflow-hidden rounded-full bg-gradient-to-r from-primary/10 to-[oklch(0.7_0.18_50)]/10",
+      "relative h-3 w-full overflow-hidden rounded-full bg-gradient-to-r from-primary/10 to-[hsl(35,75%,60%)]/10",
       className
     )}
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-gradient-to-r from-primary via-[oklch(0.7_0.2_350)] to-[oklch(0.7_0.18_50)] transition-all duration-500 ease-out rounded-full relative overflow-hidden"
+      className="h-full w-full flex-1 bg-gradient-to-r from-primary via-[hsl(330,75%,60%)] to-[hsl(35,75%,60%)] transition-all duration-500 ease-out rounded-full relative overflow-hidden"
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     >
       {/* Shimmer effect */}

@@ -15,10 +15,10 @@ export function CacheItem({ cache, isSelected, onToggle }: CacheItemProps) {
   
   // Size indicator color based on size
   const getSizeColor = (size: number) => {
-    if (size > 1024 * 1024 * 500) return 'from-[oklch(0.6_0.22_15)] to-[oklch(0.65_0.2_25)]' // > 500MB - coral
-    if (size > 1024 * 1024 * 100) return 'from-[oklch(0.7_0.18_50)] to-[oklch(0.75_0.16_70)]' // > 100MB - orange
-    if (size > 1024 * 1024 * 10) return 'from-[oklch(0.7_0.18_85)] to-[oklch(0.75_0.16_100)]' // > 10MB - yellow
-    return 'from-[oklch(0.6_0.18_145)] to-[oklch(0.65_0.16_165)]' // green
+    if (size > 1024 * 1024 * 500) return 'from-[hsl(8,75%,55%)] to-[hsl(15,75%,55%)]' // > 500MB - coral
+    if (size > 1024 * 1024 * 100) return 'from-[hsl(35,75%,60%)] to-[hsl(50,70%,65%)]' // > 100MB - orange
+    if (size > 1024 * 1024 * 10) return 'from-[hsl(70,70%,55%)] to-[hsl(85,70%,60%)]' // > 10MB - yellow
+    return 'from-[hsl(155,65%,45%)] to-[hsl(165,65%,50%)]' // green
   }
   
   return (
@@ -33,7 +33,7 @@ export function CacheItem({ cache, isSelected, onToggle }: CacheItemProps) {
       {/* Custom checkbox area */}
       <div className={`relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-300 ${
         isSelected 
-          ? 'bg-gradient-to-br from-primary to-[oklch(0.7_0.18_50)] shadow-md' 
+          ? 'bg-gradient-to-br from-primary to-[hsl(35,75%,60%)] shadow-md' 
           : 'bg-muted group-hover:bg-muted/80'
       }`}>
         {isSelected ? (

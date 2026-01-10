@@ -36,6 +36,13 @@ export interface CleanResult {
   bytes_cleaned: number
 }
 
+export interface SmartSuggestionsCleanResult {
+  success: boolean
+  message: string
+  total_freed_bytes: number
+  items_removed: number
+}
+
 // Cache type categories for grouping
 export type CacheCategory = 
   | 'editor'

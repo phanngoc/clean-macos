@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
-import type { FolderSuggestion, CleanResult } from '@/types/cache'
+import type { FolderSuggestion, SmartSuggestionsCleanResult } from '@/types/cache'
 
 /**
  * Get AI-scored smart suggestions for folders to clean
@@ -10,13 +10,16 @@ export async function getSmartSuggestions(
   minSizeMb?: number,
   maxAgeDays?: number
 ): Promise<FolderSuggestion[]> {
-  return invoke<FolderSuggestion[]>('get_smart_suggestions', { minSizeMb, maxAgeDays })
+  return invoke<FolderSuggestion[]>('scan_smart_suggestions', { 
+    min_size_mb: minSizeMb, 
+    max_age_days: maxAgeDays 
+  })
 }
 
 /**
  * Delete folders by their paths
  * @param paths - Array of folder paths to delete
  */
-export async function deleteFolders(paths: string[]): Promise<CleanResult> {
-  return invoke<CleanResult>('delete_folders', { paths })
+export async function deleteFolders(paths: string[]): Promise<SmartSuggestionsCleanResult> {
+  return invoke<SmartSuggestionsCleanResult>('remove_smart_suggestions', { paths })
 }

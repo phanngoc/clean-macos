@@ -88,7 +88,7 @@ export const useSmartScannerStore = create<SmartScannerState>()(
       },
       
       deleteSelected: async () => {
-        const { selectedPaths, suggestions } = get()
+        const { selectedPaths } = get()
         if (selectedPaths.size === 0) {
           return { success: false, message: 'No folders selected', bytesTotal: 0 }
         }
@@ -98,10 +98,8 @@ export const useSmartScannerStore = create<SmartScannerState>()(
           const paths = [...selectedPaths]
           const result = await deleteFolders(paths)
           
-          // Calculate bytes deleted
-          const bytesTotal = suggestions
-            .filter(s => selectedPaths.has(s.path))
-            .reduce((sum, s) => sum + s.size_bytes, 0)
+          // Use total_freed_bytes from the result (Rust backend calculates this accurately)
+          const bytesTotal = result.total_freed_bytes
           
           // Rescan after deletion
           await get().scan()

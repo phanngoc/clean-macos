@@ -9,16 +9,16 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-gradient-to-r from-primary to-[oklch(0.7_0.18_50)] text-primary-foreground shadow-md",
+          "border-transparent bg-gradient-to-r from-primary to-[hsl(35,75%,60%)] text-primary-foreground shadow-md",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-gradient-to-r from-destructive to-[oklch(0.55_0.2_25)] text-destructive-foreground shadow-md",
+          "border-transparent bg-gradient-to-r from-destructive to-[hsl(15,75%,50%)] text-destructive-foreground shadow-md",
         outline: "text-foreground border-2",
-        high: "border-transparent bg-gradient-to-r from-[oklch(0.6_0.22_15)] to-[oklch(0.55_0.2_25)] text-white shadow-md",
-        medium: "border-transparent bg-gradient-to-r from-[oklch(0.75_0.18_70)] to-[oklch(0.7_0.16_55)] text-white shadow-md",
-        low: "border-transparent bg-gradient-to-r from-[oklch(0.6_0.18_145)] to-[oklch(0.55_0.16_165)] text-white shadow-md",
-        info: "border-transparent bg-gradient-to-r from-[oklch(0.6_0.2_260)] to-[oklch(0.55_0.18_280)] text-white shadow-md",
+        high: "border-transparent bg-gradient-to-r from-[hsl(8,75%,55%)] to-[hsl(15,75%,50%)] text-white shadow-md",
+        medium: "border-transparent bg-gradient-to-r from-[hsl(50,75%,65%)] to-[hsl(45,70%,60%)] text-white shadow-md",
+        low: "border-transparent bg-gradient-to-r from-[hsl(155,65%,45%)] to-[hsl(165,60%,45%)] text-white shadow-md",
+        info: "border-transparent bg-gradient-to-r from-[hsl(240,70%,55%)] to-[hsl(280,65%,45%)] text-white shadow-md",
       },
     },
     defaultVariants: {

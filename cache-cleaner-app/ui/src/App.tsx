@@ -28,11 +28,11 @@ function AppContent() {
               <div className="absolute inset-0 rounded-2xl gradient-bg opacity-30 animate-ping" style={{ animationDuration: '2s' }} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-[oklch(0.65_0.22_15)] via-[oklch(0.7_0.2_350)] to-[oklch(0.7_0.18_50)] bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-[hsl(8,80%,60%)] via-[hsl(330,75%,60%)] to-[hsl(35,75%,60%)] bg-clip-text text-transparent">
                 Cache Cleaner
               </h1>
               <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <Zap className="h-3 w-3 text-[oklch(0.75_0.18_70)]" />
+                <Zap className="h-3 w-3 text-[hsl(50,75%,65%)]" />
                 Keep your Mac clean and blazing fast
               </p>
             </div>
@@ -49,7 +49,7 @@ function AppContent() {
               value="cache-cleaner" 
               className="flex items-center gap-2.5 rounded-xl h-full text-base font-medium data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/10 dark:data-[state=active]:bg-card transition-all duration-300"
             >
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[oklch(0.65_0.22_15)] to-[oklch(0.7_0.18_50)] shadow-sm">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[hsl(8,80%,60%)] to-[hsl(35,75%,60%)] shadow-sm">
                 <Trash2 className="h-4 w-4 text-white" />
               </div>
               Cache Cleaner
@@ -58,7 +58,7 @@ function AppContent() {
               value="smart-scanner" 
               className="flex items-center gap-2.5 rounded-xl h-full text-base font-medium data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/10 dark:data-[state=active]:bg-card transition-all duration-300"
             >
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[oklch(0.6_0.2_290)] to-[oklch(0.6_0.2_260)] shadow-sm">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[hsl(280,70%,55%)] to-[hsl(240,70%,55%)] shadow-sm">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               Smart Scanner

@@ -144,17 +144,17 @@ export function CacheCleanerTab() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
-            <span className="bg-gradient-to-r from-[oklch(0.65_0.22_15)] via-[oklch(0.7_0.2_350)] to-[oklch(0.7_0.18_50)] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[hsl(8,80%,60%)] via-[hsl(330,75%,60%)] to-[hsl(35,75%,60%)] bg-clip-text text-transparent">
               Cache Cleaner
             </span>
             {totalSelectedBytes > 0 && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-primary to-[oklch(0.7_0.18_50)] text-white shadow-lg animate-bounce-in">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-primary to-[hsl(35,75%,60%)] text-white shadow-lg animate-bounce-in">
                 {formatBytes(totalSelectedBytes)}
               </span>
             )}
           </h2>
           <p className="text-muted-foreground flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-[oklch(0.75_0.18_70)]" />
+            <Sparkles className="h-4 w-4 text-[hsl(50,75%,65%)]" />
             Select caches to free up space on your Mac
           </p>
         </div>
@@ -176,10 +176,10 @@ export function CacheCleanerTab() {
 
       {/* Progress bar during scan */}
       {isScanning && (
-        <div className="space-y-4 p-5 rounded-2xl bg-gradient-to-r from-primary/5 to-[oklch(0.7_0.18_50)]/5 border-2 border-primary/20 shadow-lg animate-bounce-in">
+        <div className="space-y-4 p-5 rounded-2xl bg-gradient-to-r from-primary/5 to-[hsl(35,75%,60%)]/5 border-2 border-primary/20 shadow-lg animate-bounce-in">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-[oklch(0.7_0.18_50)] flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-[hsl(35,75%,60%)] flex items-center justify-center shadow-lg">
                 <Loader2 className="h-5 w-5 text-white animate-spin" />
               </div>
               <div>
@@ -187,7 +187,7 @@ export function CacheCleanerTab() {
                 <p className="text-sm text-muted-foreground">Finding cache files and directories</p>
               </div>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-[oklch(0.7_0.18_50)] bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-[hsl(35,75%,60%)] bg-clip-text text-transparent">
               {Math.round(scanProgress)}%
             </span>
           </div>

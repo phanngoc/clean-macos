@@ -62,17 +62,17 @@ export function SmartScannerTab() {
       {/* Header */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
-          <span className="bg-gradient-to-r from-[oklch(0.6_0.2_290)] via-[oklch(0.6_0.2_260)] to-[oklch(0.55_0.18_280)] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[hsl(280,70%,55%)] via-[hsl(240,70%,55%)] to-[hsl(280,65%,45%)] bg-clip-text text-transparent">
             Smart Scanner
           </span>
           {selectedBytes > 0 && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-[oklch(0.6_0.2_290)] to-[oklch(0.6_0.2_260)] text-white shadow-lg animate-bounce-in">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-[hsl(280,70%,55%)] to-[hsl(240,70%,55%)] text-white shadow-lg animate-bounce-in">
               {formatBytes(selectedBytes)}
             </span>
           )}
         </h2>
         <p className="text-muted-foreground flex items-center gap-2">
-          <Wand2 className="h-4 w-4 text-[oklch(0.6_0.2_290)]" />
+          <Wand2 className="h-4 w-4 text-[hsl(280,70%,55%)]" />
           AI-scored suggestions for folders safe to delete
         </p>
       </div>
@@ -88,9 +88,9 @@ export function SmartScannerTab() {
             size="default"
             onClick={() => selectByScoreThreshold(0.7)}
             disabled={highScoreCount === 0}
-            className="rounded-xl border-2 border-[oklch(0.6_0.22_15)]/30 hover:bg-[oklch(0.6_0.22_15)]/10 hover:border-[oklch(0.6_0.22_15)]/50"
+            className="rounded-xl border-2 border-[hsl(8,75%,55%)]/30 hover:bg-[hsl(8,75%,55%)]/10 hover:border-[hsl(8,75%,55%)]/50"
           >
-            <Target className="h-4 w-4 text-[oklch(0.6_0.22_15)]" />
+            <Target className="h-4 w-4 text-[hsl(8,75%,55%)]" />
             High Risk ({highScoreCount})
           </Button>
           <Button
@@ -98,9 +98,9 @@ export function SmartScannerTab() {
             size="default"
             onClick={() => selectByScoreThreshold(0.4)}
             disabled={highScoreCount + mediumScoreCount === 0}
-            className="rounded-xl border-2 border-[oklch(0.75_0.18_70)]/30 hover:bg-[oklch(0.75_0.18_70)]/10 hover:border-[oklch(0.75_0.18_70)]/50"
+            className="rounded-xl border-2 border-[hsl(50,75%,65%)]/30 hover:bg-[hsl(50,75%,65%)]/10 hover:border-[hsl(50,75%,65%)]/50"
           >
-            <Zap className="h-4 w-4 text-[oklch(0.75_0.18_70)]" />
+            <Zap className="h-4 w-4 text-[hsl(50,75%,65%)]" />
             Medium+ ({highScoreCount + mediumScoreCount})
           </Button>
           <Button
@@ -124,18 +124,18 @@ export function SmartScannerTab() {
       )}
 
       {/* Results Card */}
-      <Card className="overflow-hidden border-2 animate-slide-up shadow-xl shadow-[oklch(0.6_0.2_290)]/10">
+      <Card className="overflow-hidden border-2 animate-slide-up shadow-xl shadow-[hsl(280,70%,55%)]/10">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[oklch(0.6_0.2_290)] to-[oklch(0.55_0.18_310)] shadow-lg">
+              <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[hsl(280,70%,55%)] to-[hsl(310,65%,45%)] shadow-lg">
                 <Sparkles className="h-6 w-6 text-white" />
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-white/20 to-transparent" />
               </div>
               <div>
                 <CardTitle className="text-xl font-bold">Suggestions</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold bg-[oklch(0.6_0.2_290)]/10 text-foreground">
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold bg-[hsl(280,70%,55%)]/10 text-foreground">
                     {suggestions.length}
                   </span>
                   {suggestions.length === 1 ? 'item' : 'items'} found
@@ -144,7 +144,7 @@ export function SmartScannerTab() {
             </div>
             {suggestions.length > 0 && (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[oklch(0.6_0.2_290)]/10 border border-border/30">
+                <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[hsl(280,70%,55%)]/10 border border-border/30">
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={() => {
@@ -178,7 +178,7 @@ export function SmartScannerTab() {
                   disabled={selectedPaths.size === 0 || isDeleting}
                   className={`rounded-xl font-semibold ${
                     selectedPaths.size > 0 
-                      ? 'bg-gradient-to-r from-[oklch(0.6_0.2_290)] to-[oklch(0.55_0.18_310)] hover:opacity-90 text-white border-0 shadow-lg hover:shadow-xl hover:scale-[1.02]' 
+                      ? 'bg-gradient-to-r from-[hsl(280,70%,55%)] to-[hsl(310,65%,45%)] hover:opacity-90 text-white border-0 shadow-lg hover:shadow-xl hover:scale-[1.02]' 
                       : ''
                   }`}
                 >
@@ -197,10 +197,10 @@ export function SmartScannerTab() {
           {isScanning ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[oklch(0.6_0.2_290)] to-[oklch(0.55_0.18_310)] flex items-center justify-center shadow-xl">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[hsl(280,70%,55%)] to-[hsl(310,65%,45%)] flex items-center justify-center shadow-xl">
                   <Loader2 className="h-8 w-8 text-white animate-spin" />
                 </div>
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[oklch(0.6_0.2_290)] to-[oklch(0.55_0.18_310)] animate-ping opacity-30" />
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[hsl(280,70%,55%)] to-[hsl(310,65%,45%)] animate-ping opacity-30" />
               </div>
               <div className="text-center">
                 <p className="font-semibold text-foreground">Analyzing folders...</p>
@@ -209,7 +209,7 @@ export function SmartScannerTab() {
             </div>
           ) : suggestions.length === 0 ? (
             <div className="text-center py-20">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[oklch(0.6_0.2_290)]/10 mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[hsl(280,70%,55%)]/10 mb-4">
                 <Sparkles className="h-8 w-8 text-muted-foreground/50" />
               </div>
               <p className="font-medium text-muted-foreground">No suggestions found with current filters</p>
