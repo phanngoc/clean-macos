@@ -217,6 +217,141 @@
       background: rgba(255,255,255,0.1);
       color: #fff;
     }
+    /* Chrome with nested IndexedDB styles */
+    .browser-item-container {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .browser-main-item {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .browser-main-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+    .indexeddb-subsection {
+      margin: 0;
+      padding: 12px 14px;
+      background: rgba(0,0,0,0.15);
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .indexeddb-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      transition: background 0.2s;
+    }
+    .indexeddb-header:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .indexeddb-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .indexeddb-toggle {
+      font-size: 12px;
+      transition: transform 0.3s;
+      color: #888;
+    }
+    .indexeddb-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+    .indexeddb-title {
+      font-size: 13px;
+      color: #a0aec0;
+      font-weight: 500;
+    }
+    .indexeddb-badge {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .indexeddb-description {
+      font-size: 11px;
+      color: #666;
+      padding: 0 12px 10px;
+      line-height: 1.4;
+    }
+    .indexeddb-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .indexeddb-items.collapsed {
+      display: none;
+    }
+    .indexeddb-item {
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 8px;
+      border-left: 2px solid rgba(59, 130, 246, 0.3);
+    }
+    .indexeddb-item.large-item {
+      border-left-color: #f87171;
+      background: rgba(239, 68, 68, 0.08);
+    }
+    .indexeddb-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+    .indexeddb-item .cache-info { flex: 1; }
+    .indexeddb-item .cache-name { font-size: 13px; font-weight: 500; }
+    .indexeddb-item .cache-path { font-size: 10px; color: #666; margin-top: 2px; }
+    .indexeddb-item .cache-size { font-size: 13px; }
+    .indexeddb-total {
+      font-size: 12px;
+      color: #888;
+      margin-left: auto;
+    }
+    .chrome-total-size {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .chrome-cache-size {
+      font-size: 14px;
+      color: #4ade80;
+      font-weight: 500;
+    }
+    .chrome-indexeddb-size {
+      font-size: 11px;
+      color: #93c5fd;
+    }
+    /* Select all checkbox for IndexedDB */
+    .indexeddb-select-all {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      margin-bottom: 8px;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #93c5fd;
+    }
+    .indexeddb-select-all input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -247,25 +382,17 @@
       </div>
     </div>
 
-    <div id="indexedDbSection" class="section" style="display:none;">
-      <h2>💾 IndexedDB Origins</h2>
-      <div id="indexedDbList" class="cache-list"></div>
-      <div class="section-actions">
-        <button class="btn-clean" id="btnCleanIndexedDb">🗑 Clear IndexedDB</button>
-      </div>
-      <div id="indexedDbProgress" class="section-progress-container" style="display:none;">
-        <div class="progress-bar-wrapper">
-          <div id="indexedDbProgressBar" class="progress-bar" style="width: 0%;">0%</div>
-        </div>
-        <div id="indexedDbProgressText" class="progress-text"></div>
-      </div>
-    </div>
-
     <div id="browserCachesSection" class="section" style="display:none;">
       <h2>🌐 Browser Caches</h2>
       <div id="browserCachesList" class="cache-list"></div>
       <div class="section-actions">
         <button class="btn-clean" id="btnCleanBrowserCaches">🗑 Clear Browser Caches</button>
+      </div>
+      <div id="browserCachesProgress" class="section-progress-container" style="display:none;">
+        <div class="progress-bar-wrapper">
+          <div id="browserCachesProgressBar" class="progress-bar" style="width: 0%;">0%</div>
+        </div>
+        <div id="browserCachesProgressText" class="progress-text"></div>
       </div>
     </div>
 
@@ -645,38 +772,6 @@
       }
     }
 
-    function renderIndexedDb() {
-      const section = document.getElementById('indexedDbSection');
-      const list = document.getElementById('indexedDbList');
-
-      section.style.display = 'block';
-
-      if (!indexedDbItems.length) {
-        list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No IndexedDB items found (>10MB)</div></div></div>';
-        document.getElementById('btnCleanIndexedDb').style.display = 'none';
-        return;
-      }
-
-      document.getElementById('btnCleanIndexedDb').style.display = 'block';
-
-      list.innerHTML = indexedDbItems.map((item, i) => `
-        <div class="cache-item ${item.over_threshold ? 'ext-item' : ''}">
-          <input
-            type="checkbox"
-            id="idb${i}"
-            data-index="${i}"
-            class="idb-checkbox"
-            ${item.over_threshold ? 'checked' : ''}
-          >
-          <div class="cache-info">
-            <div class="cache-name">${item.origin}</div>
-            <div class="cache-path">${item.profile} → ${item.path}</div>
-          </div>
-          <div class="cache-size ${item.over_threshold ? 'large' : ''}">${formatSize(item.size)}</div>
-        </div>
-      `).join('');
-    }
-
     function renderBasicCaches() {
       const section = document.getElementById('basicCachesSection');
       const list = document.getElementById('basicCachesList');
@@ -721,7 +816,7 @@
 
       section.style.display = 'block';
 
-      if (!browserCaches.length) {
+      if (!browserCaches.length && !indexedDbItems.length) {
         list.innerHTML = '<div class="cache-item"><div class="cache-info"><div class="cache-name">No browser caches found</div></div></div>';
         document.getElementById('btnCleanBrowserCaches').style.display = 'none';
         return;
@@ -729,16 +824,106 @@
 
       document.getElementById('btnCleanBrowserCaches').style.display = 'block';
 
-      list.innerHTML = browserCaches.map((cache, i) => `
-        <div class="cache-item">
-          <input type="checkbox" id="browser${i}" data-index="${i}" class="browser-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
-          <div class="cache-info">
-            <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
-            ${renderPaths(cache.path)}
+      // Separate Chrome from other browsers
+      const chromeCache = browserCaches.find(c => getCacheTypeString(c.cache_type).toLowerCase() === 'chrome');
+      const otherBrowsers = browserCaches.filter(c => getCacheTypeString(c.cache_type).toLowerCase() !== 'chrome');
+      
+      let html = '';
+      
+      // Render Chrome with nested IndexedDB
+      if (chromeCache || indexedDbItems.length > 0) {
+        const chromeIndex = browserCaches.findIndex(c => getCacheTypeString(c.cache_type).toLowerCase() === 'chrome');
+        const chromeCacheSize = chromeCache && chromeCache.exists ? chromeCache.size : 0;
+        const indexedDbTotalSize = indexedDbItems.reduce((sum, item) => sum + item.size, 0);
+        const hasIndexedDb = indexedDbItems.length > 0;
+        
+        html += `
+          <div class="browser-item-container">
+            <div class="browser-main-item">
+              <input type="checkbox" 
+                id="browser-chrome" 
+                data-index="${chromeIndex}" 
+                class="browser-checkbox chrome-main-checkbox" 
+                ${chromeCache && chromeCache.exists && chromeCache.size > 0 ? 'checked' : ''}>
+              <div class="cache-info">
+                <div class="cache-name">🌐 Chrome</div>
+                ${chromeCache ? renderPaths(chromeCache.path) : '<div class="cache-path">Cache folder not found</div>'}
+              </div>
+              <div class="chrome-total-size">
+                <div class="chrome-cache-size">${chromeCache && chromeCache.exists ? formatSize(chromeCacheSize) : '0 bytes'}</div>
+                ${hasIndexedDb ? `<div class="chrome-indexeddb-size">+ ${formatSize(indexedDbTotalSize)} IndexedDB</div>` : ''}
+              </div>
+            </div>
+            ${hasIndexedDb ? `
+              <div class="indexeddb-subsection">
+                <div class="indexeddb-header" onclick="toggleIndexedDbSection()">
+                  <div class="indexeddb-header-left">
+                    <span class="indexeddb-toggle" id="indexedDbToggle">▼</span>
+                    <span class="indexeddb-title">💾 IndexedDB (Website Data)</span>
+                    <span class="indexeddb-badge">${indexedDbItems.length} ${indexedDbItems.length === 1 ? 'origin' : 'origins'}</span>
+                  </div>
+                  <span class="indexeddb-total">${formatSize(indexedDbTotalSize)}</span>
+                </div>
+                <div class="indexeddb-description">
+                  Local database storage used by websites in Chrome. Includes offline data, cached content, and app data.
+                </div>
+                <div class="indexeddb-select-all">
+                  <input type="checkbox" id="idb-select-all" onchange="toggleAllIndexedDb(this.checked)" checked>
+                  <label for="idb-select-all">Select all IndexedDB items</label>
+                </div>
+                <div class="indexeddb-items" id="indexedDbItems">
+                  ${indexedDbItems.map((item, i) => `
+                    <div class="indexeddb-item ${item.size > 50 * 1024 * 1024 ? 'large-item' : ''}">
+                      <input type="checkbox" 
+                        id="idb${i}" 
+                        data-index="${i}" 
+                        class="idb-checkbox" 
+                        ${item.over_threshold ? 'checked' : ''}>
+                      <div class="cache-info">
+                        <div class="cache-name">${item.origin}</div>
+                        <div class="cache-path">${item.profile} → ${item.path}</div>
+                      </div>
+                      <div class="cache-size ${item.size > 50 * 1024 * 1024 ? 'large' : ''}">${formatSize(item.size)}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
           </div>
-          <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
-        </div>
-      `).join('');
+        `;
+      }
+      
+      // Render other browsers (Safari, Firefox, Arc)
+      otherBrowsers.forEach((cache, i) => {
+        const originalIndex = browserCaches.findIndex(c => c.cache_type === cache.cache_type && c.path === cache.path);
+        html += `
+          <div class="cache-item">
+            <input type="checkbox" id="browser${originalIndex}" data-index="${originalIndex}" class="browser-checkbox" ${cache.exists && cache.size > 0 ? 'checked' : ''}>
+            <div class="cache-info">
+              <div class="cache-name">${getCacheTypeName(cache.cache_type)}</div>
+              ${renderPaths(cache.path)}
+            </div>
+            <div class="cache-size">${cache.exists ? formatSize(cache.size) : 'Not found'}</div>
+          </div>
+        `;
+      });
+      
+      list.innerHTML = html;
+    }
+    
+    function toggleIndexedDbSection() {
+      const toggle = document.getElementById('indexedDbToggle');
+      const items = document.getElementById('indexedDbItems');
+      if (toggle && items) {
+        toggle.classList.toggle('collapsed');
+        items.classList.toggle('collapsed');
+      }
+    }
+    
+    function toggleAllIndexedDb(checked) {
+      document.querySelectorAll('.idb-checkbox').forEach(cb => {
+        cb.checked = checked;
+      });
     }
 
     function renderPackageManagers() {
@@ -861,11 +1046,10 @@
         // Chrome warning removed - cleaning doesn't affect Chrome
         
         renderBasicCaches();
-        renderBrowserCaches();
+        renderBrowserCaches();  // This now includes IndexedDB under Chrome
         renderPackageManagers();
         renderDevTools();
         renderSystemCaches();
-        renderIndexedDb();
         updateTotal();
         hideStatus();
       } catch (e) {
@@ -1016,21 +1200,95 @@
     }
 
     async function cleanBrowserCaches() {
-      const selected = [...document.querySelectorAll('.browser-checkbox:checked')]
-        .map(cb => browserCaches[parseInt(cb.dataset.index)]);
+      const selectedBrowsers = [...document.querySelectorAll('.browser-checkbox:checked')]
+        .map(cb => {
+          const index = parseInt(cb.dataset.index);
+          return index >= 0 ? browserCaches[index] : null;
+        })
+        .filter(c => c !== null);
       
-      if (!selected.length) {
-        showStatus('Select at least one browser cache');
+      const selectedIdb = getSelectedIndexedDbItems();
+      
+      if (!selectedBrowsers.length && !selectedIdb.length) {
+        showStatus('Select at least one browser cache or IndexedDB item');
         return;
       }
       
+      // Calculate totals for confirmation message
+      const browserTotal = selectedBrowsers.reduce((sum, c) => sum + (c.exists ? c.size : 0), 0);
+      const idbTotal = selectedIdb.reduce((sum, i) => sum + i.size, 0);
+      
+      let msg = 'Are you sure you want to clean the selected browser data?';
+      if (selectedBrowsers.length) {
+        msg += `\n\n🌐 Browser caches: ${selectedBrowsers.length} item(s) (${formatSize(browserTotal)})`;
+      }
+      if (selectedIdb.length) {
+        msg += `\n\n💾 Chrome IndexedDB: ${selectedIdb.length} origin(s) (${formatSize(idbTotal)})`;
+        msg += '\n⚠️ This will remove website local storage data.';
+      }
+      
+      let confirmed = false;
       try {
-        for (const cache of selected) {
-          await invoke('clean_cache', { cacheType: getCacheTypeString(cache.cache_type).toLowerCase(), dryRun: false });
+        const tauri = window.__TAURI__;
+        if (tauri && tauri.dialog) {
+          confirmed = await tauri.dialog.ask(msg, {
+            title: 'Confirm Browser Data Cleanup',
+            kind: 'warning',
+            okLabel: 'Yes, Clean',
+            cancelLabel: 'Cancel'
+          });
+        } else {
+          confirmed = window.confirm(msg);
         }
-        showStatus('✅ Browser caches cleaned');
+      } catch (err) {
+        confirmed = window.confirm(msg);
+      }
+      
+      if (!confirmed) return;
+      
+      showSectionProgress('browserCaches');
+      hideStatus();
+      
+      const totalItems = selectedBrowsers.length + selectedIdb.length;
+      let currentItem = 0;
+      let totalFreed = 0;
+      
+      try {
+        // Clean browser caches
+        for (let i = 0; i < selectedBrowsers.length; i++) {
+          const cache = selectedBrowsers[i];
+          currentItem++;
+          const percentage = Math.min(99, (currentItem / totalItems) * 100);
+          updateSectionProgress('browserCaches', percentage, `Cleaning ${getCacheTypeName(cache.cache_type)} cache...`);
+          
+          const result = await invoke('clean_cache', { 
+            cacheType: getCacheTypeString(cache.cache_type).toLowerCase(), 
+            dryRun: false 
+          });
+          totalFreed += result.freed_bytes || 0;
+        }
+        
+        // Clean IndexedDB items
+        for (let i = 0; i < selectedIdb.length; i++) {
+          const idbItem = selectedIdb[i];
+          currentItem++;
+          const percentage = Math.min(99, (currentItem / totalItems) * 100);
+          updateSectionProgress('browserCaches', percentage, `Cleaning IndexedDB: ${idbItem.origin}...`);
+          
+          const idbResult = await invoke('clean_indexed_db_items', {
+            paths: [idbItem.path],
+            dryRun: false
+          });
+          totalFreed += idbResult.total_freed_bytes || 0;
+        }
+        
+        updateSectionProgress('browserCaches', 100, 'Completed!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideSectionProgress('browserCaches');
+        showStatus('✅ Browser data cleaned! Freed ' + formatSize(totalFreed));
         await scanData();
       } catch (e) {
+        hideSectionProgress('browserCaches');
         showStatus('Error: ' + e);
       }
     }
@@ -1263,7 +1521,6 @@
       document.getElementById('btnPreview').addEventListener('click', previewClean);
       document.getElementById('btnClean').addEventListener('click', cleanSelected);
       document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
-      document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
       document.getElementById('btnCleanBrowserCaches').addEventListener('click', cleanBrowserCaches);
       document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
       document.getElementById('btnCleanDevTools').addEventListener('click', cleanDevTools);
@@ -1286,7 +1543,6 @@
             document.getElementById('btnPreview').addEventListener('click', previewClean);
             document.getElementById('btnClean').addEventListener('click', cleanSelected);
             document.getElementById('btnCleanBasic').addEventListener('click', cleanBasicCaches);
-            document.getElementById('btnCleanIndexedDb').addEventListener('click', cleanIndexedDbItems);
             document.getElementById('btnCleanBrowserCaches').addEventListener('click', cleanBrowserCaches);
             document.getElementById('btnCleanPackageManagers').addEventListener('click', cleanPackageManagers);
             document.getElementById('btnCleanDevTools').addEventListener('click', cleanDevTools);
