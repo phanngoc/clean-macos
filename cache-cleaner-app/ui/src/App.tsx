@@ -4,23 +4,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CacheCleanerTab, SmartScannerTab } from '@/components/tabs'
 import { StatusMessage } from '@/components/StatusMessage'
 import { useUiStore } from '@/stores'
-import { Trash2, Sparkles } from 'lucide-react'
+import { Sparkles, Trash2, Zap } from 'lucide-react'
 
 function AppContent() {
   const { activeTab, setActiveTab } = useUiStore()
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 shadow-sm">
-        <div className="container flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary">
-              <Trash2 className="h-5 w-5" />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Decorative blobs for playful background */}
+      <div className="blob blob-1 animate-pulse-soft" />
+      <div className="blob blob-2 animate-pulse-soft" style={{ animationDelay: '1s' }} />
+      
+      {/* Header with gradient */}
+      <header className="sticky top-0 z-50 w-full glass border-b border-border/50">
+        <div className="container flex h-18 items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-4">
+            {/* Animated logo */}
+            <div className="relative">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl gradient-bg shadow-glow-primary animate-float">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              {/* Pulsing ring effect */}
+              <div className="absolute inset-0 rounded-2xl gradient-bg opacity-30 animate-ping" style={{ animationDuration: '2s' }} />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">Cache Cleaner</h1>
-              <p className="text-xs text-muted-foreground">Keep your Mac clean and fast</p>
+              <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-[oklch(0.65_0.22_15)] via-[oklch(0.7_0.2_350)] to-[oklch(0.7_0.18_50)] bg-clip-text text-transparent">
+                Cache Cleaner
+              </h1>
+              <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                <Zap className="h-3 w-3 text-[oklch(0.75_0.18_70)]" />
+                Keep your Mac clean and blazing fast
+              </p>
             </div>
           </div>
           <ThemeToggle />
@@ -28,30 +42,34 @@ function AppContent() {
       </header>
 
       {/* Main Content */}
-      <main className="container px-6 py-8 max-w-7xl mx-auto">
+      <main className="container px-6 py-8 max-w-7xl mx-auto relative z-10">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-8 h-11 bg-muted/50">
+          <TabsList className="grid w-full max-w-lg grid-cols-2 mb-8 h-14 p-1.5 bg-muted/60 glass rounded-2xl">
             <TabsTrigger 
               value="cache-cleaner" 
-              className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              className="flex items-center gap-2.5 rounded-xl h-full text-base font-medium data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/10 dark:data-[state=active]:bg-card transition-all duration-300"
             >
-              <Trash2 className="h-4 w-4" />
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[oklch(0.65_0.22_15)] to-[oklch(0.7_0.18_50)] shadow-sm">
+                <Trash2 className="h-4 w-4 text-white" />
+              </div>
               Cache Cleaner
             </TabsTrigger>
             <TabsTrigger 
               value="smart-scanner" 
-              className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              className="flex items-center gap-2.5 rounded-xl h-full text-base font-medium data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/10 dark:data-[state=active]:bg-card transition-all duration-300"
             >
-              <Sparkles className="h-4 w-4" />
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[oklch(0.6_0.2_290)] to-[oklch(0.6_0.2_260)] shadow-sm">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
               Smart Scanner
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="cache-cleaner" className="mt-0">
+          <TabsContent value="cache-cleaner" className="mt-0 animate-slide-up">
             <CacheCleanerTab />
           </TabsContent>
 
-          <TabsContent value="smart-scanner" className="mt-0">
+          <TabsContent value="smart-scanner" className="mt-0 animate-slide-up">
             <SmartScannerTab />
           </TabsContent>
         </Tabs>
@@ -59,6 +77,9 @@ function AppContent() {
 
       {/* Status Toast */}
       <StatusMessage />
+      
+      {/* Footer decoration */}
+      <div className="fixed bottom-0 left-0 right-0 h-1 gradient-bg opacity-60" />
     </div>
   )
 }

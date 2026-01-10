@@ -15,7 +15,8 @@ import {
   HardDrive, 
   Database,
   RefreshCw,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react'
 
 export function CacheCleanerTab() {
@@ -142,26 +143,32 @@ export function CacheCleanerTab() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight mb-1">Cache Cleaner</h2>
-          <p className="text-sm text-muted-foreground">
-            Select caches to clean
+          <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
+            <span className="bg-gradient-to-r from-[oklch(0.65_0.22_15)] via-[oklch(0.7_0.2_350)] to-[oklch(0.7_0.18_50)] bg-clip-text text-transparent">
+              Cache Cleaner
+            </span>
             {totalSelectedBytes > 0 && (
-              <span className="ml-2 font-semibold text-foreground">
-                • {formatBytes(totalSelectedBytes)} selected
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-primary to-[oklch(0.7_0.18_50)] text-white shadow-lg animate-bounce-in">
+                {formatBytes(totalSelectedBytes)}
               </span>
             )}
+          </h2>
+          <p className="text-muted-foreground flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-[oklch(0.75_0.18_70)]" />
+            Select caches to free up space on your Mac
           </p>
         </div>
         <Button 
           onClick={handleScanAll} 
           disabled={isScanning} 
           variant="outline"
-          className="shadow-sm hover:shadow-md transition-shadow"
+          size="lg"
+          className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-2"
         >
           {isScanning ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
           ) : (
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className="h-5 w-5 mr-2" />
           )}
           Rescan All
         </Button>
@@ -169,188 +176,219 @@ export function CacheCleanerTab() {
 
       {/* Progress bar during scan */}
       {isScanning && (
-        <div className="space-y-3 p-4 rounded-lg bg-muted/50 border">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium">Scanning your system...</span>
-            <span className="text-muted-foreground">{Math.round(scanProgress)}%</span>
+        <div className="space-y-4 p-5 rounded-2xl bg-gradient-to-r from-primary/5 to-[oklch(0.7_0.18_50)]/5 border-2 border-primary/20 shadow-lg animate-bounce-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-[oklch(0.7_0.18_50)] flex items-center justify-center shadow-lg">
+                <Loader2 className="h-5 w-5 text-white animate-spin" />
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">Scanning your system...</span>
+                <p className="text-sm text-muted-foreground">Finding cache files and directories</p>
+              </div>
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-[oklch(0.7_0.18_50)] bg-clip-text text-transparent">
+              {Math.round(scanProgress)}%
+            </span>
           </div>
-          <Progress value={scanProgress} className="h-2" />
+          <Progress value={scanProgress} className="h-3" />
         </div>
       )}
 
-      {/* Cache sections */}
-      <div className="space-y-5">
+      {/* Cache sections with staggered animations */}
+      <div className="space-y-6">
         {/* Editor Caches */}
-        <CacheSection
-          title="Editor Caches"
-          icon={<FileCode className="h-5 w-5 text-blue-500" />}
-          totalItems={editorCaches.filter(c => c.exists).length}
-          selectedCount={editorCaches.filter(c => selectedCaches.has(c.path)).length}
-          selectedBytes={getSelectedBytesByCategory('editor')}
-          onSelectAll={() => selectAllByCategory('editor')}
-          onDeselectAll={() => deselectAllByCategory('editor')}
-          onClean={() => handleCleanCaches('editor')}
-          isCleaning={isCleaning}
-          isEmpty={editorCaches.length === 0}
-          emptyMessage="No editor caches found"
-        >
-          {editorCaches.filter(c => c.exists).map((cache) => (
-            <CacheItem
-              key={cache.path}
-              cache={cache}
-              isSelected={selectedCaches.has(cache.path)}
-              onToggle={() => toggleCacheSelection(cache.path)}
-            />
-          ))}
-        </CacheSection>
+        <div className="animate-slide-up stagger-1">
+          <CacheSection
+            title="Editor Caches"
+            icon={<FileCode className="h-6 w-6" />}
+            totalItems={editorCaches.filter(c => c.exists).length}
+            selectedCount={editorCaches.filter(c => selectedCaches.has(c.path)).length}
+            selectedBytes={getSelectedBytesByCategory('editor')}
+            onSelectAll={() => selectAllByCategory('editor')}
+            onDeselectAll={() => deselectAllByCategory('editor')}
+            onClean={() => handleCleanCaches('editor')}
+            isCleaning={isCleaning}
+            isEmpty={editorCaches.length === 0}
+            emptyMessage="No editor caches found"
+            categoryColor="editor"
+          >
+            {editorCaches.filter(c => c.exists).map((cache) => (
+              <CacheItem
+                key={cache.path}
+                cache={cache}
+                isSelected={selectedCaches.has(cache.path)}
+                onToggle={() => toggleCacheSelection(cache.path)}
+              />
+            ))}
+          </CacheSection>
+        </div>
 
         {/* Large Caches */}
-        <CacheSection
-          title="Large Caches (>1GB)"
-          icon={<HardDrive className="h-5 w-5 text-red-500" />}
-          totalItems={largeCaches.length}
-          selectedCount={selectedLargeCaches.size}
-          selectedBytes={largeCaches
-            .filter(c => selectedLargeCaches.has(c.path))
-            .reduce((sum, c) => sum + c.size_bytes, 0)}
-          onSelectAll={selectAllLargeCaches}
-          onDeselectAll={deselectAllLargeCaches}
-          onClean={handleCleanLargeCaches}
-          isCleaning={isCleaning}
-          isEmpty={largeCaches.length === 0}
-          emptyMessage="No large cache directories found"
-        >
-          {largeCaches.map((cache) => (
-            <LargeCacheItem
-              key={cache.path}
-              cache={cache}
-              isSelected={selectedLargeCaches.has(cache.path)}
-              onToggle={() => toggleLargeCacheSelection(cache.path)}
-            />
-          ))}
-        </CacheSection>
+        <div className="animate-slide-up stagger-2">
+          <CacheSection
+            title="Large Caches (>1GB)"
+            icon={<HardDrive className="h-6 w-6" />}
+            totalItems={largeCaches.length}
+            selectedCount={selectedLargeCaches.size}
+            selectedBytes={largeCaches
+              .filter(c => selectedLargeCaches.has(c.path))
+              .reduce((sum, c) => sum + c.size_bytes, 0)}
+            onSelectAll={selectAllLargeCaches}
+            onDeselectAll={deselectAllLargeCaches}
+            onClean={handleCleanLargeCaches}
+            isCleaning={isCleaning}
+            isEmpty={largeCaches.length === 0}
+            emptyMessage="No large cache directories found"
+            categoryColor="large"
+          >
+            {largeCaches.map((cache) => (
+              <LargeCacheItem
+                key={cache.path}
+                cache={cache}
+                isSelected={selectedLargeCaches.has(cache.path)}
+                onToggle={() => toggleLargeCacheSelection(cache.path)}
+              />
+            ))}
+          </CacheSection>
+        </div>
 
         {/* IndexedDB */}
-        <CacheSection
-          title="IndexedDB Storage"
-          icon={<Database className="h-5 w-5 text-purple-500" />}
-          totalItems={indexedDbItems.filter(i => i.over_threshold).length}
-          selectedCount={selectedIndexedDb.size}
-          selectedBytes={indexedDbItems
-            .filter(i => selectedIndexedDb.has(i.path))
-            .reduce((sum, i) => sum + i.size, 0)}
-          onSelectAll={selectAllIndexedDb}
-          onDeselectAll={deselectAllIndexedDb}
-          onClean={handleCleanIndexedDb}
-          isCleaning={isCleaning}
-          isEmpty={indexedDbItems.filter(i => i.over_threshold).length === 0}
-          emptyMessage="No large IndexedDB origins found (threshold: 10MB)"
-        >
-          {indexedDbItems.filter(i => i.over_threshold).map((item) => (
-            <IndexedDbItemComponent
-              key={item.path}
-              item={item}
-              isSelected={selectedIndexedDb.has(item.path)}
-              onToggle={() => toggleIndexedDbSelection(item.path)}
-            />
-          ))}
-        </CacheSection>
+        <div className="animate-slide-up stagger-3">
+          <CacheSection
+            title="IndexedDB Storage"
+            icon={<Database className="h-6 w-6" />}
+            totalItems={indexedDbItems.filter(i => i.over_threshold).length}
+            selectedCount={selectedIndexedDb.size}
+            selectedBytes={indexedDbItems
+              .filter(i => selectedIndexedDb.has(i.path))
+              .reduce((sum, i) => sum + i.size, 0)}
+            onSelectAll={selectAllIndexedDb}
+            onDeselectAll={deselectAllIndexedDb}
+            onClean={handleCleanIndexedDb}
+            isCleaning={isCleaning}
+            isEmpty={indexedDbItems.filter(i => i.over_threshold).length === 0}
+            emptyMessage="No large IndexedDB origins found (threshold: 10MB)"
+            categoryColor="database"
+          >
+            {indexedDbItems.filter(i => i.over_threshold).map((item) => (
+              <IndexedDbItemComponent
+                key={item.path}
+                item={item}
+                isSelected={selectedIndexedDb.has(item.path)}
+                onToggle={() => toggleIndexedDbSelection(item.path)}
+              />
+            ))}
+          </CacheSection>
+        </div>
 
         {/* Browser Caches */}
-        <CacheSection
-          title="Browser Caches"
-          icon={<Globe className="h-5 w-5 text-green-500" />}
-          totalItems={browserCaches.filter(c => c.exists).length}
-          selectedCount={browserCaches.filter(c => selectedCaches.has(c.path)).length}
-          selectedBytes={getSelectedBytesByCategory('browser')}
-          onSelectAll={() => selectAllByCategory('browser')}
-          onDeselectAll={() => deselectAllByCategory('browser')}
-          onClean={() => handleCleanCaches('browser')}
-          isCleaning={isCleaning}
-          isEmpty={browserCaches.length === 0}
-          emptyMessage="No browser caches found"
-        >
-          {browserCaches.filter(c => c.exists).map((cache) => (
-            <CacheItem
-              key={cache.path}
-              cache={cache}
-              isSelected={selectedCaches.has(cache.path)}
-              onToggle={() => toggleCacheSelection(cache.path)}
-            />
-          ))}
-        </CacheSection>
+        <div className="animate-slide-up stagger-4">
+          <CacheSection
+            title="Browser Caches"
+            icon={<Globe className="h-6 w-6" />}
+            totalItems={browserCaches.filter(c => c.exists).length}
+            selectedCount={browserCaches.filter(c => selectedCaches.has(c.path)).length}
+            selectedBytes={getSelectedBytesByCategory('browser')}
+            onSelectAll={() => selectAllByCategory('browser')}
+            onDeselectAll={() => deselectAllByCategory('browser')}
+            onClean={() => handleCleanCaches('browser')}
+            isCleaning={isCleaning}
+            isEmpty={browserCaches.length === 0}
+            emptyMessage="No browser caches found"
+            categoryColor="browser"
+          >
+            {browserCaches.filter(c => c.exists).map((cache) => (
+              <CacheItem
+                key={cache.path}
+                cache={cache}
+                isSelected={selectedCaches.has(cache.path)}
+                onToggle={() => toggleCacheSelection(cache.path)}
+              />
+            ))}
+          </CacheSection>
+        </div>
 
         {/* Package Managers */}
-        <CacheSection
-          title="Package Managers"
-          icon={<Package className="h-5 w-5 text-orange-500" />}
-          totalItems={packageManagerCaches.filter(c => c.exists).length}
-          selectedCount={packageManagerCaches.filter(c => selectedCaches.has(c.path)).length}
-          selectedBytes={getSelectedBytesByCategory('packageManager')}
-          onSelectAll={() => selectAllByCategory('packageManager')}
-          onDeselectAll={() => deselectAllByCategory('packageManager')}
-          onClean={() => handleCleanCaches('package manager')}
-          isCleaning={isCleaning}
-          isEmpty={packageManagerCaches.length === 0}
-          emptyMessage="No package manager caches found"
-        >
-          {packageManagerCaches.filter(c => c.exists).map((cache) => (
-            <CacheItem
-              key={cache.path}
-              cache={cache}
-              isSelected={selectedCaches.has(cache.path)}
-              onToggle={() => toggleCacheSelection(cache.path)}
-            />
-          ))}
-        </CacheSection>
+        <div className="animate-slide-up stagger-5">
+          <CacheSection
+            title="Package Managers"
+            icon={<Package className="h-6 w-6" />}
+            totalItems={packageManagerCaches.filter(c => c.exists).length}
+            selectedCount={packageManagerCaches.filter(c => selectedCaches.has(c.path)).length}
+            selectedBytes={getSelectedBytesByCategory('packageManager')}
+            onSelectAll={() => selectAllByCategory('packageManager')}
+            onDeselectAll={() => deselectAllByCategory('packageManager')}
+            onClean={() => handleCleanCaches('package manager')}
+            isCleaning={isCleaning}
+            isEmpty={packageManagerCaches.length === 0}
+            emptyMessage="No package manager caches found"
+            categoryColor="package"
+          >
+            {packageManagerCaches.filter(c => c.exists).map((cache) => (
+              <CacheItem
+                key={cache.path}
+                cache={cache}
+                isSelected={selectedCaches.has(cache.path)}
+                onToggle={() => toggleCacheSelection(cache.path)}
+              />
+            ))}
+          </CacheSection>
+        </div>
 
         {/* Dev Tools */}
-        <CacheSection
-          title="Development Tools"
-          icon={<Wrench className="h-5 w-5 text-yellow-500" />}
-          totalItems={devToolsCaches.filter(c => c.exists).length}
-          selectedCount={devToolsCaches.filter(c => selectedCaches.has(c.path)).length}
-          selectedBytes={getSelectedBytesByCategory('devTools')}
-          onSelectAll={() => selectAllByCategory('devTools')}
-          onDeselectAll={() => deselectAllByCategory('devTools')}
-          onClean={() => handleCleanCaches('development tools')}
-          isCleaning={isCleaning}
-          isEmpty={devToolsCaches.length === 0}
-          emptyMessage="No development tool caches found"
-        >
-          {devToolsCaches.filter(c => c.exists).map((cache) => (
-            <CacheItem
-              key={cache.path}
-              cache={cache}
-              isSelected={selectedCaches.has(cache.path)}
-              onToggle={() => toggleCacheSelection(cache.path)}
-            />
-          ))}
-        </CacheSection>
+        <div className="animate-slide-up stagger-6">
+          <CacheSection
+            title="Development Tools"
+            icon={<Wrench className="h-6 w-6" />}
+            totalItems={devToolsCaches.filter(c => c.exists).length}
+            selectedCount={devToolsCaches.filter(c => selectedCaches.has(c.path)).length}
+            selectedBytes={getSelectedBytesByCategory('devTools')}
+            onSelectAll={() => selectAllByCategory('devTools')}
+            onDeselectAll={() => deselectAllByCategory('devTools')}
+            onClean={() => handleCleanCaches('development tools')}
+            isCleaning={isCleaning}
+            isEmpty={devToolsCaches.length === 0}
+            emptyMessage="No development tool caches found"
+            categoryColor="devtools"
+          >
+            {devToolsCaches.filter(c => c.exists).map((cache) => (
+              <CacheItem
+                key={cache.path}
+                cache={cache}
+                isSelected={selectedCaches.has(cache.path)}
+                onToggle={() => toggleCacheSelection(cache.path)}
+              />
+            ))}
+          </CacheSection>
+        </div>
 
         {/* System Caches */}
-        <CacheSection
-          title="System Caches"
-          icon={<Settings className="h-5 w-5 text-gray-500" />}
-          totalItems={systemCaches.filter(c => c.exists).length}
-          selectedCount={systemCaches.filter(c => selectedCaches.has(c.path)).length}
-          selectedBytes={getSelectedBytesByCategory('system')}
-          onSelectAll={() => selectAllByCategory('system')}
-          onDeselectAll={() => deselectAllByCategory('system')}
-          onClean={() => handleCleanCaches('system')}
-          isCleaning={isCleaning}
-          isEmpty={systemCaches.length === 0}
-          emptyMessage="No system caches found"
-        >
-          {systemCaches.filter(c => c.exists).map((cache) => (
-            <CacheItem
-              key={cache.path}
-              cache={cache}
-              isSelected={selectedCaches.has(cache.path)}
-              onToggle={() => toggleCacheSelection(cache.path)}
-            />
-          ))}
-        </CacheSection>
+        <div className="animate-slide-up" style={{ animationDelay: '350ms' }}>
+          <CacheSection
+            title="System Caches"
+            icon={<Settings className="h-6 w-6" />}
+            totalItems={systemCaches.filter(c => c.exists).length}
+            selectedCount={systemCaches.filter(c => selectedCaches.has(c.path)).length}
+            selectedBytes={getSelectedBytesByCategory('system')}
+            onSelectAll={() => selectAllByCategory('system')}
+            onDeselectAll={() => deselectAllByCategory('system')}
+            onClean={() => handleCleanCaches('system')}
+            isCleaning={isCleaning}
+            isEmpty={systemCaches.length === 0}
+            emptyMessage="No system caches found"
+            categoryColor="system"
+          >
+            {systemCaches.filter(c => c.exists).map((cache) => (
+              <CacheItem
+                key={cache.path}
+                cache={cache}
+                isSelected={selectedCaches.has(cache.path)}
+                onToggle={() => toggleCacheSelection(cache.path)}
+              />
+            ))}
+          </CacheSection>
+        </div>
       </div>
     </div>
   )

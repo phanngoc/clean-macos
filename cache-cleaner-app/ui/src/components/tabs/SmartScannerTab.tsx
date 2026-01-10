@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { formatBytes } from '@/lib/utils'
 import { confirm } from '@/lib/tauri'
-import { Sparkles, Trash2, Loader2 } from 'lucide-react'
+import { Sparkles, Trash2, Loader2, Wand2, Zap, Target } from 'lucide-react'
 
 export function SmartScannerTab() {
   const {
@@ -61,14 +61,19 @@ export function SmartScannerTab() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-1">Smart Scanner</h2>
-        <p className="text-sm text-muted-foreground">
-          AI-scored suggestions for folders safe to delete
+        <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
+          <span className="bg-gradient-to-r from-[oklch(0.6_0.2_290)] via-[oklch(0.6_0.2_260)] to-[oklch(0.55_0.18_280)] bg-clip-text text-transparent">
+            Smart Scanner
+          </span>
           {selectedBytes > 0 && (
-            <span className="ml-2 font-semibold text-foreground">
-              • {formatBytes(selectedBytes)} selected
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-[oklch(0.6_0.2_290)] to-[oklch(0.6_0.2_260)] text-white shadow-lg animate-bounce-in">
+              {formatBytes(selectedBytes)}
             </span>
           )}
+        </h2>
+        <p className="text-muted-foreground flex items-center gap-2">
+          <Wand2 className="h-4 w-4 text-[oklch(0.6_0.2_290)]" />
+          AI-scored suggestions for folders safe to delete
         </p>
       </div>
 
@@ -77,36 +82,39 @@ export function SmartScannerTab() {
 
       {/* Quick Select Buttons */}
       {suggestions.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3 animate-slide-up">
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => selectByScoreThreshold(0.7)}
             disabled={highScoreCount === 0}
-            className="shadow-sm hover:shadow-md transition-shadow"
+            className="rounded-xl border-2 border-[oklch(0.6_0.22_15)]/30 hover:bg-[oklch(0.6_0.22_15)]/10 hover:border-[oklch(0.6_0.22_15)]/50"
           >
-            Select High Risk ({highScoreCount})
+            <Target className="h-4 w-4 text-[oklch(0.6_0.22_15)]" />
+            High Risk ({highScoreCount})
           </Button>
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => selectByScoreThreshold(0.4)}
             disabled={highScoreCount + mediumScoreCount === 0}
-            className="shadow-sm hover:shadow-md transition-shadow"
+            className="rounded-xl border-2 border-[oklch(0.75_0.18_70)]/30 hover:bg-[oklch(0.75_0.18_70)]/10 hover:border-[oklch(0.75_0.18_70)]/50"
           >
-            Select Medium+ ({highScoreCount + mediumScoreCount})
+            <Zap className="h-4 w-4 text-[oklch(0.75_0.18_70)]" />
+            Medium+ ({highScoreCount + mediumScoreCount})
           </Button>
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={selectAll}
-            className="shadow-sm hover:shadow-md transition-shadow"
+            className="rounded-xl border-2"
           >
+            <Sparkles className="h-4 w-4" />
             Select All ({suggestions.length})
           </Button>
           <Button
             variant="ghost"
-            size="sm"
+            size="default"
             onClick={deselectAll}
             disabled={selectedPaths.size === 0}
           >
@@ -116,23 +124,27 @@ export function SmartScannerTab() {
       )}
 
       {/* Results Card */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border-2 animate-slide-up shadow-xl shadow-[oklch(0.6_0.2_290)]/10">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent">
-                <Sparkles className="h-5 w-5 text-primary" />
+            <div className="flex items-center gap-4">
+              <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[oklch(0.6_0.2_290)] to-[oklch(0.55_0.18_310)] shadow-lg">
+                <Sparkles className="h-6 w-6 text-white" />
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-white/20 to-transparent" />
               </div>
               <div>
-                <CardTitle className="text-lg font-semibold">Suggestions</CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {suggestions.length} {suggestions.length === 1 ? 'item' : 'items'} found
+                <CardTitle className="text-xl font-bold">Suggestions</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold bg-[oklch(0.6_0.2_290)]/10 text-foreground">
+                    {suggestions.length}
+                  </span>
+                  {suggestions.length === 1 ? 'item' : 'items'} found
                 </p>
               </div>
             </div>
             {suggestions.length > 0 && (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[oklch(0.6_0.2_290)]/10 border border-border/30">
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={() => {
@@ -142,24 +154,33 @@ export function SmartScannerTab() {
                         selectAll()
                       }
                     }}
+                    className="w-5 h-5 rounded-md border-2"
                   />
-                  {selectedPaths.size > 0 && (
-                    <>
-                      <span className="text-sm font-medium text-foreground">
+                  {selectedPaths.size > 0 ? (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-foreground">
                         {selectedPaths.size} selected
                       </span>
                       <span className="text-xs text-muted-foreground font-mono">
                         {formatBytes(selectedBytes)}
                       </span>
-                    </>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">
+                      Select all
+                    </span>
                   )}
                 </div>
                 <Button
-                  variant="destructive"
-                  size="sm"
+                  variant={selectedPaths.size > 0 ? "default" : "outline"}
+                  size="lg"
                   onClick={handleDelete}
                   disabled={selectedPaths.size === 0 || isDeleting}
-                  className="shadow-sm hover:shadow-md transition-shadow"
+                  className={`rounded-xl font-semibold ${
+                    selectedPaths.size > 0 
+                      ? 'bg-gradient-to-r from-[oklch(0.6_0.2_290)] to-[oklch(0.55_0.18_310)] hover:opacity-90 text-white border-0 shadow-lg hover:shadow-xl hover:scale-[1.02]' 
+                      : ''
+                  }`}
                 >
                   {isDeleting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -174,27 +195,42 @@ export function SmartScannerTab() {
         </CardHeader>
         <CardContent className="pt-0">
           {isScanning ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-4">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="text-muted-foreground font-medium">Analyzing folders...</p>
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[oklch(0.6_0.2_290)] to-[oklch(0.55_0.18_310)] flex items-center justify-center shadow-xl">
+                  <Loader2 className="h-8 w-8 text-white animate-spin" />
+                </div>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[oklch(0.6_0.2_290)] to-[oklch(0.55_0.18_310)] animate-ping opacity-30" />
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-foreground">Analyzing folders...</p>
+                <p className="text-sm text-muted-foreground">This may take a moment</p>
+              </div>
             </div>
           ) : suggestions.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-sm">No suggestions found with current filters.</p>
-              <p className="text-xs mt-2">Try adjusting the minimum size or maximum age.</p>
+            <div className="text-center py-20">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[oklch(0.6_0.2_290)]/10 mb-4">
+                <Sparkles className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <p className="font-medium text-muted-foreground">No suggestions found with current filters</p>
+              <p className="text-sm text-muted-foreground/60 mt-1">Try adjusting the minimum size or maximum age 🔍</p>
             </div>
           ) : (
-            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 -mr-2">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 -mr-2 scroll-smooth">
               {suggestions
                 .sort((a, b) => b.score - a.score)
-                .map((suggestion) => (
-                  <SuggestionItem
-                    key={suggestion.path}
-                    suggestion={suggestion}
-                    isSelected={selectedPaths.has(suggestion.path)}
-                    onToggle={() => toggleSelection(suggestion.path)}
-                  />
+                .map((suggestion, index) => (
+                  <div 
+                    key={suggestion.path} 
+                    className="animate-slide-up"
+                    style={{ animationDelay: `${index * 30}ms` }}
+                  >
+                    <SuggestionItem
+                      suggestion={suggestion}
+                      isSelected={selectedPaths.has(suggestion.path)}
+                      onToggle={() => toggleSelection(suggestion.path)}
+                    />
+                  </div>
                 ))}
             </div>
           )}

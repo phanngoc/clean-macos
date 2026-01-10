@@ -1,5 +1,4 @@
 import { Moon, Sun, Monitor } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useTheme } from '@/components/theme-provider'
 
 export function ThemeToggle() {
@@ -15,17 +14,29 @@ export function ThemeToggle() {
     }
   }
 
+  const getIcon = () => {
+    if (theme === 'light') return <Sun className="h-5 w-5" />
+    if (theme === 'dark') return <Moon className="h-5 w-5" />
+    return <Monitor className="h-5 w-5" />
+  }
+
+  const getLabel = () => {
+    if (theme === 'light') return 'Light'
+    if (theme === 'dark') return 'Dark'
+    return 'System'
+  }
+
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
       onClick={cycleTheme}
       title={`Current: ${theme} (click to change)`}
+      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-muted/50 hover:bg-muted border-2 border-transparent hover:border-border transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
     >
-      {theme === 'light' && <Sun className="h-5 w-5" />}
-      {theme === 'dark' && <Moon className="h-5 w-5" />}
-      {theme === 'system' && <Monitor className="h-5 w-5" />}
+      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[oklch(0.75_0.18_70)] to-[oklch(0.7_0.16_50)] text-white shadow-md">
+        {getIcon()}
+      </div>
+      <span className="text-sm font-medium text-muted-foreground">{getLabel()}</span>
       <span className="sr-only">Toggle theme</span>
-    </Button>
+    </button>
   )
 }

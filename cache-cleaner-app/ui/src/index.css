@@ -1,59 +1,103 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Light mode colors - Friendly and modern */
-  --color-background: oklch(0.99 0.005 240);
-  --color-foreground: oklch(0.15 0.02 240);
+  /* 🌈 Vibrant & Friendly Color Palette */
+  --color-background: oklch(0.985 0.01 280);
+  --color-foreground: oklch(0.2 0.03 280);
   --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.15 0.02 240);
+  --color-card-foreground: oklch(0.2 0.03 280);
   --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.15 0.02 240);
-  --color-primary: oklch(0.55 0.18 250);
-  --color-primary-foreground: oklch(0.99 0.005 240);
-  --color-secondary: oklch(0.96 0.01 240);
-  --color-secondary-foreground: oklch(0.25 0.02 240);
-  --color-muted: oklch(0.95 0.01 240);
-  --color-muted-foreground: oklch(0.475 0.02 240);
-  --color-accent: oklch(0.96 0.015 250);
-  --color-accent-foreground: oklch(0.25 0.02 240);
-  --color-destructive: oklch(0.58 0.22 25);
-  --color-destructive-foreground: oklch(0.99 0.005 240);
-  --color-border: oklch(0.9 0.01 240);
-  --color-input: oklch(0.9 0.01 240);
-  --color-ring: oklch(0.55 0.18 250);
-  --radius: 0.75rem;
+  --color-popover-foreground: oklch(0.2 0.03 280);
   
-  /* Score colors */
-  --color-score-high: oklch(0.6 0.22 25);
-  --color-score-medium: oklch(0.7 0.15 70);
-  --color-score-low: oklch(0.6 0.18 145);
+  /* Primary - Vibrant Coral/Pink */
+  --color-primary: oklch(0.65 0.22 15);
+  --color-primary-foreground: oklch(1 0 0);
+  
+  /* Secondary - Soft Lavender */
+  --color-secondary: oklch(0.94 0.04 290);
+  --color-secondary-foreground: oklch(0.35 0.12 290);
+  
+  /* Muted - Warm Gray */
+  --color-muted: oklch(0.96 0.01 280);
+  --color-muted-foreground: oklch(0.5 0.02 280);
+  
+  /* Accent - Mint Green */
+  --color-accent: oklch(0.94 0.06 165);
+  --color-accent-foreground: oklch(0.3 0.1 165);
+  
+  /* Destructive - Soft Red */
+  --color-destructive: oklch(0.6 0.2 25);
+  --color-destructive-foreground: oklch(1 0 0);
+  
+  --color-border: oklch(0.92 0.01 280);
+  --color-input: oklch(0.92 0.02 280);
+  --color-ring: oklch(0.65 0.22 15);
+  --radius: 1rem;
+  
+  /* Custom gradient colors */
+  --color-gradient-start: oklch(0.7 0.2 350);
+  --color-gradient-mid: oklch(0.65 0.22 15);
+  --color-gradient-end: oklch(0.7 0.18 50);
+  
+  /* Category colors - more vibrant */
+  --color-editor: oklch(0.6 0.2 260);
+  --color-browser: oklch(0.6 0.18 145);
+  --color-package: oklch(0.65 0.2 50);
+  --color-devtools: oklch(0.7 0.18 85);
+  --color-system: oklch(0.55 0.12 280);
+  --color-large: oklch(0.6 0.22 15);
+  --color-database: oklch(0.6 0.2 290);
+  
+  /* Success/Info colors */
+  --color-success: oklch(0.65 0.2 145);
+  --color-info: oklch(0.6 0.18 250);
+  --color-warning: oklch(0.75 0.18 70);
 }
 
 .dark {
-  --color-background: oklch(0.11 0.02 260);
-  --color-foreground: oklch(0.96 0.01 240);
-  --color-card: oklch(0.15 0.02 260);
-  --color-card-foreground: oklch(0.96 0.01 240);
-  --color-popover: oklch(0.15 0.02 260);
-  --color-popover-foreground: oklch(0.96 0.01 240);
-  --color-primary: oklch(0.65 0.2 250);
-  --color-primary-foreground: oklch(0.11 0.02 260);
-  --color-secondary: oklch(0.2 0.02 260);
-  --color-secondary-foreground: oklch(0.96 0.01 240);
-  --color-muted: oklch(0.2 0.02 260);
-  --color-muted-foreground: oklch(0.6 0.01 240);
-  --color-accent: oklch(0.2 0.02 260);
-  --color-accent-foreground: oklch(0.96 0.01 240);
-  --color-destructive: oklch(0.55 0.25 25);
-  --color-destructive-foreground: oklch(0.96 0.01 240);
-  --color-border: oklch(0.24 0.02 260);
-  --color-input: oklch(0.24 0.02 260);
-  --color-ring: oklch(0.65 0.2 250);
+  --color-background: oklch(0.14 0.02 280);
+  --color-foreground: oklch(0.95 0.01 280);
+  --color-card: oklch(0.18 0.02 280);
+  --color-card-foreground: oklch(0.95 0.01 280);
+  --color-popover: oklch(0.18 0.02 280);
+  --color-popover-foreground: oklch(0.95 0.01 280);
   
-  /* Score colors for dark mode */
-  --color-score-high: oklch(0.65 0.25 25);
-  --color-score-medium: oklch(0.75 0.18 70);
-  --color-score-low: oklch(0.65 0.2 145);
+  --color-primary: oklch(0.7 0.22 15);
+  --color-primary-foreground: oklch(0.14 0.02 280);
+  
+  --color-secondary: oklch(0.25 0.04 290);
+  --color-secondary-foreground: oklch(0.85 0.08 290);
+  
+  --color-muted: oklch(0.22 0.02 280);
+  --color-muted-foreground: oklch(0.65 0.02 280);
+  
+  --color-accent: oklch(0.25 0.05 165);
+  --color-accent-foreground: oklch(0.85 0.1 165);
+  
+  --color-destructive: oklch(0.55 0.22 25);
+  --color-destructive-foreground: oklch(0.95 0.01 280);
+  
+  --color-border: oklch(0.28 0.02 280);
+  --color-input: oklch(0.28 0.02 280);
+  --color-ring: oklch(0.7 0.22 15);
+  
+  /* Gradient colors for dark mode */
+  --color-gradient-start: oklch(0.55 0.18 350);
+  --color-gradient-mid: oklch(0.6 0.2 15);
+  --color-gradient-end: oklch(0.6 0.16 50);
+  
+  /* Category colors - dark mode */
+  --color-editor: oklch(0.65 0.2 260);
+  --color-browser: oklch(0.65 0.18 145);
+  --color-package: oklch(0.7 0.2 50);
+  --color-devtools: oklch(0.75 0.18 85);
+  --color-system: oklch(0.6 0.12 280);
+  --color-large: oklch(0.65 0.22 15);
+  --color-database: oklch(0.65 0.2 290);
+  
+  --color-success: oklch(0.7 0.2 145);
+  --color-info: oklch(0.65 0.18 250);
+  --color-warning: oklch(0.75 0.18 70);
 }
 
 * {
@@ -63,47 +107,294 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'SF Pro Display', 'SF Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* Smooth transitions for interactive elements */
-@media (prefers-reduced-motion: no-preference) {
-  * {
-    transition-property: color, background-color, border-color, opacity, transform, box-shadow;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+/* ✨ Animated gradient background */
+.gradient-bg {
+  background: linear-gradient(
+    135deg,
+    var(--color-gradient-start) 0%,
+    var(--color-gradient-mid) 50%,
+    var(--color-gradient-end) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }
 
-/* Custom scrollbar styling */
+/* 🎨 Category color utilities */
+.category-editor {
+  --category-color: var(--color-editor);
+}
+.category-browser {
+  --category-color: var(--color-browser);
+}
+.category-package {
+  --category-color: var(--color-package);
+}
+.category-devtools {
+  --category-color: var(--color-devtools);
+}
+.category-system {
+  --category-color: var(--color-system);
+}
+.category-large {
+  --category-color: var(--color-large);
+}
+.category-database {
+  --category-color: var(--color-database);
+}
+
+/* 🌟 Glassmorphism effect */
+.glass {
+  background: oklch(from var(--color-card) l c h / 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid oklch(from var(--color-border) l c h / 0.5);
+}
+
+.glass-subtle {
+  background: oklch(from var(--color-card) l c h / 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* 💫 Smooth transitions */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    transition-property: color, background-color, border-color, opacity, transform, box-shadow, filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+}
+
+/* 🎭 Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.4s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Staggered animations */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+
+/* 🎯 Interactive states */
+.interactive {
+  cursor: pointer;
+  user-select: none;
+}
+
+.interactive:hover {
+  transform: translateY(-2px);
+}
+
+.interactive:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 📜 Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
   background: transparent;
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.7 0.01 240);
-  border-radius: 4px;
+  background: oklch(0.75 0.04 280);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.6 0.01 240);
+  background: oklch(0.65 0.06 280);
+  background-clip: content-box;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: oklch(0.4 0.01 240);
+  background: oklch(0.35 0.04 280);
+  background-clip: content-box;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.5 0.01 240);
+  background: oklch(0.45 0.06 280);
+  background-clip: content-box;
+}
+
+/* 🌈 Colorful shadows */
+.shadow-glow-primary {
+  box-shadow: 0 8px 30px -5px oklch(from var(--color-primary) l c h / 0.3);
+}
+
+.shadow-glow-success {
+  box-shadow: 0 8px 30px -5px oklch(from var(--color-success) l c h / 0.3);
+}
+
+.shadow-glow-category {
+  box-shadow: 0 8px 30px -5px oklch(from var(--category-color) l c h / 0.25);
+}
+
+/* 🎪 Fun decorative elements */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.blob-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--color-gradient-start);
+  top: -100px;
+  left: -100px;
+}
+
+.blob-2 {
+  width: 300px;
+  height: 300px;
+  background: var(--color-gradient-end);
+  bottom: -50px;
+  right: -50px;
+}
+
+/* 🔘 Checkbox custom styles */
+.checkbox-vibrant {
+  border-radius: 6px;
+  border-width: 2px;
+}
+
+.checkbox-vibrant[data-state="checked"] {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-gradient-end) 100%);
+  border-color: transparent;
+}
+
+/* 📊 Progress bar styles */
+.progress-gradient {
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-gradient-end) 100%);
+}
+
+/* 🏷️ Badge styles */
+.badge-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-gradient-end) 100%);
+  color: white;
+}
+
+/* 📱 Responsive utilities */
+@media (max-width: 640px) {
+  .gradient-bg {
+    background-size: 300% 300%;
+  }
+}
+
+/* 🎨 Selection styling */
+::selection {
+  background: oklch(from var(--color-primary) l c h / 0.3);
+  color: var(--color-foreground);
 }

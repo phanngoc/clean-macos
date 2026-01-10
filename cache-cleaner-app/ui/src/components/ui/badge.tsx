@@ -4,20 +4,21 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-lg border px-2.5 py-0.5 text-xs font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground shadow-sm hover:bg-primary/80",
+          "border-transparent bg-gradient-to-r from-primary to-[oklch(0.7_0.18_50)] text-primary-foreground shadow-md",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/80",
-        outline: "text-foreground",
-        high: "border-transparent bg-[var(--color-score-high)] text-white shadow-sm",
-        medium: "border-transparent bg-[var(--color-score-medium)] text-white shadow-sm",
-        low: "border-transparent bg-[var(--color-score-low)] text-white shadow-sm",
+          "border-transparent bg-gradient-to-r from-destructive to-[oklch(0.55_0.2_25)] text-destructive-foreground shadow-md",
+        outline: "text-foreground border-2",
+        high: "border-transparent bg-gradient-to-r from-[oklch(0.6_0.22_15)] to-[oklch(0.55_0.2_25)] text-white shadow-md",
+        medium: "border-transparent bg-gradient-to-r from-[oklch(0.75_0.18_70)] to-[oklch(0.7_0.16_55)] text-white shadow-md",
+        low: "border-transparent bg-gradient-to-r from-[oklch(0.6_0.18_145)] to-[oklch(0.55_0.16_165)] text-white shadow-md",
+        info: "border-transparent bg-gradient-to-r from-[oklch(0.6_0.2_260)] to-[oklch(0.55_0.18_280)] text-white shadow-md",
       },
     },
     defaultVariants: {

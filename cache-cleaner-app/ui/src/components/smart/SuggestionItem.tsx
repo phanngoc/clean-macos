@@ -1,8 +1,7 @@
-import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { formatBytes, formatDaysAgo } from '@/lib/utils'
 import type { FolderSuggestion } from '@/types/cache'
-import { Folder, Clock } from 'lucide-react'
+import { Folder, Clock, Check, AlertTriangle, AlertCircle, Info } from 'lucide-react'
 
 interface SuggestionItemProps {
   suggestion: FolderSuggestion
@@ -10,66 +9,110 @@ interface SuggestionItemProps {
   onToggle: () => void
 }
 
-function getScoreVariant(score: number): 'high' | 'medium' | 'low' {
-  if (score >= 0.7) return 'high'
-  if (score >= 0.4) return 'medium'
-  return 'low'
-}
-
-function getScoreLabel(score: number): string {
-  if (score >= 0.7) return 'High'
-  if (score >= 0.4) return 'Medium'
-  return 'Low'
+function getScoreConfig(score: number) {
+  if (score >= 0.7) return {
+    variant: 'high' as const,
+    label: 'High Risk',
+    gradient: 'from-[oklch(0.6_0.22_15)] to-[oklch(0.55_0.2_25)]',
+    bg: 'bg-[oklch(0.6_0.22_15)]/10',
+    text: 'text-[oklch(0.6_0.22_15)]',
+    icon: AlertTriangle,
+  }
+  if (score >= 0.4) return {
+    variant: 'medium' as const,
+    label: 'Medium',
+    gradient: 'from-[oklch(0.75_0.18_70)] to-[oklch(0.7_0.16_55)]',
+    bg: 'bg-[oklch(0.75_0.18_70)]/10',
+    text: 'text-[oklch(0.7_0.16_55)]',
+    icon: AlertCircle,
+  }
+  return {
+    variant: 'low' as const,
+    label: 'Low',
+    gradient: 'from-[oklch(0.6_0.18_145)] to-[oklch(0.55_0.16_165)]',
+    bg: 'bg-[oklch(0.6_0.18_145)]/10',
+    text: 'text-[oklch(0.6_0.18_145)]',
+    icon: Info,
+  }
 }
 
 export function SuggestionItem({ suggestion, isSelected, onToggle }: SuggestionItemProps) {
   const pathDisplay = suggestion.path.replace(/^\/Users\/[^/]+/, '~')
   const scorePercent = Math.round(suggestion.score * 100)
+  const scoreConfig = getScoreConfig(suggestion.score)
+  const ScoreIcon = scoreConfig.icon
   
   return (
     <div
-      className={`group flex items-start gap-3 p-4 rounded-lg border transition-all duration-200 cursor-pointer ${
+      className={`group flex items-start gap-4 p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
         isSelected 
-          ? 'bg-primary/5 border-primary/30 shadow-sm' 
-          : 'bg-background border-border hover:border-primary/20 hover:bg-accent/30'
+          ? `bg-gradient-to-r ${scoreConfig.bg} border-${scoreConfig.text.replace('text-', '')}/40 shadow-lg scale-[1.01]` 
+          : 'bg-card/50 border-transparent hover:border-border hover:bg-accent/20 hover:shadow-md'
       }`}
       onClick={onToggle}
     >
-      <Checkbox checked={isSelected} onCheckedChange={onToggle} className="mt-1 shrink-0" />
-      <Folder className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-      <div className="flex-1 min-w-0 space-y-2.5">
+      {/* Custom checkbox */}
+      <div className={`relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-300 mt-0.5 ${
+        isSelected 
+          ? `bg-gradient-to-br ${scoreConfig.gradient} shadow-md` 
+          : 'bg-muted group-hover:bg-muted/80'
+      }`}>
+        {isSelected && <Check className="h-4 w-4 text-white animate-bounce-in" />}
+      </div>
+
+      {/* Icon */}
+      <div className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${scoreConfig.bg}`}>
+        <Folder className={`h-5 w-5 transition-colors ${
+          isSelected ? scoreConfig.text : 'text-muted-foreground group-hover:text-foreground'
+        }`} />
+      </div>
+      
+      <div className="flex-1 min-w-0 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="font-medium text-sm text-foreground truncate mb-0.5">{suggestion.name}</div>
-            <div className="text-xs text-muted-foreground truncate" title={suggestion.path}>
+            <div className={`font-semibold text-sm truncate mb-1 transition-colors ${
+              isSelected ? 'text-foreground' : 'text-foreground/80 group-hover:text-foreground'
+            }`}>
+              {suggestion.name}
+            </div>
+            <div className="text-xs text-muted-foreground truncate font-mono" title={suggestion.path}>
               {pathDisplay}
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Badge variant={getScoreVariant(suggestion.score)} className="text-xs">
-              {getScoreLabel(suggestion.score)} ({scorePercent}%)
-            </Badge>
-            <div className={`text-sm font-mono font-semibold px-2.5 py-1 rounded-md ${
+            {/* Score badge with icon */}
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${scoreConfig.bg} ${scoreConfig.text} text-xs font-bold`}>
+              <ScoreIcon className="h-3.5 w-3.5" />
+              {scoreConfig.label} ({scorePercent}%)
+            </div>
+            {/* Size badge */}
+            <div className={`px-3 py-1.5 rounded-lg font-mono text-sm font-bold transition-all duration-300 ${
               isSelected 
-                ? 'bg-primary/10 text-primary' 
+                ? `bg-gradient-to-r ${scoreConfig.gradient} text-white shadow-md` 
                 : 'bg-muted text-muted-foreground group-hover:bg-muted/80'
-            } transition-colors`}>
+            }`}>
               {formatBytes(suggestion.size_bytes)}
             </div>
           </div>
         </div>
         
+        {/* Reasons as tags */}
         <div className="flex flex-wrap gap-1.5">
           {suggestion.reasons.map((reason, index) => (
-            <Badge key={index} variant="secondary" className="text-xs font-normal">
+            <Badge 
+              key={index} 
+              variant="secondary" 
+              className="text-xs font-normal px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground"
+            >
               {reason}
             </Badge>
           ))}
         </div>
         
+        {/* Last accessed info */}
         {suggestion.last_accessed_days_ago !== undefined && (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
+            <Clock className="h-3.5 w-3.5" />
             Last accessed: {formatDaysAgo(suggestion.last_accessed_days_ago)}
           </div>
         )}
