@@ -166,9 +166,21 @@ cargo build --release --no-default-features --bin cache-cleaner-cli
 target/release/cache-cleaner-cli scan                      # liệt kê cache + dung lượng
 target/release/cache-cleaner-cli clean --dry-run tempfiles  # xem trước
 target/release/cache-cleaner-cli clean tempfiles gobuild chrome edge
+
+# Build output của project không ai sửa ≥30 ngày (+ sweep target cargo đang dùng: bỏ file không đọc ≥7 ngày)
+target/release/cache-cleaner-cli artifacts --idle-days 30 --sweep-days 7 ~/Documents wsl:/home/me
+target/release/cache-cleaner-cli artifacts --idle-days 30 --sweep-days 7 --delete ~/Documents wsl:/home/me
 ```
 
 `--no-default-features` bỏ feature `gui` (Tauri), nên build CLI và chạy test nhẹ hơn nhiều: `cargo test --no-default-features`.
+
+**`artifacts` — an toàn với project đang dùng:**
+
+- Chỉ nhận `node_modules`/`.next`/`.nuxt`/`.turbo`/`.parcel-cache`/`.svelte-kit` (cạnh `package.json`), `target` (cạnh `Cargo.toml`), `.venv`, `.gradle`, và thư mục có `CACHEDIR.TAG` chuẩn.
+- "Project" = git repo bao ngoài (monorepo tính là một). Có **bất kỳ** file nguồn hoặc `.git/index`/`HEAD` thay đổi trong `--idle-days` ⇒ project đang dùng ⇒ không xóa.
+- Thư mục ẩn (`.vscode-server`, `.local`, `.nvm`…) là nơi cài tool, không phải project ⇒ không quét bên trong.
+- `--sweep-days N`: với thư mục có CACHEDIR.TAG của project đang dùng (target cargo), chỉ xóa file **không được đọc** trong N ngày (giống `cargo sweep`); cargo build lại khi cần.
+- Root `wsl:/path` chạy cùng quy tắc bằng shell trong distro, sau đó `fstrim`.
 
 ### Tính năng Safety
 
@@ -254,7 +266,8 @@ Inspired by the need for efficient cache management on macOS, especially with la
 ### Unreleased
 
 - ✨ Hỗ trợ Windows 11: Temp, Windows Update, thumbnail cache, WER, crash dumps, shader cache, Recycle Bin, Edge, NuGet, Go build cache, uv
-- ✨ CLI `cache-cleaner-cli` (`scan`, `types`, `clean [--dry-run]`)
+- ✨ CLI `cache-cleaner-cli` (`scan`, `types`, `clean [--dry-run]`, `artifacts`)
+- ✨ `artifacts`: dọn build output của project idle + sweep target cargo đang dùng, cả Windows lẫn WSL
 - ✨ WSL 2: dọn cache hệ thống / user trong distro + `fstrim` để VHDX sparse trả dung lượng về Windows
 - ✨ Docker: tự dùng Docker Engine trong WSL khi Windows không có `docker.exe`; prune theo loại từ CLI
 - ♻️ Scanner/cleaner dùng chung một catalog vị trí theo nền tảng; xóa best-effort (bỏ qua file bị khóa thay vì dừng)
