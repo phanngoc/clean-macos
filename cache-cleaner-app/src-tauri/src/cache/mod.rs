@@ -18,6 +18,8 @@ pub mod parallel_scanner;
 pub mod docker;
 // WSL 2 distributions (Windows)
 pub mod wsl;
+// Stale build output (node_modules, target, ...) of idle projects
+pub mod artifacts;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

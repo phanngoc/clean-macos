@@ -97,7 +97,7 @@ fn run_targets(cache_type: &CacheType, delete: bool) -> Result<(u64, usize, Vec<
     }
     let (mut bytes, mut files) = (0, 0);
     for distro in &distros {
-        let output = run_as_root(&distro.name, &script)?;
+        let output = run_script(&distro.name, &script)?;
         let (b, f) = parse_totals(&String::from_utf8_lossy(&output.stdout));
         bytes += b;
         files += f;
@@ -107,11 +107,11 @@ fn run_targets(cache_type: &CacheType, delete: bool) -> Result<(u64, usize, Vec<
 
 /// Discards free blocks of the distro's root filesystem so a sparse VHDX shrinks on Windows.
 pub fn trim(distro: &str) -> bool {
-    run_as_root(distro, "fstrim /").map(|o| o.status.success()).unwrap_or(false)
+    run_script(distro, "fstrim /").map(|o| o.status.success()).unwrap_or(false)
 }
 
 /// Runs `script` with `sh` as root inside `distro` (no sudo password needed), script on stdin.
-fn run_as_root(distro: &str, script: &str) -> Result<Output> {
+pub fn run_script(distro: &str, script: &str) -> Result<Output> {
     let mut child = command("wsl.exe")
         .args(["-d", distro, "-u", "root", "-e", "sh", "-s"])
         .stdin(Stdio::piped())
@@ -223,7 +223,7 @@ mod tests {
     fn test_find_script_runs_in_wsl_without_deleting() {
         // Dry-run script must execute cleanly in a real distro when one exists.
         let Some(distro) = cleanable_distros().into_iter().next() else { return };
-        let output = run_as_root(&distro.name, &find_script(SYSTEM_TARGETS, false)).unwrap();
+        let output = run_script(&distro.name, &find_script(SYSTEM_TARGETS, false)).unwrap();
         let stdout = String::from_utf8_lossy(&output.stdout);
         assert_eq!(stdout.split_whitespace().count(), 2, "unexpected output: {stdout}");
     }
