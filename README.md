@@ -146,6 +146,16 @@ Trên Windows, mỗi loại cache có danh sách vị trí riêng (`src-tauri/sr
 | `Firefox` | `%LOCALAPPDATA%\Mozilla\Firefox\Profiles\*\{cache2,startupCache,thumbnails}` | |
 | `VSCode`, `Cursor` | `%APPDATA%\{Code,Cursor}\{Cache,CachedData,Code Cache,GPUCache,logs,…}` | Không đụng settings/extensions |
 | `Npm`, `Yarn`, `Pnpm`, `Pip`, `NuGet`, `Gradle`, `Cargo`, `GoBuild`, `Uv`, `CacheDir` | `%LOCALAPPDATA%\npm-cache`, `Yarn\Cache`, `pnpm\store`, `pip\cache`, `~\.nuget\packages`, `~\.gradle\caches`, `~\.cargo\registry`, `go-build`, `uv\cache`, `~\.cache` | Tải lại khi cần |
+| `WslSystemCaches` | Trong mọi distro WSL 2: `/var/cache/apt/archives/*.deb`, journal đã archive >7 ngày, log đã rotate, `/tmp` `/var/tmp` >24h, `/var/crash` | Chạy bằng `wsl -u root`, không cần sudo |
+| `WslUserCaches` | `~/.cache`, `~/.npm/_cacache` của root và mọi user trong `/home` | Có thể chứa model/browser tải sẵn |
+| `DockerBuildCache`, `DockerImages`, `DockerContainers`, `DockerVolumes` | `docker builder prune -af`, `image prune -af`, `container prune -f`, `volume prune -f` | Dùng `docker` của Windows, hoặc tự chuyển sang Docker Engine trong distro WSL mặc định |
+
+**WSL trả dung lượng về Windows thế nào:** mỗi distro là một file `ext4.vhdx`; xóa file bên trong không làm nhỏ file này trừ khi VHDX là *sparse*. Sau mỗi lượt dọn WSL/Docker, app chạy `fstrim /` trong distro để trả block trống về Windows. Kiểm tra / bật sparse:
+
+```powershell
+fsutil sparse queryflag "$env:LOCALAPPDATA\wsl\{<guid>}\ext4.vhdx"
+wsl --shutdown; wsl --manage <Distro> --set-sparse true
+```
 
 ### CLI (không cần webview)
 
@@ -245,6 +255,8 @@ Inspired by the need for efficient cache management on macOS, especially with la
 
 - ✨ Hỗ trợ Windows 11: Temp, Windows Update, thumbnail cache, WER, crash dumps, shader cache, Recycle Bin, Edge, NuGet, Go build cache, uv
 - ✨ CLI `cache-cleaner-cli` (`scan`, `types`, `clean [--dry-run]`)
+- ✨ WSL 2: dọn cache hệ thống / user trong distro + `fstrim` để VHDX sparse trả dung lượng về Windows
+- ✨ Docker: tự dùng Docker Engine trong WSL khi Windows không có `docker.exe`; prune theo loại từ CLI
 - ♻️ Scanner/cleaner dùng chung một catalog vị trí theo nền tảng; xóa best-effort (bỏ qua file bị khóa thay vì dừng)
 
 ### v1.0.0 (Initial Release)

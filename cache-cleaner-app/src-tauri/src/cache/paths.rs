@@ -296,6 +296,9 @@ mod platform {
         TempFiles, SystemCaches, WindowsUpdate, ThumbnailCache, ErrorReports, CrashDumps,
         ShaderCache, RecycleBin, Chrome, Edge, Firefox, VSCode, Cursor, Npm, Yarn, Pnpm, Pip,
         NuGet, Gradle, Cargo, GoBuild, Uv, CacheDir,
+        // Command-based (no filesystem locations): see cache::wsl and cache::docker.
+        WslSystemCaches, WslUserCaches, DockerBuildCache, DockerImages, DockerContainers,
+        DockerVolumes,
     ];
 
     /// Per-profile Chromium caches (Chrome, Edge). Everything here is rebuilt on demand.
@@ -592,9 +595,14 @@ mod tests {
     }
 
     #[test]
-    fn test_user_data_and_docker_types_have_no_locations() {
-        for cache_type in [CacheType::IosBackups, CacheType::DockerImages, CacheType::DockerVolumes] {
-            assert!(!is_supported(&cache_type));
+    fn test_user_data_is_never_a_location() {
+        assert!(!is_supported(&CacheType::IosBackups));
+        assert!(locations(&CacheType::IosBackups).is_empty());
+    }
+
+    #[test]
+    fn test_command_based_types_have_no_filesystem_locations() {
+        for cache_type in [CacheType::DockerImages, CacheType::DockerVolumes, CacheType::WslUserCaches] {
             assert!(locations(&cache_type).is_empty());
         }
     }

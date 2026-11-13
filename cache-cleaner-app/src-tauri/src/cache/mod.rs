@@ -16,6 +16,8 @@ pub mod parallel_scanner;
 
 // Docker cleanup module
 pub mod docker;
+// WSL 2 distributions (Windows)
+pub mod wsl;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -58,6 +60,9 @@ pub enum CacheType {
     CrashDumps,
     ShaderCache,
     RecycleBin,
+    // Inside WSL 2 distributions (Windows)
+    WslSystemCaches,
+    WslUserCaches,
 
     // Docker cache types
     DockerContainers,
@@ -101,6 +106,8 @@ impl CacheType {
             "crash_dumps" | "crashdumps" => Ok(CacheType::CrashDumps),
             "shader_cache" | "shadercache" => Ok(CacheType::ShaderCache),
             "recycle_bin" | "recyclebin" => Ok(CacheType::RecycleBin),
+            "wsl_system_caches" | "wslsystemcaches" | "wsl" => Ok(CacheType::WslSystemCaches),
+            "wsl_user_caches" | "wslusercaches" => Ok(CacheType::WslUserCaches),
             // Docker cache types
             "docker_containers" | "dockercontainers" => Ok(CacheType::DockerContainers),
             "docker_images" | "dockerimages" => Ok(CacheType::DockerImages),

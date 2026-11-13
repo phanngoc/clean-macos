@@ -1,5 +1,7 @@
 use super::{CacheInfo, CacheType};
+use crate::cache::docker::{self, DockerBackend};
 use crate::cache::paths::{self, Location};
+use crate::cache::wsl;
 use crate::utils::filesystem::{self, PathStats};
 use anyhow::Result;
 
@@ -16,9 +18,27 @@ pub async fn scan_all() -> Result<Vec<CacheInfo>> {
 }
 
 pub async fn scan_cache(cache_type: &CacheType) -> Result<CacheInfo> {
+    if !paths::is_supported(cache_type) {
+        return Err(anyhow::anyhow!("{:?} is not supported on this platform", cache_type));
+    }
+    if docker::is_docker_type(cache_type) {
+        let size = docker::reclaimable(cache_type).await?;
+        let path = match docker::backend() {
+            DockerBackend::Host => "docker".to_string(),
+            DockerBackend::Wsl(distro) => format!("docker (WSL: {distro})"),
+        };
+        return Ok(CacheInfo { cache_type: cache_type.clone(), path, size, exists: true, item_count: 0 });
+    }
+    if wsl::is_wsl_type(cache_type) {
+        let ct = cache_type.clone();
+        let (size, item_count, distros) = tokio::task::spawn_blocking(move || wsl::scan(&ct)).await??;
+        let path = distros.iter().map(|d| format!("\\\\wsl.localhost\\{d}")).collect::<Vec<_>>().join("\n");
+        return Ok(CacheInfo { cache_type: cache_type.clone(), path, size, exists: true, item_count });
+    }
+
     let candidates = paths::locations(cache_type);
     if candidates.is_empty() {
-        return Err(anyhow::anyhow!("{:?} is not supported on this platform", cache_type));
+        return Err(anyhow::anyhow!("No {:?} location on this machine", cache_type));
     }
 
     let cache_type = cache_type.clone();

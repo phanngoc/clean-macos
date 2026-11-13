@@ -894,7 +894,9 @@
         'errorreports': 'Windows Error Reports',
         'crashdumps': 'Crash Dumps',
         'shadercache': 'DirectX / GPU Shader Cache',
-        'recyclebin': 'Recycle Bin'
+        'recyclebin': 'Recycle Bin',
+        'wslsystemcaches': 'WSL: apt, logs, temp',
+        'wslusercaches': 'WSL: ~/.cache, npm'
       };
       const typeStr = getCacheTypeString(type);
       return names[typeStr.toLowerCase()] || typeStr;
@@ -2159,7 +2161,7 @@
         browserCaches = allCaches.filter(c => ['chrome', 'safari', 'firefox', 'arc', 'edge'].includes(c.cache_type.toLowerCase()));
         packageManagers = allCaches.filter(c => ['npm', 'yarn', 'pnpm', 'pip', 'cocoapods', 'gradle', 'cargo', 'nuget', 'gobuild', 'uv'].includes(c.cache_type.toLowerCase()));
         devTools = allCaches.filter(c => ['xcodederiveddata', 'xcodearchives', 'xcodesimulators'].includes(c.cache_type.toLowerCase()));
-        systemCaches = allCaches.filter(c => ['cachedir', 'systemcaches', 'userlogs', 'tempfiles', 'iosbackups', 'windowsupdate', 'thumbnailcache', 'errorreports', 'crashdumps', 'shadercache', 'recyclebin'].includes(c.cache_type.toLowerCase()));
+        systemCaches = allCaches.filter(c => ['cachedir', 'systemcaches', 'userlogs', 'tempfiles', 'iosbackups', 'windowsupdate', 'thumbnailcache', 'errorreports', 'crashdumps', 'shadercache', 'recyclebin', 'wslsystemcaches', 'wslusercaches'].includes(c.cache_type.toLowerCase()));
         
         indexedDbItems = await invoke('scan_indexed_db_items', { thresholdMb: INDEXED_DB_THRESHOLD_MB });
         

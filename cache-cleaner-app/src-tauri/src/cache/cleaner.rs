@@ -1,5 +1,5 @@
 use super::{CacheType, CleanResult};
-use crate::cache::paths;
+use crate::cache::{docker, paths, wsl};
 use crate::cache::scanner::{existing_locations, total_stats};
 use crate::utils::filesystem::{self, RemovalStats};
 use anyhow::Result;
@@ -18,6 +18,27 @@ pub async fn clean(cache_type: &CacheType, dry_run: bool) -> Result<CleanResult>
 
     if !paths::is_supported(cache_type) {
         return Ok(result(0, 0, false, "Unsupported cache type".to_string()));
+    }
+
+    if docker::is_docker_type(cache_type) {
+        if dry_run {
+            let bytes = docker::reclaimable(cache_type).await?;
+            return Ok(result(bytes, 0, true, format!("Would reclaim {} bytes", bytes)));
+        }
+        let r = docker::prune_cache_type(cache_type).await?;
+        let items = r.containers_removed + r.images_removed + r.volumes_removed + r.networks_removed;
+        return Ok(result(r.freed_bytes, items, r.success, r.message));
+    }
+
+    if wsl::is_wsl_type(cache_type) {
+        let ct = cache_type.clone();
+        let (bytes, files, distros) = tokio::task::spawn_blocking(move || {
+            if dry_run { wsl::scan(&ct) } else { wsl::clean(&ct) }
+        })
+        .await??;
+        let verb = if dry_run { "Would free" } else { "Freed (and trimmed)" };
+        let message = format!("{verb} {bytes} bytes ({files} files) in WSL: {}", distros.join(", "));
+        return Ok(result(bytes, files, true, message));
     }
 
     let candidates = paths::locations(cache_type);
@@ -65,14 +86,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_clean_docker_types_are_not_filesystem_caches() {
-        let result = clean(&CacheType::DockerImages, true).await.unwrap();
-        assert!(!result.success);
-    }
-
-    #[tokio::test]
-    async fn test_clean_dry_run_does_not_delete() {
-        // Supported on every platform; dry run must report without touching anything.
+    async fn test_clean_dry_run_reports_without_failing() {
+        // Supported on every platform.
         let result = clean(&CacheType::Npm, true).await.unwrap();
         assert!(result.dry_run);
         assert!(result.success);
