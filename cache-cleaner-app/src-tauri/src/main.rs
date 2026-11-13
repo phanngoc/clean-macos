@@ -1,7 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod cache;
-mod utils;
+use cache_cleaner::{cache, utils};
 
 use cache::{
     CacheInfo, CacheType, CleanResult, IndexedDbCleanResult, IndexedDbItem,

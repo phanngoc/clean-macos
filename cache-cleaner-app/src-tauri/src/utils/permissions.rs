@@ -1,18 +1,35 @@
+use crate::utils::process::command;
 use anyhow::Result;
-use std::process::Command;
 
+#[cfg(not(windows))]
 pub fn is_chrome_running() -> Result<bool> {
-    let output = Command::new("pgrep")
-        .args(["-x", "Google Chrome"])
-        .output()?;
+    let output = command("pgrep").args(["-x", "Google Chrome"]).output()?;
     Ok(output.status.success())
 }
 
+#[cfg(windows)]
+pub fn is_chrome_running() -> Result<bool> {
+    let output = command("tasklist")
+        .args(["/FI", "IMAGENAME eq chrome.exe", "/FO", "CSV", "/NH"])
+        .output()?;
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .to_ascii_lowercase()
+        .contains("\"chrome.exe\""))
+}
+
+/// macOS: Full Disk Access granted. Windows: running elevated (administrator), which is what
+/// system locations such as `C:\Windows\Temp` and the Windows Update cache require.
 pub fn has_full_disk_access() -> bool {
-    // Check by trying to access a protected directory
+    // Probe a directory only readable with that privilege.
+    #[cfg(not(windows))]
     let protected_path = dirs::home_dir()
         .map(|h| h.join("Library/Safari"))
         .unwrap_or_default();
+    #[cfg(windows)]
+    let protected_path = std::path::PathBuf::from(
+        std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()),
+    )
+    .join("System32\\config");
     std::fs::read_dir(protected_path).is_ok()
 }
 

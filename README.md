@@ -128,6 +128,38 @@ cache-cleaner-app/
 | **IndexedDB** | `~/Library/.../Chrome/.../IndexedDB/` | Dữ liệu IndexedDB của websites (>10MB) |
 | **Large Caches** | `~/Library/Caches/*` | Các cache lớn trong Library/Caches (>1GB) |
 
+### Windows 11
+
+Trên Windows, mỗi loại cache có danh sách vị trí riêng (`src-tauri/src/cache/paths.rs`, module `platform`). Thư mục được làm rỗng (giữ lại thư mục gốc); file bị khóa / đang dùng / cần quyền admin sẽ được **bỏ qua và báo lại**, không làm hỏng cả lượt dọn.
+
+| Loại (`type`) | Vị trí | Ghi chú |
+|---|---|---|
+| `TempFiles` | `%TEMP%` | Chỉ xóa mục không đổi trong 24h |
+| `SystemCaches` | `C:\Windows\Temp` | Cần admin; chỉ mục cũ hơn 24h |
+| `WindowsUpdate` | `C:\Windows\SoftwareDistribution\Download` | Cần admin |
+| `ThumbnailCache` | `%LOCALAPPDATA%\Microsoft\Windows\Explorer\{thumbcache,iconcache}_*.db` | Explorer tự tạo lại |
+| `ErrorReports` | `WER\{ReportArchive,ReportQueue,Temp}` (user + ProgramData) | |
+| `CrashDumps` | `%LOCALAPPDATA%\CrashDumps`, `C:\Windows\Minidump`, `MEMORY.DMP` | |
+| `ShaderCache` | `D3DSCache`, NVIDIA/AMD/Intel shader cache | |
+| `RecycleBin` | `X:\$Recycle.Bin\<SID>` mọi ổ | Không khôi phục được |
+| `Chrome`, `Edge` | `User Data\<profile>\{Cache,Code Cache,GPUCache,…}` + shader caches | Không đụng cookies/history |
+| `Firefox` | `%LOCALAPPDATA%\Mozilla\Firefox\Profiles\*\{cache2,startupCache,thumbnails}` | |
+| `VSCode`, `Cursor` | `%APPDATA%\{Code,Cursor}\{Cache,CachedData,Code Cache,GPUCache,logs,…}` | Không đụng settings/extensions |
+| `Npm`, `Yarn`, `Pnpm`, `Pip`, `NuGet`, `Gradle`, `Cargo`, `GoBuild`, `Uv`, `CacheDir` | `%LOCALAPPDATA%\npm-cache`, `Yarn\Cache`, `pnpm\store`, `pip\cache`, `~\.nuget\packages`, `~\.gradle\caches`, `~\.cargo\registry`, `go-build`, `uv\cache`, `~\.cache` | Tải lại khi cần |
+
+### CLI (không cần webview)
+
+```bash
+cd cache-cleaner-app/src-tauri
+cargo build --release --no-default-features --bin cache-cleaner-cli
+
+target/release/cache-cleaner-cli scan                      # liệt kê cache + dung lượng
+target/release/cache-cleaner-cli clean --dry-run tempfiles  # xem trước
+target/release/cache-cleaner-cli clean tempfiles gobuild chrome edge
+```
+
+`--no-default-features` bỏ feature `gui` (Tauri), nên build CLI và chạy test nhẹ hơn nhiều: `cargo test --no-default-features`.
+
 ### Tính năng Safety
 
 - **Dry-run Mode**: Xem trước dung lượng sẽ được giải phóng mà không xóa thực sự
@@ -145,7 +177,7 @@ cache-cleaner-app/
 
 ## Requirements
 
-- macOS 10.15+ (Catalina trở lên)
+- macOS 10.15+ (Catalina trở lên) hoặc Windows 10/11 (WebView2)
 - Rust 1.70+ (để build từ source)
 - Node.js 18+ (cho Tauri CLI)
 
@@ -208,6 +240,12 @@ Inspired by the need for efficient cache management on macOS, especially with la
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/clean-macos/discussions)
 
 ## Changelog
+
+### Unreleased
+
+- ✨ Hỗ trợ Windows 11: Temp, Windows Update, thumbnail cache, WER, crash dumps, shader cache, Recycle Bin, Edge, NuGet, Go build cache, uv
+- ✨ CLI `cache-cleaner-cli` (`scan`, `types`, `clean [--dry-run]`)
+- ♻️ Scanner/cleaner dùng chung một catalog vị trí theo nền tảng; xóa best-effort (bỏ qua file bị khóa thay vì dừng)
 
 ### v1.0.0 (Initial Release)
 

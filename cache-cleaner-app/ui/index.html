@@ -884,7 +884,17 @@
         'systemcaches': 'System Caches',
         'userlogs': 'User Logs',
         'tempfiles': 'Temp Files',
-        'iosbackups': 'iOS Backups'
+        'iosbackups': 'iOS Backups',
+        'edge': 'Microsoft Edge',
+        'nuget': 'NuGet',
+        'gobuild': 'Go Build Cache',
+        'uv': 'uv (Python)',
+        'windowsupdate': 'Windows Update Downloads',
+        'thumbnailcache': 'Thumbnail & Icon Cache',
+        'errorreports': 'Windows Error Reports',
+        'crashdumps': 'Crash Dumps',
+        'shadercache': 'DirectX / GPU Shader Cache',
+        'recyclebin': 'Recycle Bin'
       };
       const typeStr = getCacheTypeString(type);
       return names[typeStr.toLowerCase()] || typeStr;
@@ -2146,10 +2156,10 @@
         
         // Separate caches by category
         basicCaches = allCaches.filter(c => ['vscode', 'code', 'cursor'].includes(c.cache_type.toLowerCase()));
-        browserCaches = allCaches.filter(c => ['chrome', 'safari', 'firefox', 'arc'].includes(c.cache_type.toLowerCase()));
-        packageManagers = allCaches.filter(c => ['npm', 'yarn', 'pnpm', 'pip', 'cocoapods', 'gradle', 'cargo'].includes(c.cache_type.toLowerCase()));
+        browserCaches = allCaches.filter(c => ['chrome', 'safari', 'firefox', 'arc', 'edge'].includes(c.cache_type.toLowerCase()));
+        packageManagers = allCaches.filter(c => ['npm', 'yarn', 'pnpm', 'pip', 'cocoapods', 'gradle', 'cargo', 'nuget', 'gobuild', 'uv'].includes(c.cache_type.toLowerCase()));
         devTools = allCaches.filter(c => ['xcodederiveddata', 'xcodearchives', 'xcodesimulators'].includes(c.cache_type.toLowerCase()));
-        systemCaches = allCaches.filter(c => ['cachedir', 'systemcaches', 'userlogs', 'tempfiles', 'iosbackups'].includes(c.cache_type.toLowerCase()));
+        systemCaches = allCaches.filter(c => ['cachedir', 'systemcaches', 'userlogs', 'tempfiles', 'iosbackups', 'windowsupdate', 'thumbnailcache', 'errorreports', 'crashdumps', 'shadercache', 'recyclebin'].includes(c.cache_type.toLowerCase()));
         
         indexedDbItems = await invoke('scan_indexed_db_items', { thresholdMb: INDEXED_DB_THRESHOLD_MB });
         

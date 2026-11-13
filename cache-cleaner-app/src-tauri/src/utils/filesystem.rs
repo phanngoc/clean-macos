@@ -1,6 +1,9 @@
 use anyhow::Result;
+use std::fs;
+use std::io;
 use std::path::Path;
-use walkdir::WalkDir;
+use std::time::{Duration, SystemTime};
+use walkdir::{DirEntry, WalkDir};
 
 pub async fn calculate_dir_size(path: &Path) -> Result<u64> {
     let path = path.to_path_buf();
@@ -18,29 +21,124 @@ pub fn calculate_dir_size_sync(path: &Path) -> Result<u64> {
     Ok(size)
 }
 
-pub fn count_items(path: &Path) -> Result<usize> {
-    Ok(WalkDir::new(path)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .count()
-        .saturating_sub(1))
+/// Size and entry count of everything below `path` (or of `path` itself when it is a file).
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct PathStats {
+    pub bytes: u64,
+    pub items: usize,
 }
 
-pub fn remove_dir_contents(path: &Path) -> Result<()> {
-    if !path.exists() {
-        return Ok(());
+/// Outcome of a best-effort removal.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct RemovalStats {
+    pub freed_bytes: u64,
+    pub removed: usize,
+    /// Entries that could not be read or deleted (locked, in use, access denied).
+    pub failed: usize,
+}
+
+impl RemovalStats {
+    pub fn merge(&mut self, other: RemovalStats) {
+        self.freed_bytes += other.freed_bytes;
+        self.removed += other.removed;
+        self.failed += other.failed;
     }
-    
-    for entry in std::fs::read_dir(path)? {
-        let entry = entry?;
-        let path = entry.path();
-        if path.is_dir() {
-            std::fs::remove_dir_all(&path)?;
-        } else {
-            std::fs::remove_file(&path)?;
+}
+
+/// Entries modified less than `min_age` ago are left alone.
+fn old_enough(entry: &DirEntry, min_age: Option<Duration>) -> bool {
+    let Some(min_age) = min_age else { return true };
+    let modified = entry.metadata().ok().and_then(|m| m.modified().ok());
+    match modified.and_then(|t| SystemTime::now().duration_since(t).ok()) {
+        Some(age) => age >= min_age,
+        // Unknown or future mtime: treat as in use.
+        None => false,
+    }
+}
+
+fn min_depth(path: &Path) -> usize {
+    if path.is_dir() { 1 } else { 0 }
+}
+
+/// Stats for what `remove_contents` would delete. Symlinks/junctions are never followed.
+pub fn path_stats(path: &Path, min_age: Option<Duration>) -> PathStats {
+    let mut stats = PathStats::default();
+    for entry in WalkDir::new(path).min_depth(min_depth(path)).into_iter().filter_map(|e| e.ok()) {
+        if !old_enough(&entry, min_age) {
+            continue;
+        }
+        stats.items += 1;
+        if entry.file_type().is_file() {
+            stats.bytes += entry.metadata().map(|m| m.len()).unwrap_or(0);
         }
     }
-    Ok(())
+    stats
+}
+
+/// Deletes everything inside directory `path` (the directory itself is kept), or `path` itself
+/// when it is a file. Keeps going past locked / access-denied entries and reports them in
+/// `failed`. Symlinks and junctions are unlinked, never followed.
+pub fn remove_contents(path: &Path, min_age: Option<Duration>) -> RemovalStats {
+    let mut stats = RemovalStats::default();
+    if fs::symlink_metadata(path).is_err() {
+        return stats;
+    }
+
+    let walker = WalkDir::new(path).min_depth(min_depth(path)).contents_first(true);
+    for entry in walker {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(_) => {
+                stats.failed += 1;
+                continue;
+            }
+        };
+        if !old_enough(&entry, min_age) {
+            continue;
+        }
+        let file_type = entry.file_type();
+        if file_type.is_dir() {
+            // Fails while a skipped child remains; that child is already counted as failed/kept.
+            if fs::remove_dir(entry.path()).is_ok() {
+                stats.removed += 1;
+            }
+            continue;
+        }
+        let len = if file_type.is_file() {
+            entry.metadata().map(|m| m.len()).unwrap_or(0)
+        } else {
+            0
+        };
+        match remove_non_dir(entry.path()) {
+            Ok(()) => {
+                stats.freed_bytes += len;
+                stats.removed += 1;
+            }
+            Err(_) => stats.failed += 1,
+        }
+    }
+    stats
+}
+
+/// Removes a file or a symlink/junction (which may point at a directory).
+fn remove_non_dir(path: &Path) -> io::Result<()> {
+    let err = match fs::remove_file(path) {
+        Ok(()) => return Ok(()),
+        Err(err) => err,
+    };
+    // Directory symlinks/junctions on Windows must be removed with remove_dir.
+    if fs::remove_dir(path).is_ok() {
+        return Ok(());
+    }
+    // Windows refuses to delete read-only files.
+    let mut perms = fs::symlink_metadata(path)?.permissions();
+    if err.kind() != io::ErrorKind::PermissionDenied || !perms.readonly() {
+        return Err(err);
+    }
+    #[allow(clippy::permissions_set_readonly_false)]
+    perms.set_readonly(false);
+    fs::set_permissions(path, perms)?;
+    fs::remove_file(path)
 }
 
 pub async fn calculate_file_size(path: &Path) -> Result<u64> {
@@ -118,58 +216,80 @@ mod tests {
     }
 
     #[test]
-    fn test_count_items_empty() {
-        let dir = create_test_dir();
-        let count = count_items(dir.path()).unwrap();
-        assert_eq!(count, 0);
-    }
-
-    #[test]
-    fn test_count_items_with_files() {
-        let dir = create_test_dir();
-        create_test_file(dir.path(), "file1.txt", b"a");
-        create_test_file(dir.path(), "file2.txt", b"b");
-        
-        let count = count_items(dir.path()).unwrap();
-        assert_eq!(count, 2);
-    }
-
-    #[test]
-    fn test_count_items_nested() {
+    fn test_path_stats_counts_nested_entries_and_bytes() {
         let dir = create_test_dir();
         let subdir = dir.path().join("subdir");
         fs::create_dir(&subdir).unwrap();
-        
-        create_test_file(dir.path(), "root.txt", b"r");
-        create_test_file(&subdir, "nested.txt", b"n");
-        
-        let count = count_items(dir.path()).unwrap();
-        assert_eq!(count, 3); // subdir + 2 files
+        create_test_file(dir.path(), "root.txt", b"root");
+        create_test_file(&subdir, "nested.txt", b"nested");
+
+        let stats = path_stats(dir.path(), None);
+        assert_eq!(stats, PathStats { bytes: 10, items: 3 }); // subdir + 2 files
     }
 
     #[test]
-    fn test_remove_dir_contents() {
+    fn test_path_stats_single_file() {
+        let dir = create_test_dir();
+        let file = create_test_file(dir.path(), "thumbcache_32.db", b"12345");
+        assert_eq!(path_stats(&file, None), PathStats { bytes: 5, items: 1 });
+    }
+
+    #[test]
+    fn test_remove_contents_keeps_root() {
         let dir = create_test_dir();
         create_test_file(dir.path(), "file1.txt", b"test");
-        
         let subdir = dir.path().join("subdir");
         fs::create_dir(&subdir).unwrap();
         create_test_file(&subdir, "nested.txt", b"nested");
-        
-        assert!(dir.path().join("file1.txt").exists());
-        assert!(subdir.exists());
-        
-        remove_dir_contents(dir.path()).unwrap();
-        
+
+        let stats = remove_contents(dir.path(), None);
+
+        assert_eq!(stats, RemovalStats { freed_bytes: 10, removed: 3, failed: 0 });
         assert!(!dir.path().join("file1.txt").exists());
         assert!(!subdir.exists());
-        assert!(dir.path().exists()); // Parent dir still exists
+        assert!(dir.path().exists());
     }
 
     #[test]
-    fn test_remove_dir_contents_nonexistent() {
-        let result = remove_dir_contents(Path::new("/nonexistent/path"));
-        assert!(result.is_ok());
+    fn test_remove_contents_single_file() {
+        let dir = create_test_dir();
+        let file = create_test_file(dir.path(), "iconcache_16.db", b"abc");
+        let stats = remove_contents(&file, None);
+        assert_eq!(stats, RemovalStats { freed_bytes: 3, removed: 1, failed: 0 });
+        assert!(!file.exists());
+    }
+
+    #[test]
+    fn test_remove_contents_nonexistent() {
+        let stats = remove_contents(Path::new("/nonexistent/path"), None);
+        assert_eq!(stats, RemovalStats::default());
+    }
+
+    #[test]
+    fn test_remove_contents_skips_recent_entries() {
+        let dir = create_test_dir();
+        let file = create_test_file(dir.path(), "in-use.tmp", b"busy");
+
+        let one_day = Some(Duration::from_secs(24 * 3600));
+        assert_eq!(path_stats(dir.path(), one_day), PathStats::default());
+        let stats = remove_contents(dir.path(), one_day);
+
+        assert_eq!(stats, RemovalStats::default());
+        assert!(file.exists());
+    }
+
+    #[test]
+    fn test_remove_contents_deletes_read_only_files() {
+        let dir = create_test_dir();
+        let file = create_test_file(dir.path(), "readonly.bin", b"ro");
+        let mut perms = fs::metadata(&file).unwrap().permissions();
+        perms.set_readonly(true);
+        fs::set_permissions(&file, perms).unwrap();
+
+        let stats = remove_contents(dir.path(), None);
+
+        assert_eq!(stats.failed, 0);
+        assert!(!file.exists());
     }
 
     #[test]

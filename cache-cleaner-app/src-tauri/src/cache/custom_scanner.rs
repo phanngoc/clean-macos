@@ -43,9 +43,8 @@ impl CacheScanner for CustomScanner {
     async fn scan(&self) -> Result<ScanResult> {
         let exists = self.resolved_path.exists();
         let (size_bytes, item_count) = if exists {
-            let size = filesystem::calculate_dir_size(&self.resolved_path).await?;
-            let count = filesystem::count_items(&self.resolved_path).unwrap_or(0);
-            (size, count)
+            let stats = path_stats(self.resolved_path.clone()).await?;
+            (stats.bytes, stats.items)
         } else {
             (0, 0)
         };
@@ -79,37 +78,45 @@ impl CacheCleaner for CustomScanner {
             });
         }
 
-        let size = filesystem::calculate_dir_size(&self.resolved_path).await?;
-        let count = filesystem::count_items(&self.resolved_path).unwrap_or(0);
-
         if dry_run {
+            let stats = path_stats(self.resolved_path.clone()).await?;
             return Ok(CleanResultGeneric {
                 id: self.config.id.clone(),
-                freed_bytes: size,
-                items_removed: count,
+                freed_bytes: stats.bytes,
+                items_removed: stats.items,
                 success: true,
-                message: format!("Would free {} bytes", size),
+                message: format!("Would free {} bytes", stats.bytes),
                 dry_run,
             });
         }
 
-        filesystem::remove_dir_contents(&self.resolved_path)?;
+        let path = self.resolved_path.clone();
+        let stats = tokio::task::spawn_blocking(move || filesystem::remove_contents(&path, None)).await?;
+        let message = if stats.failed == 0 {
+            "Cleaned successfully".to_string()
+        } else {
+            format!("Cleaned with {} items skipped (in use or access denied)", stats.failed)
+        };
 
         Ok(CleanResultGeneric {
             id: self.config.id.clone(),
-            freed_bytes: size,
-            items_removed: count,
-            success: true,
-            message: "Cleaned successfully".to_string(),
+            freed_bytes: stats.freed_bytes,
+            items_removed: stats.removed,
+            success: stats.failed == 0 || stats.removed > 0,
+            message,
             dry_run,
         })
     }
 }
 
+async fn path_stats(path: PathBuf) -> Result<filesystem::PathStats> {
+    Ok(tokio::task::spawn_blocking(move || filesystem::path_stats(&path, None)).await?)
+}
+
 fn expand_path(path: &str) -> Result<PathBuf> {
-    if path.starts_with("~/") {
+    if let Some(rest) = path.strip_prefix("~/").or_else(|| path.strip_prefix("~\\")) {
         let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-        Ok(home.join(&path[2..]))
+        Ok(home.join(rest))
     } else {
         Ok(PathBuf::from(path))
     }

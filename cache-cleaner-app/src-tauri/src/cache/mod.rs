@@ -5,9 +5,6 @@ pub mod cache_dir;
 pub mod indexeddb;
 pub mod npm_caches;
 pub mod paths;
-pub mod browser_caches;
-pub mod dev_tools;
-pub mod package_managers;
 
 // New modules for custom scanner & smart suggestions
 pub mod scanner_trait;
@@ -23,7 +20,7 @@ pub mod docker;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CacheType {
     Npm,
     Chrome,
@@ -47,7 +44,21 @@ pub enum CacheType {
     UserLogs,
     TempFiles,
     IosBackups,
-    
+
+    // Cross-platform developer caches (currently cataloged for Windows)
+    NuGet,
+    GoBuild,
+    Uv,
+
+    // Windows-specific locations
+    Edge,
+    WindowsUpdate,
+    ThumbnailCache,
+    ErrorReports,
+    CrashDumps,
+    ShaderCache,
+    RecycleBin,
+
     // Docker cache types
     DockerContainers,
     DockerImages,
@@ -80,6 +91,16 @@ impl CacheType {
             "user_logs" | "userlogs" => Ok(CacheType::UserLogs),
             "temp_files" | "tempfiles" | "tmp" => Ok(CacheType::TempFiles),
             "ios_backups" | "iosbackups" => Ok(CacheType::IosBackups),
+            "nuget" => Ok(CacheType::NuGet),
+            "go_build" | "gobuild" | "go" => Ok(CacheType::GoBuild),
+            "uv" => Ok(CacheType::Uv),
+            "edge" => Ok(CacheType::Edge),
+            "windows_update" | "windowsupdate" => Ok(CacheType::WindowsUpdate),
+            "thumbnail_cache" | "thumbnailcache" => Ok(CacheType::ThumbnailCache),
+            "error_reports" | "errorreports" | "wer" => Ok(CacheType::ErrorReports),
+            "crash_dumps" | "crashdumps" => Ok(CacheType::CrashDumps),
+            "shader_cache" | "shadercache" => Ok(CacheType::ShaderCache),
+            "recycle_bin" | "recyclebin" => Ok(CacheType::RecycleBin),
             // Docker cache types
             "docker_containers" | "dockercontainers" => Ok(CacheType::DockerContainers),
             "docker_images" | "dockerimages" => Ok(CacheType::DockerImages),

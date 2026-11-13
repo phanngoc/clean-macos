@@ -8,7 +8,7 @@
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use std::process::Command;
+use crate::utils::process::command;
 use std::collections::HashSet;
 
 // ============================================================================
@@ -171,7 +171,7 @@ const SIZE_SMALL: u64 = 100 * 1024 * 1024;  // 100MB
 
 /// Check if Docker is installed
 pub fn is_docker_installed() -> bool {
-    Command::new("docker")
+    command("docker")
         .arg("--version")
         .output()
         .map(|o| o.status.success())
@@ -181,7 +181,7 @@ pub fn is_docker_installed() -> bool {
 /// Check if Docker daemon is running
 pub async fn is_docker_running() -> bool {
     tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["info"])
             .output()
             .map(|o| o.status.success())
@@ -293,7 +293,7 @@ pub async fn scan_docker_resources() -> Result<DockerScanResult> {
 /// Scan all containers
 async fn scan_containers() -> Result<Vec<DockerContainer>> {
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args([
                 "ps", "-a", "--no-trunc",
                 "--format", "{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.State}}\t{{.Size}}\t{{.CreatedAt}}\t{{.Ports}}"
@@ -338,7 +338,7 @@ async fn scan_containers() -> Result<Vec<DockerContainer>> {
 async fn scan_images() -> Result<Vec<DockerImage>> {
     // Get all images
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args([
                 "images", "-a", "--no-trunc",
                 "--format", "{{.ID}}\t{{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"
@@ -353,7 +353,7 @@ async fn scan_images() -> Result<Vec<DockerImage>> {
 
     // Get dangling image IDs
     let dangling_output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["images", "-f", "dangling=true", "-q", "--no-trunc"])
             .output()
     })
@@ -409,7 +409,7 @@ async fn scan_images() -> Result<Vec<DockerImage>> {
 /// Get which containers are using which images
 async fn get_container_image_usage() -> Result<std::collections::HashMap<String, Vec<String>>> {
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["ps", "-a", "--no-trunc", "--format", "{{.ID}}\t{{.Image}}"])
             .output()
     })
@@ -419,7 +419,7 @@ async fn get_container_image_usage() -> Result<std::collections::HashMap<String,
     
     // Also get image IDs for each container
     let image_id_output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["inspect", "--format", "{{.Id}}\t{{.Image}}", "-a"])
             .output()
     })
@@ -459,7 +459,7 @@ async fn get_container_image_usage() -> Result<std::collections::HashMap<String,
 /// Scan all volumes
 async fn scan_volumes() -> Result<Vec<DockerVolume>> {
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["volume", "ls", "--format", "{{.Name}}\t{{.Driver}}\t{{.Mountpoint}}"])
             .output()
     })
@@ -504,7 +504,7 @@ async fn scan_volumes() -> Result<Vec<DockerVolume>> {
 /// Get volume usage by containers
 async fn get_volume_usage() -> Result<std::collections::HashMap<String, Vec<String>>> {
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["ps", "-a", "--format", "{{.ID}}\t{{.Mounts}}"])
             .output()
     })
@@ -537,7 +537,7 @@ async fn get_volume_usage() -> Result<std::collections::HashMap<String, Vec<Stri
 async fn get_volume_size(name: &str) -> Result<u64> {
     let name = name.to_string();
     let output = tokio::task::spawn_blocking(move || {
-        Command::new("docker")
+        command("docker")
             .args(["system", "df", "-v", "--format", "{{json .}}"])
             .output()
     })
@@ -559,7 +559,7 @@ async fn get_volume_size(name: &str) -> Result<u64> {
 /// Scan all networks
 async fn scan_networks() -> Result<Vec<DockerNetwork>> {
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["network", "ls", "--no-trunc", "--format", "{{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.Scope}}"])
             .output()
     })
@@ -601,7 +601,7 @@ async fn scan_networks() -> Result<Vec<DockerNetwork>> {
 /// Get network usage by containers
 async fn get_network_usage() -> Result<std::collections::HashMap<String, Vec<String>>> {
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["ps", "-a", "--format", "{{.ID}}\t{{.Networks}}"])
             .output()
     })
@@ -633,7 +633,7 @@ async fn get_network_usage() -> Result<std::collections::HashMap<String, Vec<Str
 /// Get build cache size
 async fn get_build_cache_size() -> Result<u64> {
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["system", "df", "--format", "{{.Type}}\t{{.Size}}"])
             .output()
     })
@@ -757,7 +757,7 @@ pub async fn remove_containers(ids: Vec<String>, force: bool) -> Result<DockerCl
         let args_clone = args.clone();
         
         let output = tokio::task::spawn_blocking(move || {
-            Command::new("docker").args(&args_clone).output()
+            command("docker").args(&args_clone).output()
         })
         .await??;
 
@@ -843,7 +843,7 @@ pub async fn remove_images(ids: Vec<String>, force: bool) -> Result<DockerCleanR
         let args_clone = args.clone();
         
         let output = tokio::task::spawn_blocking(move || {
-            Command::new("docker").args(&args_clone).output()
+            command("docker").args(&args_clone).output()
         })
         .await??;
 
@@ -912,7 +912,7 @@ pub async fn remove_volumes(names: Vec<String>) -> Result<DockerCleanResult> {
         let name_clone = name.clone();
         
         let output = tokio::task::spawn_blocking(move || {
-            Command::new("docker")
+            command("docker")
                 .args(["volume", "rm", &name_clone])
                 .output()
         })
@@ -988,7 +988,7 @@ pub async fn remove_networks(ids: Vec<String>) -> Result<DockerCleanResult> {
         let id_clone = id.clone();
         
         let output = tokio::task::spawn_blocking(move || {
-            Command::new("docker")
+            command("docker")
                 .args(["network", "rm", &id_clone])
                 .output()
         })
@@ -1048,7 +1048,7 @@ pub async fn docker_system_prune(all: bool, volumes: bool) -> Result<DockerClean
     }
 
     let output = tokio::task::spawn_blocking(move || {
-        Command::new("docker").args(&args).output()
+        command("docker").args(&args).output()
     })
     .await??;
 
@@ -1096,7 +1096,7 @@ pub async fn docker_builder_prune() -> Result<DockerCleanResult> {
     }
 
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["builder", "prune", "-af"])
             .output()
     })
@@ -1145,7 +1145,7 @@ pub async fn prune_containers() -> Result<DockerCleanResult> {
     }
 
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["container", "prune", "-f"])
             .output()
     })
@@ -1199,7 +1199,7 @@ pub async fn prune_images(all: bool) -> Result<DockerCleanResult> {
     }
 
     let output = tokio::task::spawn_blocking(move || {
-        Command::new("docker").args(&args).output()
+        command("docker").args(&args).output()
     })
     .await??;
 
@@ -1246,7 +1246,7 @@ pub async fn prune_volumes() -> Result<DockerCleanResult> {
     }
 
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["volume", "prune", "-f"])
             .output()
     })
@@ -1295,7 +1295,7 @@ pub async fn prune_networks() -> Result<DockerCleanResult> {
     }
 
     let output = tokio::task::spawn_blocking(|| {
-        Command::new("docker")
+        command("docker")
             .args(["network", "prune", "-f"])
             .output()
     })
