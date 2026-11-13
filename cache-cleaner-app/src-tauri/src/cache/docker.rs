@@ -1892,10 +1892,10 @@ fn parse_docker_size(size_str: &str) -> u64 {
 
 /// Parse reclaimed space from Docker prune output
 fn parse_reclaimed_space(output: &str) -> u64 {
-    // Look for patterns like "Total reclaimed space: 1.5GB"
+    // "Total reclaimed space: 1.5GB" (system/image/... prune), "Total:\t12.53GB" (builder prune)
     for line in output.lines() {
         let lower = line.to_lowercase();
-        if lower.contains("reclaimed") || lower.contains("freed") {
+        if lower.contains("reclaimed") || lower.contains("freed") || lower.trim_start().starts_with("total:") {
             // Find the size part
             let parts: Vec<&str> = line.split(':').collect();
             if parts.len() >= 2 {
@@ -1970,6 +1970,7 @@ mod tests {
             parse_reclaimed_space("Reclaimed space: 500MB"),
             500 * 1024 * 1024
         );
+        assert_eq!(parse_reclaimed_space("ID\tRECLAIMABLE\nabc\ttrue\nTotal:\t12.5GB\n"), (12.5 * 1024.0 * 1024.0 * 1024.0) as u64);
         assert_eq!(parse_reclaimed_space("No space reclaimed"), 0);
     }
 
