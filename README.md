@@ -99,7 +99,12 @@ cache-cleaner-app/
 ├── src-tauri/
 │   ├── src/
 │   │   ├── main.rs           # Tauri entry (chỉ dựng app + đăng ký handler)
-│   │   ├── bin/cli.rs        # CLI headless: scan | types | clean | artifacts
+│   │   ├── bin/cli/          # CLI headless (clap)
+│   │   │   ├── main.rs       # subcommands; không tham số + terminal ⇒ suggest
+│   │   │   ├── suggest.rs    # quét → checkbox → xóa → học
+│   │   │   ├── memory_cmd.rs # xem / sửa memory
+│   │   │   ├── classic.rs    # scan | types | clean | artifacts
+│   │   │   └── view.rs       # render dòng checkbox, badge rủi ro
 │   │   ├── commands/         # Tauri commands (chỉ binary GUI), adapter mỏng gọi vào lib
 │   │   │   ├── mod.rs        # CmdResult, handler() đăng ký mọi command
 │   │   │   ├── caches.rs     # scan/clean catalog, IndexedDB, npm
@@ -119,7 +124,9 @@ cache-cleaner-app/
 │   │   │   ├── custom_scanner.rs, registry.rs, scanner_trait.rs
 │   │   │   ├── docker.rs     # Docker (kể cả Docker Engine trong WSL)
 │   │   │   ├── wsl.rs        # Dọn cache trong distro WSL 2 + fstrim
-│   │   │   └── artifacts.rs  # Build output của project idle
+│   │   │   ├── artifacts.rs  # Build output của project idle
+│   │   │   ├── advisor.rs    # Gom ứng viên từ mọi nguồn, rủi ro, mục lồng nhau, xóa
+│   │   │   └── memory.rs     # Bộ nhớ tự học (~/.cache-cleaner/memory.json)
 │   │   └── utils/
 │   │       ├── filesystem.rs # File operations (xóa best-effort)
 │   │       └── permissions.rs# Quyền truy cập, process đang chạy
@@ -175,6 +182,13 @@ wsl --shutdown; wsl --manage <Distro> --set-sparse true
 cd cache-cleaner-app/src-tauri
 cargo build --release --no-default-features --bin cache-cleaner-cli
 
+target/release/cache-cleaner-cli                           # = suggest: quét hết, tick checkbox, xóa
+target/release/cache-cleaner-cli suggest --quick           # chỉ đo lại các vùng đã nhớ
+target/release/cache-cleaner-cli suggest --json            # cho script / Claude skill, không xóa gì
+target/release/cache-cleaner-cli suggest --select cache:Npm --select 'artifact:C:\…\node_modules'
+target/release/cache-cleaner-cli memory                    # hot spot, cái sẽ được tick sẵn, cái hay giữ
+target/release/cache-cleaner-cli memory forget <id> | reset --yes
+
 target/release/cache-cleaner-cli scan                      # liệt kê cache + dung lượng
 target/release/cache-cleaner-cli clean --dry-run tempfiles  # xem trước
 target/release/cache-cleaner-cli clean tempfiles gobuild chrome edge
@@ -185,6 +199,26 @@ target/release/cache-cleaner-cli artifacts --idle-days 30 --sweep-days 7 --delet
 ```
 
 `--no-default-features` bỏ feature `gui` (Tauri), nên build CLI và chạy test nhẹ hơn nhiều: `cargo test --no-default-features`.
+
+**`suggest` — quét toàn diện + checkbox + tự học:**
+
+- Nguồn quét chạy song song: catalog cache (kể cả Docker, WSL), build output của project idle (thư mục dev trong home như `Documents`, `projects`, `code`, `workspace`… và `/home` trong WSL, cộng thêm project đã nhớ từ lần trước), thư mục lớn lâu không dùng, custom scanner.
+- Mỗi mục có mức rủi ro: `safe` (tự tạo lại), `check` (xem trước khi xóa: Recycle Bin, Docker images, `~/.cache`, `.venv`, folder), `DATA` (Docker volumes, iOS backups, Xcode archives: **không bao giờ** được tick sẵn).
+- Mục nằm bên trong mục khác (vd `uv\Cache\builds-v0` trong `cache:Uv`) được đánh dấu `inside …` và chỉ đếm dung lượng một lần.
+- Checkbox: `↑↓` di chuyển, `space` tick, `a` tick tất cả, `enter` xóa, `esc` hủy; có bước xác nhận (mặc định **No** nếu có mục `DATA`).
+
+**Memory tự học** (`~/.cache-cleaner/memory.json`): mỗi lượt lưu dung lượng từng vùng và quyết định của bạn (xóa / giữ).
+
+| Tín hiệu | Kết quả lần sau |
+|---|---|
+| Đã xóa ≥ 2 lần (≥ 60% số lần được gợi ý), hoặc mục `safe` đã xóa lần trước | tick sẵn, kể cả mục `check` |
+| Giữ lại phần lớn các lần (≥ 2 lần gợi ý) | không tick, kể cả khi lớn |
+| Chưa có lịch sử, `safe` và ≥ 1 GB | tick sẵn |
+| 🔥 hot spot: TB ≥ 1 GB qua ≥ 2 phiên (cách nhau ≥ 6 giờ), hoặc đầy lại ≥ 200 MB/ngày sau khi xóa | đánh dấu 🔥, `safe` thì tick sẵn |
+
+`--dry-run` không dạy memory. Vùng chưa từng xóa và 120 ngày không thấy sẽ bị quên. `--quick` đo lại các vùng thấy trong 60 ngày; phần lớn thời gian vẫn là đo các cache lớn (uv, Docker, WSL), nên chỉ nhanh hơn ở chỗ bỏ được việc dò project và folder.
+
+**Claude Code skill**: `.claude/skills/disk-cleanup/SKILL.md` cho Claude dùng `suggest --json` → hỏi bạn → `suggest --select <id>…`, rồi đọc `memory --json` để báo vùng nào sẽ được tick lần sau. Muốn dùng ngoài repo này thì copy thư mục skill vào `~/.claude/skills/`.
 
 **`artifacts` — an toàn với project đang dùng:**
 
@@ -276,6 +310,11 @@ Inspired by the need for efficient cache management on macOS, especially with la
 ## Changelog
 
 ### Unreleased
+
+- ✨ `suggest`: quét toàn diện song song, checkbox trong terminal, mức rủi ro, phát hiện mục lồng nhau; chế độ `--quick`, `--json`, `--select`, `--yes`, `--dry-run`
+- ✨ Memory tự học: nhớ hot spot và thói quen xóa/giữ để tick sẵn lần sau; lệnh `memory`
+- ✨ Claude Code skill `disk-cleanup`
+- ♻️ CLI chuyển sang clap (có `--help`), tách module; logic WSL artifacts chuyển vào lib
 
 - ✨ Hỗ trợ Windows 11: Temp, Windows Update, thumbnail cache, WER, crash dumps, shader cache, Recycle Bin, Edge, NuGet, Go build cache, uv
 - ✨ CLI `cache-cleaner-cli` (`scan`, `types`, `clean [--dry-run]`, `artifacts`)

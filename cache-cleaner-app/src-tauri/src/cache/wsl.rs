@@ -145,6 +145,12 @@ pub fn cleanable_distros() -> Vec<Distro> {
         .collect()
 }
 
+/// Where `wsl:` paths are resolved: the default cleanable distro, else the first one.
+pub fn primary_distro() -> Option<Distro> {
+    let distros = cleanable_distros();
+    distros.iter().find(|d| d.is_default).or(distros.first()).cloned()
+}
+
 pub fn default_distro() -> Option<Distro> {
     distros().into_iter().find(|d| d.is_default)
 }

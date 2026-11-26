@@ -250,10 +250,82 @@ done
     )
 }
 
+/// Prefix of artifact paths that live inside a WSL distro (`wsl:/home/me/app/node_modules`).
+pub const WSL_PREFIX: &str = "wsl:";
+
+/// Parses one `size<TAB>kind<TAB>path<TAB>project` line printed by [`wsl_script`].
+pub fn parse_wsl_line(line: &str, sweep_days: u64) -> Option<Artifact> {
+    let fields: Vec<&str> = line.split('\t').collect();
+    let [size, kind, path, project] = fields[..] else { return None };
+    Some(Artifact {
+        path: PathBuf::from(format!("{WSL_PREFIX}{path}")),
+        kind: kind.to_string(),
+        size_bytes: size.parse().unwrap_or(0),
+        project: PathBuf::from(project),
+        unread_for: (kind == SWEEP_KIND).then(|| Duration::from_secs(sweep_days * 24 * 3600)),
+    })
+}
+
+/// Runs [`wsl_script`] in the primary WSL 2 distro: `(distro, artifacts)`, deleted when `delete`.
+pub fn find_wsl_artifacts(
+    roots: &[String],
+    idle_days: u64,
+    sweep_days: u64,
+    delete: bool,
+) -> anyhow::Result<(String, Vec<Artifact>)> {
+    let distro = crate::cache::wsl::primary_distro()
+        .ok_or_else(|| anyhow::anyhow!("no WSL 2 distribution found"))?;
+    let output = crate::cache::wsl::run_script(&distro.name, &wsl_script(roots, idle_days, sweep_days, delete))?;
+    let found = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .filter_map(|line| parse_wsl_line(line, sweep_days))
+        .collect();
+    Ok((distro.name, found))
+}
+
+fn sh_quote(s: &str) -> String {
+    format!("'{}'", s.replace('\'', "'\\''"))
+}
+
+/// Shell script deleting one WSL artifact found by [`wsl_script`] (only its unread files for a
+/// sweep). `None` when the artifact is not a `wsl:` path.
+pub fn wsl_remove_script(artifact: &Artifact) -> Option<String> {
+    let path = artifact.path.to_str()?.strip_prefix(WSL_PREFIX)?;
+    if !path.starts_with('/') || path == "/" {
+        return None;
+    }
+    Some(match artifact.unread_for {
+        Some(unread) => format!(
+            "find {} -xdev -type f -atime +{} -delete 2>/dev/null; true",
+            sh_quote(path),
+            unread.as_secs() / (24 * 3600)
+        ),
+        None => format!("rm -rf -- {}", sh_quote(path)),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::fs;
+
+    #[test]
+    fn test_parse_wsl_line_and_remove_script() {
+        let a = parse_wsl_line("2048\tnode_modules\t/home/me/app/node_modules\t/home/me/app", 0).unwrap();
+        assert_eq!(a.path, PathBuf::from("wsl:/home/me/app/node_modules"));
+        assert_eq!((a.size_bytes, a.unread_for), (2048, None));
+        assert_eq!(wsl_remove_script(&a).unwrap(), "rm -rf -- '/home/me/app/node_modules'");
+
+        let s = parse_wsl_line(&format!("10\t{SWEEP_KIND}\t/t/it's\t/t/it's"), 7).unwrap();
+        assert_eq!(s.unread_for, Some(Duration::from_secs(7 * 24 * 3600)));
+        assert!(wsl_remove_script(&s).unwrap().starts_with("find '/t/it'\\''s' -xdev -type f -atime +7"));
+
+        assert!(parse_wsl_line("garbage", 0).is_none());
+        let local = Artifact { path: PathBuf::from("/home/x"), ..a.clone() };
+        assert!(wsl_remove_script(&local).is_none());
+        let root = Artifact { path: PathBuf::from("wsl:/"), ..a };
+        assert!(wsl_remove_script(&root).is_none());
+    }
 
     fn touch_old(path: &Path) {
         let old = SystemTime::now() - Duration::from_secs(90 * 24 * 3600);
