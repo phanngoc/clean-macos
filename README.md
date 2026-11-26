@@ -98,19 +98,31 @@ cargo tauri build --target universal-apple-darwin
 cache-cleaner-app/
 ├── src-tauri/
 │   ├── src/
-│   │   ├── main.rs           # Tauri entry + commands
+│   │   ├── main.rs           # Tauri entry (chỉ dựng app + đăng ký handler)
+│   │   ├── bin/cli.rs        # CLI headless: scan | types | clean | artifacts
+│   │   ├── commands/         # Tauri commands (chỉ binary GUI), adapter mỏng gọi vào lib
+│   │   │   ├── mod.rs        # CmdResult, handler() đăng ký mọi command
+│   │   │   ├── caches.rs     # scan/clean catalog, IndexedDB, npm
+│   │   │   ├── system.rs     # Chrome đang chạy, quyền truy cập
+│   │   │   ├── custom_scanners.rs # registry + lưu config
+│   │   │   ├── suggestions.rs     # smart suggestions
+│   │   │   └── docker.rs     # Docker scan/remove/prune
+│   │   ├── lib.rs            # thư viện dùng chung cho GUI + CLI
 │   │   ├── cache/
-│   │   │   ├── mod.rs        # Cache types & structs
+│   │   │   ├── mod.rs        # CacheType & structs
+│   │   │   ├── paths.rs      # Catalog vị trí cache theo nền tảng
 │   │   │   ├── scanner.rs    # Cache detection
 │   │   │   ├── cleaner.rs    # Cache deletion
-│   │   │   ├── npm.rs        # npm-specific logic
-│   │   │   ├── chrome.rs     # Chrome-specific logic
-│   │   │   ├── cache_dir.rs  # .cache logic
-│   │   │   ├── indexeddb.rs # IndexedDB scanning
-│   │   │   └── large_caches.rs # Large cache detection
+│   │   │   ├── indexeddb.rs  # IndexedDB scanning
+│   │   │   ├── npm_caches.rs # npm caches
+│   │   │   ├── smart_suggestions.rs # Thư mục lớn lâu không dùng
+│   │   │   ├── custom_scanner.rs, registry.rs, scanner_trait.rs
+│   │   │   ├── docker.rs     # Docker (kể cả Docker Engine trong WSL)
+│   │   │   ├── wsl.rs        # Dọn cache trong distro WSL 2 + fstrim
+│   │   │   └── artifacts.rs  # Build output của project idle
 │   │   └── utils/
-│   │       ├── filesystem.rs # File operations
-│   │       └── permissions.rs# macOS permissions
+│   │       ├── filesystem.rs # File operations (xóa best-effort)
+│   │       └── permissions.rs# Quyền truy cập, process đang chạy
 │   ├── Cargo.toml
 │   └── tauri.conf.json
 └── ui/
