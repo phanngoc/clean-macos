@@ -1,5 +1,7 @@
-use std::path::PathBuf;
+use crate::cache::CacheType;
 use dirs::home_dir;
+use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 pub struct MacPaths;
 
@@ -166,6 +168,326 @@ impl MacPaths {
     }
 }
 
+/// A filesystem location owned by a cache type. Directories are emptied (the directory itself is
+/// kept); files are deleted.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Location {
+    pub path: PathBuf,
+    /// Entries modified more recently than this are kept (they may still be in use).
+    pub min_age: Option<Duration>,
+}
+
+impl Location {
+    pub fn new(path: PathBuf) -> Self {
+        Self { path, min_age: None }
+    }
+
+    pub fn aged(path: PathBuf, min_age: Duration) -> Self {
+        Self { path, min_age: Some(min_age) }
+    }
+}
+
+/// Temp folders: only touch entries untouched for a day, like Windows Storage Sense.
+pub const TEMP_MIN_AGE: Duration = Duration::from_secs(24 * 60 * 60);
+
+/// Cache types this platform knows how to scan and clean, in display order.
+pub fn supported_types() -> &'static [CacheType] {
+    platform::SUPPORTED
+}
+
+pub fn is_supported(cache_type: &CacheType) -> bool {
+    supported_types().contains(cache_type)
+}
+
+/// Candidate locations for `cache_type` on this platform (may not exist). Empty when unsupported.
+pub fn locations(cache_type: &CacheType) -> Vec<Location> {
+    if !is_supported(cache_type) {
+        return Vec::new();
+    }
+    platform::locations(cache_type)
+}
+
+/// Root of the npm cache (`~/.npm` on macOS, `%LOCALAPPDATA%\npm-cache` on Windows).
+pub fn npm_cache_root() -> PathBuf {
+    platform::npm_cache_root()
+}
+
+/// Chrome "User Data" directory containing `Default`, `Profile N`, ...
+pub fn chrome_user_data() -> PathBuf {
+    platform::chrome_user_data()
+}
+
+fn join_all(base: &Path, names: &[&str]) -> Vec<PathBuf> {
+    names.iter().map(|name| base.join(name)).collect()
+}
+
+#[cfg(not(windows))]
+mod platform {
+    use super::*;
+    use CacheType::*;
+
+    pub const SUPPORTED: &[CacheType] = &[
+        Npm, Chrome, CacheDir, VSCode, Cursor, Safari, Firefox, Arc, Yarn, Pnpm, Pip, CocoaPods,
+        Gradle, Cargo, XcodeDerivedData, XcodeArchives, XcodeSimulators,
+    ];
+
+    pub fn locations(cache_type: &CacheType) -> Vec<Location> {
+        let home = MacPaths::home();
+        let paths = match cache_type {
+            Npm => vec![npm_cache_root()],
+            Chrome => vec![MacPaths::chrome_cache()],
+            CacheDir => vec![MacPaths::cache_dir()],
+            VSCode => join_all(
+                &home.join("Library/Application Support/Code"),
+                &["Cache/Cache_Data", "User/workspaceStorage"],
+            ),
+            Cursor => cursor_paths(&home),
+            Safari => vec![MacPaths::safari_cache()],
+            Firefox => vec![MacPaths::firefox_profiles()],
+            Arc => vec![MacPaths::arc_cache()],
+            Yarn => vec![MacPaths::yarn_cache()],
+            Pnpm => vec![MacPaths::pnpm_cache()],
+            Pip => vec![MacPaths::pip_cache()],
+            CocoaPods => vec![MacPaths::cocoapods_cache()],
+            Gradle => vec![MacPaths::gradle_cache()],
+            Cargo => vec![MacPaths::cargo_cache()],
+            XcodeDerivedData => vec![MacPaths::xcode_derived_data()],
+            XcodeArchives => vec![MacPaths::xcode_archives()],
+            XcodeSimulators => vec![MacPaths::xcode_simulators()],
+            _ => Vec::new(),
+        };
+        paths.into_iter().map(Location::new).collect()
+    }
+
+    /// Cursor caches: the todesktop bundle cache, `Caches/Cursor` and safe Application Support dirs.
+    fn cursor_paths(home: &Path) -> Vec<PathBuf> {
+        let caches_dir = home.join("Library/Caches");
+        let mut paths: Vec<PathBuf> = std::fs::read_dir(&caches_dir)
+            .into_iter()
+            .flatten()
+            .flatten()
+            .filter(|e| e.file_name().to_string_lossy().starts_with("com.todesktop.") && e.path().is_dir())
+            .map(|e| e.path())
+            .collect();
+        paths.push(caches_dir.join("Cursor"));
+        paths.extend(join_all(
+            &home.join("Library/Application Support/Cursor"),
+            &["CachedExtensions", "CachedExtensionVSIXs", "logs"],
+        ));
+        paths
+    }
+
+    pub fn npm_cache_root() -> PathBuf {
+        MacPaths::home().join(".npm")
+    }
+
+    pub fn chrome_user_data() -> PathBuf {
+        MacPaths::home().join("Library/Application Support/Google/Chrome")
+    }
+}
+
+#[cfg(windows)]
+mod platform {
+    use super::*;
+    use crate::utils::process::command;
+    use CacheType::*;
+
+    pub const SUPPORTED: &[CacheType] = &[
+        TempFiles, SystemCaches, WindowsUpdate, ThumbnailCache, ErrorReports, CrashDumps,
+        ShaderCache, RecycleBin, Chrome, Edge, Firefox, VSCode, Cursor, Npm, Yarn, Pnpm, Pip,
+        NuGet, Gradle, Cargo, GoBuild, Uv, CacheDir,
+        // Command-based (no filesystem locations): see cache::wsl and cache::docker.
+        WslSystemCaches, WslUserCaches, DockerBuildCache, DockerImages, DockerContainers,
+        DockerVolumes,
+    ];
+
+    /// Per-profile Chromium caches (Chrome, Edge). Everything here is rebuilt on demand.
+    const CHROMIUM_PROFILE_CACHES: &[&str] =
+        &["Cache", "Code Cache", "GPUCache", "DawnGraphiteCache", "DawnWebGPUCache"];
+    /// Caches shared by all profiles, directly under "User Data".
+    const CHROMIUM_SHARED_CACHES: &[&str] =
+        &["ShaderCache", "GrShaderCache", "GraphiteDawnCache", "GPUPersistentCache"];
+    /// Electron editors (VS Code, Cursor) under %APPDATA%. User settings/extensions are not touched.
+    const ELECTRON_CACHES: &[&str] = &[
+        "Cache", "CachedData", "Code Cache", "GPUCache", "CachedExtensionVSIXs", "logs",
+        "DawnGraphiteCache", "DawnWebGPUCache",
+    ];
+
+    fn home() -> PathBuf {
+        MacPaths::home()
+    }
+
+    /// %LOCALAPPDATA%
+    fn local() -> PathBuf {
+        dirs::data_local_dir().unwrap_or_else(|| home().join("AppData\\Local"))
+    }
+
+    /// %APPDATA%
+    fn roaming() -> PathBuf {
+        dirs::data_dir().unwrap_or_else(|| home().join("AppData\\Roaming"))
+    }
+
+    fn local_low() -> PathBuf {
+        home().join("AppData\\LocalLow")
+    }
+
+    fn env_dir(var: &str, fallback: &str) -> PathBuf {
+        std::env::var_os(var).map(PathBuf::from).unwrap_or_else(|| PathBuf::from(fallback))
+    }
+
+    fn system_root() -> PathBuf {
+        env_dir("SystemRoot", "C:\\Windows")
+    }
+
+    fn program_data() -> PathBuf {
+        env_dir("ProgramData", "C:\\ProgramData")
+    }
+
+    pub fn locations(cache_type: &CacheType) -> Vec<Location> {
+        let paths = match cache_type {
+            TempFiles => return vec![Location::aged(std::env::temp_dir(), TEMP_MIN_AGE)],
+            SystemCaches => return vec![Location::aged(system_root().join("Temp"), TEMP_MIN_AGE)],
+            WindowsUpdate => vec![system_root().join("SoftwareDistribution\\Download")],
+            ThumbnailCache => explorer_cache_files(&local().join("Microsoft\\Windows\\Explorer")),
+            ErrorReports => {
+                let wer = ["ReportArchive", "ReportQueue", "Temp"];
+                let mut paths = join_all(&local().join("Microsoft\\Windows\\WER"), &wer);
+                paths.extend(join_all(&program_data().join("Microsoft\\Windows\\WER"), &wer));
+                paths
+            }
+            CrashDumps => vec![
+                local().join("CrashDumps"),
+                system_root().join("Minidump"),
+                system_root().join("MEMORY.DMP"),
+            ],
+            ShaderCache => {
+                let mut paths = join_all(
+                    &local(),
+                    &["D3DSCache", "NVIDIA\\DXCache", "NVIDIA\\GLCache", "AMD\\DxCache", "AMD\\GLCache", "AMD\\VkCache"],
+                );
+                paths.extend(join_all(&local_low(), &["NVIDIA\\PerDriverVersion\\DXCache", "Intel\\ShaderCache"]));
+                paths
+            }
+            RecycleBin => recycle_bin_dirs(),
+            Chrome => chromium_caches(&chrome_user_data()),
+            Edge => chromium_caches(&local().join("Microsoft\\Edge\\User Data")),
+            Firefox => firefox_caches(&local().join("Mozilla\\Firefox\\Profiles")),
+            VSCode => join_all(&roaming().join("Code"), ELECTRON_CACHES),
+            Cursor => {
+                let mut paths = join_all(&roaming().join("Cursor"), ELECTRON_CACHES);
+                paths.push(roaming().join("Cursor\\CachedExtensions"));
+                paths.push(local().join("cursor-updater"));
+                paths
+            }
+            Npm => vec![npm_cache_root()],
+            Yarn => vec![local().join("Yarn\\Cache")],
+            Pnpm => vec![local().join("pnpm\\store")],
+            Pip => vec![local().join("pip\\cache")],
+            NuGet => vec![
+                home().join(".nuget\\packages"),
+                local().join("NuGet\\v3-cache"),
+                local().join("NuGet\\plugins-cache"),
+            ],
+            Gradle => vec![home().join(".gradle\\caches")],
+            Cargo => vec![home().join(".cargo\\registry")],
+            GoBuild => vec![std::env::var_os("GOCACHE").map(PathBuf::from).unwrap_or_else(|| local().join("go-build"))],
+            Uv => vec![std::env::var_os("UV_CACHE_DIR").map(PathBuf::from).unwrap_or_else(|| local().join("uv\\cache"))],
+            CacheDir => vec![home().join(".cache")],
+            _ => Vec::new(),
+        };
+        paths.into_iter().map(Location::new).collect()
+    }
+
+    /// Shared caches plus per-profile caches of every profile (dirs holding a `Preferences` file).
+    fn chromium_caches(user_data: &Path) -> Vec<PathBuf> {
+        let mut paths = join_all(user_data, CHROMIUM_SHARED_CACHES);
+        for entry in std::fs::read_dir(user_data).into_iter().flatten().flatten() {
+            let profile = entry.path();
+            if profile.join("Preferences").is_file() {
+                paths.extend(join_all(&profile, CHROMIUM_PROFILE_CACHES));
+            }
+        }
+        paths
+    }
+
+    /// %LOCALAPPDATA% Firefox profiles only hold caches; bookmarks etc. live under %APPDATA%.
+    fn firefox_caches(profiles: &Path) -> Vec<PathBuf> {
+        std::fs::read_dir(profiles)
+            .into_iter()
+            .flatten()
+            .flatten()
+            .flat_map(|entry| join_all(&entry.path(), &["cache2", "startupCache", "thumbnails"]))
+            .collect()
+    }
+
+    /// `thumbcache_*.db` / `iconcache_*.db`, rebuilt by Explorer.
+    fn explorer_cache_files(explorer: &Path) -> Vec<PathBuf> {
+        std::fs::read_dir(explorer)
+            .into_iter()
+            .flatten()
+            .flatten()
+            .filter(|entry| {
+                let name = entry.file_name().to_string_lossy().to_ascii_lowercase();
+                (name.starts_with("thumbcache_") || name.starts_with("iconcache_")) && name.ends_with(".db")
+            })
+            .map(|entry| entry.path())
+            .collect()
+    }
+
+    /// The current user's `X:\$Recycle.Bin\<SID>` folder on every drive.
+    fn recycle_bin_dirs() -> Vec<PathBuf> {
+        let Some(sid) = current_user_sid() else { return Vec::new() };
+        (b'A'..=b'Z')
+            .map(|drive| PathBuf::from(format!("{}:\\$Recycle.Bin\\{}", drive as char, sid)))
+            .filter(|path| path.is_dir())
+            .collect()
+    }
+
+    fn current_user_sid() -> Option<String> {
+        // Output: "DOMAIN\user","S-1-5-21-..."
+        let output = command("whoami").args(["/user", "/fo", "csv", "/nh"]).output().ok()?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let sid = stdout.trim().rsplit(',').next()?.trim_matches('"');
+        sid.starts_with("S-1-").then(|| sid.to_string())
+    }
+
+    pub fn npm_cache_root() -> PathBuf {
+        local().join("npm-cache")
+    }
+
+    pub fn chrome_user_data() -> PathBuf {
+        local().join("Google\\Chrome\\User Data")
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_chromium_caches_only_target_real_profiles() {
+            let user_data = tempfile::tempdir().unwrap();
+            let profile = user_data.path().join("Profile 1");
+            std::fs::create_dir(&profile).unwrap();
+            std::fs::write(profile.join("Preferences"), "{}").unwrap();
+            std::fs::create_dir(user_data.path().join("Safe Browsing")).unwrap();
+
+            let paths = chromium_caches(user_data.path());
+
+            assert!(paths.contains(&profile.join("Cache")));
+            assert!(paths.contains(&profile.join("Code Cache")));
+            assert!(paths.contains(&user_data.path().join("GrShaderCache")));
+            assert!(!paths.iter().any(|p| p.starts_with(user_data.path().join("Safe Browsing"))));
+            // Never the profile itself (cookies, history, passwords).
+            assert!(!paths.contains(&profile));
+        }
+
+        #[test]
+        fn test_current_user_sid_parses_whoami() {
+            assert!(current_user_sid().is_some_and(|sid| sid.starts_with("S-1-5-")));
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -270,5 +592,47 @@ mod tests {
     fn test_ios_paths() {
         let backups = MacPaths::ios_backups();
         assert!(backups.to_string_lossy().contains("MobileSync/Backup"));
+    }
+
+    #[test]
+    fn test_user_data_is_never_a_location() {
+        assert!(!is_supported(&CacheType::IosBackups));
+        assert!(locations(&CacheType::IosBackups).is_empty());
+    }
+
+    #[test]
+    fn test_command_based_types_have_no_filesystem_locations() {
+        for cache_type in [CacheType::DockerImages, CacheType::DockerVolumes, CacheType::WslUserCaches] {
+            assert!(locations(&cache_type).is_empty());
+        }
+    }
+
+    #[test]
+    fn test_supported_types_are_unique() {
+        let types = supported_types();
+        for (i, t) in types.iter().enumerate() {
+            assert!(!types[i + 1..].contains(t), "{:?} listed twice", t);
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn test_windows_temp_locations_protect_recent_files() {
+        for cache_type in [CacheType::TempFiles, CacheType::SystemCaches] {
+            let locations = locations(&cache_type);
+            assert!(!locations.is_empty());
+            assert!(locations.iter().all(|l| l.min_age == Some(TEMP_MIN_AGE)));
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn test_windows_editor_locations_skip_user_settings_and_extensions() {
+        for cache_type in [CacheType::VSCode, CacheType::Cursor] {
+            for location in locations(&cache_type) {
+                let name = location.path.file_name().unwrap().to_string_lossy().to_lowercase();
+                assert!(name != "user" && name != "extensions", "{:?}", location.path);
+            }
+        }
     }
 }

@@ -24,6 +24,7 @@
   "bundle": {
     "active": true,
     "category": "DeveloperTool",
+    "icon": ["icons/icon.png", "icons/icon.ico"],
     "macOS": {
       "minimumSystemVersion": "10.15"
     }

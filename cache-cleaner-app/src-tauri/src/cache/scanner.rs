@@ -1,275 +1,99 @@
 use super::{CacheInfo, CacheType};
-use crate::cache::{browser_caches, dev_tools, package_managers, paths::MacPaths};
-use crate::utils::filesystem;
+use crate::cache::docker::{self, DockerBackend};
+use crate::cache::paths::{self, Location};
+use crate::cache::wsl;
+use crate::utils::filesystem::{self, PathStats};
 use anyhow::Result;
 
+/// Scans every cache type supported on this platform; returns the non-empty ones.
 pub async fn scan_all() -> Result<Vec<CacheInfo>> {
-    let mut caches = Vec::new();
-    
-    let cache_types = [
-        CacheType::Npm,
-        CacheType::Chrome,
-        CacheType::CacheDir,
-        CacheType::VSCode,
-        CacheType::Cursor,
-        CacheType::Safari,
-        CacheType::Firefox,
-        CacheType::Arc,
-        CacheType::Yarn,
-        CacheType::Pnpm,
-        CacheType::Pip,
-        CacheType::CocoaPods,
-        CacheType::Gradle,
-        CacheType::Cargo,
-        CacheType::XcodeDerivedData,
-        CacheType::XcodeArchives,
-        CacheType::XcodeSimulators,
-    ];
-    
-    for cache_type in cache_types {
-        if let Ok(info) = scan_cache(&cache_type).await {
-            if info.exists && info.size > 0 {
-                caches.push(info);
-            }
-        }
-    }
-    
+    let scans = paths::supported_types().iter().map(scan_cache);
+    let caches = futures::future::join_all(scans)
+        .await
+        .into_iter()
+        .filter_map(|info| info.ok())
+        .filter(|info| info.exists && info.size > 0)
+        .collect();
     Ok(caches)
 }
 
 pub async fn scan_cache(cache_type: &CacheType) -> Result<CacheInfo> {
-    match cache_type {
-        // Browser caches
-        CacheType::Safari => Ok(browser_caches::get_safari_cache_info()),
-        CacheType::Firefox => Ok(browser_caches::get_firefox_cache_info()),
-        CacheType::Arc => Ok(browser_caches::get_arc_cache_info()),
-        
-        // Package managers
-        CacheType::Yarn => Ok(package_managers::get_yarn_cache_info()),
-        CacheType::Pnpm => Ok(package_managers::get_pnpm_cache_info()),
-        CacheType::Pip => Ok(package_managers::get_pip_cache_info()),
-        CacheType::CocoaPods => Ok(package_managers::get_cocoapods_cache_info()),
-        CacheType::Gradle => Ok(package_managers::get_gradle_cache_info()),
-        CacheType::Cargo => Ok(package_managers::get_cargo_cache_info()),
-        
-        // Development tools
-        CacheType::XcodeDerivedData => Ok(dev_tools::get_xcode_derived_data_info()),
-        CacheType::XcodeArchives => Ok(dev_tools::get_xcode_archives_info()),
-        CacheType::XcodeSimulators => Ok(dev_tools::get_xcode_simulators_info()),
-        
-        // Existing cache types
-        CacheType::Cursor => {
-            let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-            let cursor_cache_paths = get_cursor_cache_paths(&home);
-            
-            let mut total_size = 0u64;
-            let mut item_count = 0usize;
-            let mut exists = false;
-            let mut existing_paths = Vec::new();
-            
-            for path in &cursor_cache_paths {
-                if path.exists() {
-                    exists = true;
-                    existing_paths.push(path.display().to_string());
-                    total_size += filesystem::calculate_dir_size(path).await?;
-                    item_count += filesystem::count_items(path)?;
-                }
-            }
-            
-            let display_path = if existing_paths.is_empty() {
-                home.join("Library/Caches/Cursor").display().to_string()
-            } else {
-                existing_paths.join("\n")
-            };
-            
-            Ok(CacheInfo {
-                cache_type: cache_type.clone(),
-                path: display_path,
-                size: total_size,
-                exists,
-                item_count,
-            })
-        }
-        CacheType::VSCode => {
-            let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-            let vscode_cache_paths = get_vscode_cache_paths(&home);
-            
-            let mut total_size = 0u64;
-            let mut item_count = 0usize;
-            let mut exists = false;
-            let mut existing_paths = Vec::new();
-            
-            for path in &vscode_cache_paths {
-                if path.exists() {
-                    exists = true;
-                    existing_paths.push(path.display().to_string());
-                    total_size += filesystem::calculate_dir_size(path).await?;
-                    item_count += filesystem::count_items(path)?;
-                }
-            }
-            
-            let display_path = if existing_paths.is_empty() {
-                home.join("Library/Application Support/Code/Cache/Cache_Data").display().to_string()
-            } else {
-                existing_paths.join("\n")
-            };
-            
-            Ok(CacheInfo {
-                cache_type: cache_type.clone(),
-                path: display_path,
-                size: total_size,
-                exists,
-                item_count,
-            })
-        }
-        _ => {
-            let path = get_cache_path(cache_type)?;
-            let path_str = path.display().to_string();
-            let exists = path.exists();
-            let (size, item_count) = if exists {
-                let size = filesystem::calculate_dir_size(&path).await?;
-                let count = filesystem::count_items(&path)?;
-                (size, count)
-            } else {
-                (0, 0)
-            };
-
-            Ok(CacheInfo {
-                cache_type: cache_type.clone(),
-                path: path_str,
-                size,
-                exists,
-                item_count,
-            })
-        }
+    if !paths::is_supported(cache_type) {
+        return Err(anyhow::anyhow!("{:?} is not supported on this platform", cache_type));
     }
+    if docker::is_docker_type(cache_type) {
+        let size = docker::reclaimable(cache_type).await?;
+        let path = match docker::backend() {
+            DockerBackend::Host => "docker".to_string(),
+            DockerBackend::Wsl(distro) => format!("docker (WSL: {distro})"),
+        };
+        return Ok(CacheInfo { cache_type: cache_type.clone(), path, size, exists: true, item_count: 0 });
+    }
+    if wsl::is_wsl_type(cache_type) {
+        let ct = cache_type.clone();
+        let (size, item_count, distros) = tokio::task::spawn_blocking(move || wsl::scan(&ct)).await??;
+        let path = distros.iter().map(|d| format!("\\\\wsl.localhost\\{d}")).collect::<Vec<_>>().join("\n");
+        return Ok(CacheInfo { cache_type: cache_type.clone(), path, size, exists: true, item_count });
+    }
+
+    let candidates = paths::locations(cache_type);
+    if candidates.is_empty() {
+        return Err(anyhow::anyhow!("No {:?} location on this machine", cache_type));
+    }
+
+    let cache_type = cache_type.clone();
+    tokio::task::spawn_blocking(move || {
+        let existing = existing_locations(&candidates);
+        let stats = total_stats(&existing);
+        let path = if existing.is_empty() {
+            candidates[0].path.display().to_string()
+        } else {
+            existing
+                .iter()
+                .map(|l| l.path.display().to_string())
+                .collect::<Vec<_>>()
+                .join("\n")
+        };
+        CacheInfo {
+            cache_type,
+            path,
+            size: stats.bytes,
+            exists: !existing.is_empty(),
+            item_count: stats.items,
+        }
+    })
+    .await
+    .map_err(Into::into)
 }
 
 pub async fn get_size(cache_type: &CacheType) -> Result<u64> {
-    match cache_type {
-        CacheType::Cursor => {
-            let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-            let cursor_cache_paths = get_cursor_cache_paths(&home);
-            
-            let mut total_size = 0u64;
-            for path in cursor_cache_paths {
-                if path.exists() {
-                    total_size += filesystem::calculate_dir_size(&path).await?;
-                }
-            }
-            Ok(total_size)
-        }
-        CacheType::VSCode => {
-            let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-            let vscode_cache_paths = get_vscode_cache_paths(&home);
-            
-            let mut total_size = 0u64;
-            for path in vscode_cache_paths {
-                if path.exists() {
-                    total_size += filesystem::calculate_dir_size(&path).await?;
-                }
-            }
-            Ok(total_size)
-        }
-        _ => {
-            let path = get_cache_path(cache_type)?;
-            if path.exists() {
-                if path.is_file() {
-                    filesystem::calculate_file_size(&path).await
-                } else {
-                    filesystem::calculate_dir_size(&path).await
-                }
-            } else {
-                Ok(0)
-            }
-        }
-    }
+    Ok(scan_cache(cache_type).await?.size)
 }
 
-/// Get all safe Cursor cache directories
-fn get_cursor_cache_paths(home: &std::path::Path) -> Vec<std::path::PathBuf> {
-    let mut paths = Vec::new();
-    
-    // Main cache in Library/Caches (todesktop bundle ID)
-    let caches_dir = home.join("Library/Caches");
-    if let Ok(entries) = std::fs::read_dir(&caches_dir) {
-        for entry in entries.filter_map(|e| e.ok()) {
-            let name = entry.file_name().to_string_lossy().to_string();
-            if name.starts_with("com.todesktop.") && entry.path().is_dir() {
-                paths.push(entry.path());
-            }
-        }
-    }
-    
-    // Secondary cache directory
-    let cursor_cache = caches_dir.join("Cursor");
-    if cursor_cache.exists() {
-        paths.push(cursor_cache);
-    }
-    
-    // Safe directories in Application Support
-    let app_support = home.join("Library/Application Support/Cursor");
-    for subdir in ["CachedExtensions", "CachedExtensionVSIXs", "logs"] {
-        let path = app_support.join(subdir);
-        if path.exists() {
-            paths.push(path);
-        }
-    }
-    
-    paths
+pub(crate) fn existing_locations(candidates: &[Location]) -> Vec<Location> {
+    candidates
+        .iter()
+        .filter(|l| std::fs::symlink_metadata(&l.path).is_ok())
+        .cloned()
+        .collect()
 }
 
-/// Get all VSCode cache directories
-fn get_vscode_cache_paths(home: &std::path::Path) -> Vec<std::path::PathBuf> {
-    let mut paths = Vec::new();
-    
-    // Cache/Cache_Data directory
-    let cache_data = home.join("Library/Application Support/Code/Cache/Cache_Data");
-    if cache_data.exists() {
-        paths.push(cache_data);
-    }
-    
-    // User/workspaceStorage directory
-    let workspace_storage = home.join("Library/Application Support/Code/User/workspaceStorage");
-    if workspace_storage.exists() {
-        paths.push(workspace_storage);
-    }
-    
-    paths
+pub(crate) fn total_stats(locations: &[Location]) -> PathStats {
+    locations
+        .iter()
+        .map(|l| filesystem::path_stats(&l.path, l.min_age))
+        .fold(PathStats::default(), |acc, s| PathStats {
+            bytes: acc.bytes + s.bytes,
+            items: acc.items + s.items,
+        })
 }
 
-fn get_cache_path(cache_type: &CacheType) -> Result<std::path::PathBuf> {
-    let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-    
-    Ok(match cache_type {
-        CacheType::Npm => home.join(".npm"),
-        CacheType::Chrome => home.join("Library/Caches/Google/Chrome"),
-        CacheType::CacheDir => home.join(".cache"),
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-        CacheType::VSCode => home.join("Library/Application Support/Code/Cache/Cache_Data"),
-        CacheType::Cursor => home.join("Library/Application Support/Cursor/User/globalStorage"),
-        CacheType::Safari => MacPaths::safari_cache(),
-        CacheType::Firefox => MacPaths::firefox_profiles(),
-        CacheType::Arc => MacPaths::arc_cache(),
-        CacheType::Yarn => MacPaths::yarn_cache(),
-        CacheType::Pnpm => MacPaths::pnpm_cache(),
-        CacheType::Pip => MacPaths::pip_cache(),
-        CacheType::CocoaPods => MacPaths::cocoapods_cache(),
-        CacheType::Gradle => MacPaths::gradle_cache(),
-        CacheType::Cargo => MacPaths::cargo_cache(),
-        CacheType::XcodeDerivedData => MacPaths::xcode_derived_data(),
-        CacheType::XcodeArchives => MacPaths::xcode_archives(),
-        CacheType::XcodeSimulators => MacPaths::xcode_simulators(),
-        CacheType::SystemCaches => MacPaths::system_caches(),
-        CacheType::UserLogs => MacPaths::user_logs(),
-        CacheType::TempFiles => MacPaths::tmp(),
-        CacheType::IosBackups => MacPaths::ios_backups(),
-        // Docker cache types don't have file paths - they're managed by Docker CLI
-        CacheType::DockerContainers | 
-        CacheType::DockerImages | 
-        CacheType::DockerVolumes | 
-        CacheType::DockerBuildCache => {
-            return Err(anyhow::anyhow!("Docker cache types should be managed through docker module"))
-        }
-    })
+    #[tokio::test]
+    async fn test_scan_unsupported_type_errors() {
+        assert!(scan_cache(&CacheType::IosBackups).await.is_err());
+    }
 }

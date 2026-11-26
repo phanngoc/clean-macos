@@ -1,254 +1,77 @@
 use super::{CacheType, CleanResult};
-use crate::cache::{browser_caches, dev_tools, package_managers};
-use crate::utils::filesystem;
+use crate::cache::{docker, paths, wsl};
+use crate::cache::scanner::{existing_locations, total_stats};
+use crate::utils::filesystem::{self, RemovalStats};
 use anyhow::Result;
 
+/// Empties every location of `cache_type`. Locked / access-denied entries are skipped and
+/// reported in the message instead of aborting the whole clean.
 pub async fn clean(cache_type: &CacheType, dry_run: bool) -> Result<CleanResult> {
-    match cache_type {
-        // Browser caches
-        CacheType::Safari | CacheType::Firefox | CacheType::Arc => {
-            Ok(browser_caches::clean_browser_cache(cache_type.clone(), dry_run))
-        }
-        
-        // Package managers
-        CacheType::Yarn | CacheType::Pnpm | CacheType::Pip | 
-        CacheType::CocoaPods | CacheType::Gradle | CacheType::Cargo => {
-            Ok(package_managers::clean_package_cache(cache_type.clone(), dry_run))
-        }
-        
-        // Development tools
-        CacheType::XcodeDerivedData | CacheType::XcodeArchives | CacheType::XcodeSimulators => {
-            Ok(dev_tools::clean_xcode_cache(cache_type.clone(), dry_run))
-        }
-        
-        // Existing cache types
-        CacheType::Cursor => {
-            clean_cursor_cache(dry_run).await
-        }
-        CacheType::VSCode => {
-            clean_vscode_cache(dry_run).await
-        }
-        
-        _ => {
-            clean_directory_cache(cache_type, dry_run).await
-        }
-    }
-}
-
-async fn clean_cursor_cache(dry_run: bool) -> Result<CleanResult> {
-    let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-    let cursor_cache_paths = get_cursor_cache_paths(&home);
-    
-    let mut total_size = 0u64;
-    let mut item_count = 0usize;
-    let mut existing_paths = Vec::new();
-    
-    for path in &cursor_cache_paths {
-        if path.exists() {
-            total_size += filesystem::calculate_dir_size(path).await?;
-            item_count += filesystem::count_items(path)?;
-            existing_paths.push(path.clone());
-        }
-    }
-    
-    if existing_paths.is_empty() {
-        return Ok(CleanResult {
-            cache_type: CacheType::Cursor,
-            freed_bytes: 0,
-            items_removed: 0,
-            success: true,
-            message: "Cursor cache directories do not exist".to_string(),
-            dry_run,
-        });
-    }
-    
-    if dry_run {
-        return Ok(CleanResult {
-            cache_type: CacheType::Cursor,
-            freed_bytes: total_size,
-            items_removed: item_count,
-            success: true,
-            message: format!("Would free {} bytes ({} items)", total_size, item_count),
-            dry_run: true,
-        });
-    }
-    
-    // Clean contents of each cache directory
-    for path in &existing_paths {
-        filesystem::remove_dir_contents(path)?;
-    }
-    
-    Ok(CleanResult {
-        cache_type: CacheType::Cursor,
-        freed_bytes: total_size,
-        items_removed: item_count,
-        success: true,
-        message: format!("Freed {} bytes ({} items)", total_size, item_count),
-        dry_run: false,
-    })
-}
-
-async fn clean_vscode_cache(dry_run: bool) -> Result<CleanResult> {
-    let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-    let vscode_cache_paths = get_vscode_cache_paths(&home);
-    
-    let mut total_size = 0u64;
-    let mut item_count = 0usize;
-    let mut existing_paths = Vec::new();
-    
-    for path in &vscode_cache_paths {
-        if path.exists() {
-            total_size += filesystem::calculate_dir_size(path).await?;
-            item_count += filesystem::count_items(path)?;
-            existing_paths.push(path.clone());
-        }
-    }
-    
-    if existing_paths.is_empty() {
-        return Ok(CleanResult {
-            cache_type: CacheType::VSCode,
-            freed_bytes: 0,
-            items_removed: 0,
-            success: true,
-            message: "VSCode cache directories do not exist".to_string(),
-            dry_run,
-        });
-    }
-    
-    if dry_run {
-        return Ok(CleanResult {
-            cache_type: CacheType::VSCode,
-            freed_bytes: total_size,
-            items_removed: item_count,
-            success: true,
-            message: format!("Would free {} bytes ({} items)", total_size, item_count),
-            dry_run: true,
-        });
-    }
-    
-    // Clean contents of each cache directory
-    for path in &existing_paths {
-        filesystem::remove_dir_contents(path)?;
-    }
-    
-    Ok(CleanResult {
-        cache_type: CacheType::VSCode,
-        freed_bytes: total_size,
-        items_removed: item_count,
-        success: true,
-        message: format!("Freed {} bytes ({} items)", total_size, item_count),
-        dry_run: false,
-    })
-}
-
-/// Get all safe Cursor cache directories
-fn get_cursor_cache_paths(home: &std::path::Path) -> Vec<std::path::PathBuf> {
-    let mut paths = Vec::new();
-    
-    // Main cache in Library/Caches (todesktop bundle ID)
-    let caches_dir = home.join("Library/Caches");
-    if let Ok(entries) = std::fs::read_dir(&caches_dir) {
-        for entry in entries.filter_map(|e| e.ok()) {
-            let name = entry.file_name().to_string_lossy().to_string();
-            if name.starts_with("com.todesktop.") && entry.path().is_dir() {
-                paths.push(entry.path());
-            }
-        }
-    }
-    
-    // Secondary cache directory
-    let cursor_cache = caches_dir.join("Cursor");
-    if cursor_cache.exists() {
-        paths.push(cursor_cache);
-    }
-    
-    // Safe directories in Application Support
-    let app_support = home.join("Library/Application Support/Cursor");
-    for subdir in ["CachedExtensions", "CachedExtensionVSIXs", "logs"] {
-        let path = app_support.join(subdir);
-        if path.exists() {
-            paths.push(path);
-        }
-    }
-    
-    paths
-}
-
-/// Get all VSCode cache directories
-fn get_vscode_cache_paths(home: &std::path::Path) -> Vec<std::path::PathBuf> {
-    let mut paths = Vec::new();
-    
-    // Cache/Cache_Data directory
-    let cache_data = home.join("Library/Application Support/Code/Cache/Cache_Data");
-    if cache_data.exists() {
-        paths.push(cache_data);
-    }
-    
-    // User/workspaceStorage directory
-    let workspace_storage = home.join("Library/Application Support/Code/User/workspaceStorage");
-    if workspace_storage.exists() {
-        paths.push(workspace_storage);
-    }
-    
-    paths
-}
-
-async fn clean_directory_cache(cache_type: &CacheType, dry_run: bool) -> Result<CleanResult> {
-    let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-    
-    let path = match cache_type {
-        CacheType::Npm => home.join(".npm"),
-        CacheType::Chrome => home.join("Library/Caches/Google/Chrome"),
-        CacheType::CacheDir => home.join(".cache"),
-        CacheType::VSCode => home.join("Library/Application Support/Code/Cache/Cache_Data"),
-
-        _ => {
-            return Ok(CleanResult {
-                cache_type: cache_type.clone(),
-                freed_bytes: 0,
-                items_removed: 0,
-                success: false,
-                message: "Unsupported cache type".to_string(),
-                dry_run,
-            });
-        }
-    };
-    
-    if !path.exists() {
-        return Ok(CleanResult {
-            cache_type: cache_type.clone(),
-            freed_bytes: 0,
-            items_removed: 0,
-            success: true,
-            message: "Cache directory does not exist".to_string(),
-            dry_run,
-        });
-    }
-    
-    let size_before = filesystem::calculate_dir_size(&path).await?;
-    let item_count = filesystem::count_items(&path)?;
-    
-    if dry_run {
-        return Ok(CleanResult {
-            cache_type: cache_type.clone(),
-            freed_bytes: size_before,
-            items_removed: item_count,
-            success: true,
-            message: format!("Would free {} bytes ({} items)", size_before, item_count),
-            dry_run: true,
-        });
-    }
-    
-    filesystem::remove_dir_contents(&path)?;
-    
-    Ok(CleanResult {
+    let result = |freed_bytes, items_removed, success, message: String| CleanResult {
         cache_type: cache_type.clone(),
-        freed_bytes: size_before,
-        items_removed: item_count,
-        success: true,
-        message: format!("Freed {} bytes", size_before),
-        dry_run: false,
+        freed_bytes,
+        items_removed,
+        success,
+        message,
+        dry_run,
+    };
+
+    if !paths::is_supported(cache_type) {
+        return Ok(result(0, 0, false, "Unsupported cache type".to_string()));
+    }
+
+    if docker::is_docker_type(cache_type) {
+        if dry_run {
+            let bytes = docker::reclaimable(cache_type).await?;
+            return Ok(result(bytes, 0, true, format!("Would reclaim {} bytes", bytes)));
+        }
+        let r = docker::prune_cache_type(cache_type).await?;
+        let items = r.containers_removed + r.images_removed + r.volumes_removed + r.networks_removed;
+        return Ok(result(r.freed_bytes, items, r.success, r.message));
+    }
+
+    if wsl::is_wsl_type(cache_type) {
+        let ct = cache_type.clone();
+        let (bytes, files, distros) = tokio::task::spawn_blocking(move || {
+            if dry_run { wsl::scan(&ct) } else { wsl::clean(&ct) }
+        })
+        .await??;
+        let verb = if dry_run { "Would free" } else { "Freed (and trimmed)" };
+        let message = format!("{verb} {bytes} bytes ({files} files) in WSL: {}", distros.join(", "));
+        return Ok(result(bytes, files, true, message));
+    }
+
+    let candidates = paths::locations(cache_type);
+    let existing = tokio::task::spawn_blocking(move || existing_locations(&candidates)).await?;
+    if existing.is_empty() {
+        return Ok(result(0, 0, true, "Cache directory does not exist".to_string()));
+    }
+
+    if dry_run {
+        let stats = tokio::task::spawn_blocking(move || total_stats(&existing)).await?;
+        let message = format!("Would free {} bytes ({} items)", stats.bytes, stats.items);
+        return Ok(result(stats.bytes, stats.items, true, message));
+    }
+
+    let stats = tokio::task::spawn_blocking(move || {
+        let mut total = RemovalStats::default();
+        for location in &existing {
+            total.merge(filesystem::remove_contents(&location.path, location.min_age));
+        }
+        total
     })
+    .await?;
+
+    let mut message = format!("Freed {} bytes ({} items)", stats.freed_bytes, stats.removed);
+    if stats.failed > 0 {
+        message.push_str(&format!(
+            "; skipped {} items that are in use or need administrator rights",
+            stats.failed
+        ));
+    }
+    // Partial cleans still count as success; only "nothing could be removed" is a failure.
+    let success = stats.failed == 0 || stats.removed > 0;
+    Ok(result(stats.freed_bytes, stats.removed, success, message))
 }
 
 #[cfg(test)]
@@ -263,42 +86,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_clean_dry_run_returns_dry_run_flag() {
+    async fn test_clean_dry_run_reports_without_failing() {
+        // Supported on every platform.
         let result = clean(&CacheType::Npm, true).await.unwrap();
         assert!(result.dry_run);
-    }
-
-    #[tokio::test]
-    async fn test_clean_cursor_nonexistent() {
-        // This test verifies behavior when Cursor cache doesn't exist
-        let result = clean_cursor_cache(true).await.unwrap();
-        // Either files exist or they don't - both are valid
         assert!(result.success);
-    }
-
-    #[tokio::test]
-    async fn test_clean_result_structure() {
-        let result = clean(&CacheType::Chrome, true).await.unwrap();
-        // Verify the result has expected structure
-        assert!(matches!(result.cache_type, CacheType::Chrome));
-        assert!(result.dry_run);
-    }
-
-    #[tokio::test]
-    async fn test_clean_browser_caches() {
-        let result = clean(&CacheType::Safari, true).await.unwrap();
-        assert!(matches!(result.cache_type, CacheType::Safari));
-    }
-
-    #[tokio::test]
-    async fn test_clean_package_managers() {
-        let result = clean(&CacheType::Yarn, true).await.unwrap();
-        assert!(matches!(result.cache_type, CacheType::Yarn));
-    }
-
-    #[tokio::test]
-    async fn test_clean_dev_tools() {
-        let result = clean(&CacheType::XcodeDerivedData, true).await.unwrap();
-        assert!(matches!(result.cache_type, CacheType::XcodeDerivedData));
+        assert!(matches!(result.cache_type, CacheType::Npm));
     }
 }

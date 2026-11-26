@@ -6,10 +6,7 @@ use std::path::PathBuf;
 /// Scan Chrome profiles for IndexedDB origins and their sizes.
 /// Chỉ trả về các origin có dung lượng >= `threshold_bytes`.
 pub fn scan_indexed_db(threshold_bytes: u64) -> Result<Vec<IndexedDbItem>> {
-    let base = match dirs::home_dir() {
-        Some(h) => h.join("Library/Application Support/Google/Chrome"),
-        None => return Ok(vec![]),
-    };
+    let base = super::paths::chrome_user_data();
     
     if !base.exists() {
         return Ok(vec![]);

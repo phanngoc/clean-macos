@@ -36,6 +36,7 @@ struct FolderFeatures {
     location_type: LocationType,
 }
 
+#[cfg(not(windows))]
 const WHITELIST_PATHS: &[&str] = &[
     "~/Library/Caches",
     "~/Library/Logs",
@@ -45,6 +46,17 @@ const WHITELIST_PATHS: &[&str] = &[
     "~/.yarn",
     "~/.cache",
     "~/Library/Developer/Xcode/DerivedData",
+];
+
+#[cfg(windows)]
+const WHITELIST_PATHS: &[&str] = &[
+    "~/AppData/Local/Temp",
+    "~/AppData/Local/CrashDumps",
+    "~/AppData/Local/*/Cache",
+    "~/AppData/Roaming/*/Cache",
+    "~/AppData/Local/npm-cache",
+    "~/AppData/Local/Yarn/Cache",
+    "~/.cache",
 ];
 
 fn expand_home(path: &str, home: &PathBuf) -> PathBuf {
@@ -95,13 +107,13 @@ fn expand_wildcard_paths(home: &PathBuf) -> Vec<PathBuf> {
 }
 
 fn determine_location_type(path: &PathBuf) -> LocationType {
-    let path_str = path.to_string_lossy().to_lowercase();
+    let path_str = path.to_string_lossy().to_lowercase().replace('\\', "/");
     
     if path_str.contains("deriveddata") || path_str.contains("xcode") {
         LocationType::Dev
-    } else if path_str.contains("/logs") {
+    } else if path_str.contains("/logs") || path_str.contains("/crashdumps") {
         LocationType::Log
-    } else if path_str.contains("caches") || path_str.contains(".cache") 
+    } else if path_str.contains("cache") || path_str.contains("/temp")
         || path_str.contains(".npm") || path_str.contains(".yarn") {
         LocationType::Cache
     } else if path_str.contains("application support") {

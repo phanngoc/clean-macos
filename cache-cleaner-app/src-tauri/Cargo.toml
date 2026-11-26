@@ -2,14 +2,19 @@
 name = "cache-cleaner"
 version = "0.1.0"
 edition = "2021"
+default-run = "cache-cleaner"
+
+[lib]
+name = "cache_cleaner"
+path = "src/lib.rs"
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2", features = [], optional = true }
 
 [dependencies]
-tauri = { version = "2", features = [] }
-tauri-plugin-shell = "2"
-tauri-plugin-dialog = "2"
+tauri = { version = "2", features = [], optional = true }
+tauri-plugin-shell = { version = "2", optional = true }
+tauri-plugin-dialog = { version = "2", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.0", features = ["full"] }
@@ -24,9 +29,16 @@ futures = "0.3"
 tempfile = "3.10"
 
 [features]
-default = ["custom-protocol"]
-custom-protocol = ["tauri/custom-protocol"]
+default = ["gui", "custom-protocol"]
+# Desktop app (Tauri). Disable with `--no-default-features` to build only the CLI/library.
+gui = ["dep:tauri", "dep:tauri-plugin-shell", "dep:tauri-plugin-dialog", "dep:tauri-build"]
+custom-protocol = ["gui", "tauri/custom-protocol"]
 
 [[bin]]
 name = "cache-cleaner"
 path = "src/main.rs"
+required-features = ["gui"]
+
+[[bin]]
+name = "cache-cleaner-cli"
+path = "src/bin/cli.rs"

@@ -12,11 +12,9 @@ const NPM_CACHE_PATHS: &[&str] = &[
     // "_cacache/tmp",
 ];
 
-/// Scans ~/.npm for specific cache subdirectories
+/// Scans the npm cache root (`~/.npm`, or `%LOCALAPPDATA%\npm-cache` on Windows) for cache subdirectories
 pub async fn scan_npm_caches() -> Result<Vec<NpmCacheEntry>> {
-    let home = dirs::home_dir()
-        .ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-    let npm_dir = home.join(".npm");
+    let npm_dir = super::paths::npm_cache_root();
 
     if !npm_dir.exists() {
         return Ok(Vec::new());
@@ -78,17 +76,15 @@ fn scan_npm_caches_sync(npm_dir: &Path) -> Result<Vec<NpmCacheEntry>> {
 
 /// Removes the specified NPM cache directories
 pub async fn remove_npm_caches(paths: Vec<String>) -> Result<super::NpmCachesCleanResult> {
-    let home = dirs::home_dir()
-        .ok_or_else(|| anyhow::anyhow!("Cannot find home directory"))?;
-    let npm_dir = home.join(".npm");
-    let npm_dir_str = npm_dir.to_string_lossy().to_string();
+    let npm_dir = super::paths::npm_cache_root();
 
-    // Validate tất cả paths đều nằm trong ~/.npm để đảm bảo an toàn
+    // Validate tất cả paths đều nằm trong npm cache root để đảm bảo an toàn
     for path_str in &paths {
-        if !path_str.starts_with(&npm_dir_str) {
+        if !Path::new(path_str).starts_with(&npm_dir) {
             return Err(anyhow::anyhow!(
-                "Invalid path: {} is not within ~/.npm",
-                path_str
+                "Invalid path: {} is not within {}",
+                path_str,
+                npm_dir.display()
             ));
         }
     }

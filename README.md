@@ -98,19 +98,31 @@ cargo tauri build --target universal-apple-darwin
 cache-cleaner-app/
 ├── src-tauri/
 │   ├── src/
-│   │   ├── main.rs           # Tauri entry + commands
+│   │   ├── main.rs           # Tauri entry (chỉ dựng app + đăng ký handler)
+│   │   ├── bin/cli.rs        # CLI headless: scan | types | clean | artifacts
+│   │   ├── commands/         # Tauri commands (chỉ binary GUI), adapter mỏng gọi vào lib
+│   │   │   ├── mod.rs        # CmdResult, handler() đăng ký mọi command
+│   │   │   ├── caches.rs     # scan/clean catalog, IndexedDB, npm
+│   │   │   ├── system.rs     # Chrome đang chạy, quyền truy cập
+│   │   │   ├── custom_scanners.rs # registry + lưu config
+│   │   │   ├── suggestions.rs     # smart suggestions
+│   │   │   └── docker.rs     # Docker scan/remove/prune
+│   │   ├── lib.rs            # thư viện dùng chung cho GUI + CLI
 │   │   ├── cache/
-│   │   │   ├── mod.rs        # Cache types & structs
+│   │   │   ├── mod.rs        # CacheType & structs
+│   │   │   ├── paths.rs      # Catalog vị trí cache theo nền tảng
 │   │   │   ├── scanner.rs    # Cache detection
 │   │   │   ├── cleaner.rs    # Cache deletion
-│   │   │   ├── npm.rs        # npm-specific logic
-│   │   │   ├── chrome.rs     # Chrome-specific logic
-│   │   │   ├── cache_dir.rs  # .cache logic
-│   │   │   ├── indexeddb.rs # IndexedDB scanning
-│   │   │   └── large_caches.rs # Large cache detection
+│   │   │   ├── indexeddb.rs  # IndexedDB scanning
+│   │   │   ├── npm_caches.rs # npm caches
+│   │   │   ├── smart_suggestions.rs # Thư mục lớn lâu không dùng
+│   │   │   ├── custom_scanner.rs, registry.rs, scanner_trait.rs
+│   │   │   ├── docker.rs     # Docker (kể cả Docker Engine trong WSL)
+│   │   │   ├── wsl.rs        # Dọn cache trong distro WSL 2 + fstrim
+│   │   │   └── artifacts.rs  # Build output của project idle
 │   │   └── utils/
-│   │       ├── filesystem.rs # File operations
-│   │       └── permissions.rs# macOS permissions
+│   │       ├── filesystem.rs # File operations (xóa best-effort)
+│   │       └── permissions.rs# Quyền truy cập, process đang chạy
 │   ├── Cargo.toml
 │   └── tauri.conf.json
 └── ui/
@@ -127,6 +139,60 @@ cache-cleaner-app/
 | **Large Extensions** | `~/Library/.../Chrome/Extensions/` | Chrome extensions lớn (>100MB) |
 | **IndexedDB** | `~/Library/.../Chrome/.../IndexedDB/` | Dữ liệu IndexedDB của websites (>10MB) |
 | **Large Caches** | `~/Library/Caches/*` | Các cache lớn trong Library/Caches (>1GB) |
+
+### Windows 11
+
+Trên Windows, mỗi loại cache có danh sách vị trí riêng (`src-tauri/src/cache/paths.rs`, module `platform`). Thư mục được làm rỗng (giữ lại thư mục gốc); file bị khóa / đang dùng / cần quyền admin sẽ được **bỏ qua và báo lại**, không làm hỏng cả lượt dọn.
+
+| Loại (`type`) | Vị trí | Ghi chú |
+|---|---|---|
+| `TempFiles` | `%TEMP%` | Chỉ xóa mục không đổi trong 24h |
+| `SystemCaches` | `C:\Windows\Temp` | Cần admin; chỉ mục cũ hơn 24h |
+| `WindowsUpdate` | `C:\Windows\SoftwareDistribution\Download` | Cần admin |
+| `ThumbnailCache` | `%LOCALAPPDATA%\Microsoft\Windows\Explorer\{thumbcache,iconcache}_*.db` | Explorer tự tạo lại |
+| `ErrorReports` | `WER\{ReportArchive,ReportQueue,Temp}` (user + ProgramData) | |
+| `CrashDumps` | `%LOCALAPPDATA%\CrashDumps`, `C:\Windows\Minidump`, `MEMORY.DMP` | |
+| `ShaderCache` | `D3DSCache`, NVIDIA/AMD/Intel shader cache | |
+| `RecycleBin` | `X:\$Recycle.Bin\<SID>` mọi ổ | Không khôi phục được |
+| `Chrome`, `Edge` | `User Data\<profile>\{Cache,Code Cache,GPUCache,…}` + shader caches | Không đụng cookies/history |
+| `Firefox` | `%LOCALAPPDATA%\Mozilla\Firefox\Profiles\*\{cache2,startupCache,thumbnails}` | |
+| `VSCode`, `Cursor` | `%APPDATA%\{Code,Cursor}\{Cache,CachedData,Code Cache,GPUCache,logs,…}` | Không đụng settings/extensions |
+| `Npm`, `Yarn`, `Pnpm`, `Pip`, `NuGet`, `Gradle`, `Cargo`, `GoBuild`, `Uv`, `CacheDir` | `%LOCALAPPDATA%\npm-cache`, `Yarn\Cache`, `pnpm\store`, `pip\cache`, `~\.nuget\packages`, `~\.gradle\caches`, `~\.cargo\registry`, `go-build`, `uv\cache`, `~\.cache` | Tải lại khi cần |
+| `WslSystemCaches` | Trong mọi distro WSL 2: `/var/cache/apt/archives/*.deb`, journal đã archive >7 ngày, log đã rotate, `/tmp` `/var/tmp` >24h, `/var/crash` | Chạy bằng `wsl -u root`, không cần sudo |
+| `WslUserCaches` | `~/.cache`, `~/.npm/_cacache` của root và mọi user trong `/home` | Có thể chứa model/browser tải sẵn |
+| `DockerBuildCache`, `DockerImages`, `DockerContainers`, `DockerVolumes` | `docker builder prune -af`, `image prune -af`, `container prune -f`, `volume prune -f` | Dùng `docker` của Windows, hoặc tự chuyển sang Docker Engine trong distro WSL mặc định |
+
+**WSL trả dung lượng về Windows thế nào:** mỗi distro là một file `ext4.vhdx`; xóa file bên trong không làm nhỏ file này trừ khi VHDX là *sparse*. Sau mỗi lượt dọn WSL/Docker, app chạy `fstrim /` trong distro để trả block trống về Windows. Kiểm tra / bật sparse:
+
+```powershell
+fsutil sparse queryflag "$env:LOCALAPPDATA\wsl\{<guid>}\ext4.vhdx"
+wsl --shutdown; wsl --manage <Distro> --set-sparse true
+```
+
+### CLI (không cần webview)
+
+```bash
+cd cache-cleaner-app/src-tauri
+cargo build --release --no-default-features --bin cache-cleaner-cli
+
+target/release/cache-cleaner-cli scan                      # liệt kê cache + dung lượng
+target/release/cache-cleaner-cli clean --dry-run tempfiles  # xem trước
+target/release/cache-cleaner-cli clean tempfiles gobuild chrome edge
+
+# Build output của project không ai sửa ≥30 ngày (+ sweep target cargo đang dùng: bỏ file không đọc ≥7 ngày)
+target/release/cache-cleaner-cli artifacts --idle-days 30 --sweep-days 7 ~/Documents wsl:/home/me
+target/release/cache-cleaner-cli artifacts --idle-days 30 --sweep-days 7 --delete ~/Documents wsl:/home/me
+```
+
+`--no-default-features` bỏ feature `gui` (Tauri), nên build CLI và chạy test nhẹ hơn nhiều: `cargo test --no-default-features`.
+
+**`artifacts` — an toàn với project đang dùng:**
+
+- Chỉ nhận `node_modules`/`.next`/`.nuxt`/`.turbo`/`.parcel-cache`/`.svelte-kit` (cạnh `package.json`), `target` (cạnh `Cargo.toml`), `.venv`, `.gradle`, và thư mục có `CACHEDIR.TAG` chuẩn.
+- "Project" = git repo bao ngoài (monorepo tính là một). Có **bất kỳ** file nguồn hoặc `.git/index`/`HEAD` thay đổi trong `--idle-days` ⇒ project đang dùng ⇒ không xóa.
+- Thư mục ẩn (`.vscode-server`, `.local`, `.nvm`…) là nơi cài tool, không phải project ⇒ không quét bên trong.
+- `--sweep-days N`: với thư mục có CACHEDIR.TAG của project đang dùng (target cargo), chỉ xóa file **không được đọc** trong N ngày (giống `cargo sweep`); cargo build lại khi cần.
+- Root `wsl:/path` chạy cùng quy tắc bằng shell trong distro, sau đó `fstrim`.
 
 ### Tính năng Safety
 
@@ -145,7 +211,7 @@ cache-cleaner-app/
 
 ## Requirements
 
-- macOS 10.15+ (Catalina trở lên)
+- macOS 10.15+ (Catalina trở lên) hoặc Windows 10/11 (WebView2)
 - Rust 1.70+ (để build từ source)
 - Node.js 18+ (cho Tauri CLI)
 
@@ -208,6 +274,15 @@ Inspired by the need for efficient cache management on macOS, especially with la
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/clean-macos/discussions)
 
 ## Changelog
+
+### Unreleased
+
+- ✨ Hỗ trợ Windows 11: Temp, Windows Update, thumbnail cache, WER, crash dumps, shader cache, Recycle Bin, Edge, NuGet, Go build cache, uv
+- ✨ CLI `cache-cleaner-cli` (`scan`, `types`, `clean [--dry-run]`, `artifacts`)
+- ✨ `artifacts`: dọn build output của project idle + sweep target cargo đang dùng, cả Windows lẫn WSL
+- ✨ WSL 2: dọn cache hệ thống / user trong distro + `fstrim` để VHDX sparse trả dung lượng về Windows
+- ✨ Docker: tự dùng Docker Engine trong WSL khi Windows không có `docker.exe`; prune theo loại từ CLI
+- ♻️ Scanner/cleaner dùng chung một catalog vị trí theo nền tảng; xóa best-effort (bỏ qua file bị khóa thay vì dừng)
 
 ### v1.0.0 (Initial Release)
 
