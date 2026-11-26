@@ -106,6 +106,12 @@ fn expand_wildcard_paths(home: &PathBuf) -> Vec<PathBuf> {
     paths
 }
 
+/// Directories whose immediate subfolders [`scan_suggestions`] looks at. A suggested folder is
+/// always a direct child of one of these.
+pub fn suggestion_roots() -> Vec<PathBuf> {
+    dirs::home_dir().map(|home| expand_wildcard_paths(&home)).unwrap_or_default()
+}
+
 fn determine_location_type(path: &PathBuf) -> LocationType {
     let path_str = path.to_string_lossy().to_lowercase().replace('\\', "/");
     

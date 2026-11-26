@@ -20,6 +20,9 @@ pub mod docker;
 pub mod wsl;
 // Stale build output (node_modules, target, ...) of idle projects
 pub mod artifacts;
+// `suggest` CLI: candidates from every source + self-learning memory of the user's choices
+pub mod advisor;
+pub mod memory;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
